@@ -1,0 +1,28 @@
+// Local storage keys
+export const STORAGE_KEYS = {
+  STORIES: 'life-scrum-stories',
+  SPRINTS: 'life-scrum-sprints',
+  PROJECTS: 'life-scrum-projects',
+  ROLES: 'life-scrum-roles',
+  LABELS: 'life-scrum-labels',
+  VISIONS: 'life-scrum-visions',
+  GOALS: 'life-scrum-goals',
+  BUCKETLIST: 'life-scrum-bucketlist',
+  COLUMNS: 'life-scrum-columns',
+  BOARDS: 'life-scrum-boards',
+  SETTINGS: 'life-scrum-settings',
+  CURRENT_VIEW: 'life-scrum-current-view',
+  SELECTED_SPRINT: 'life-scrum-selected-sprint',
+  SELECTED_STORIES: 'life-scrum-selected-stories',
+  FOCUSED_STORY: 'life-scrum-focused-story',
+  FILTER_TEXT: 'life-scrum-filter-text',
+  FILTER_KEYWORDS: 'life-scrum-filter-keywords',
+  FILTER_DUE_SOON: 'life-scrum-filter-due-soon',
+  CHART_COLLAPSED: 'life-scrum-chart-collapsed',
+  BOARD_COLLAPSED: 'life-scrum-board-collapsed',
+  ROADMAP_COLLAPSED: 'life-scrum-roadmap-collapsed',
+  CHART_ABOVE_BOARD: 'life-scrum-chart-above-board',
+  ROADMAP_POSITION: 'life-scrum-roadmap-position',
+  BURNDOWN_COLLAPSED: 'life-scrum-burndown-collapsed',
+  BURNUP_COLLAPSED: 'life-scrum-burnup-collapsed'
+} as const;
