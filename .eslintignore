@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Config files
+*.config.js
+*.config.ts
+vite.config.ts
+vitest.config.ts
+vitest.*.config.ts
+
+# Generated files
+*.d.ts
+
+# Test files (optional - uncomment if you want to exclude them)
+# **/*.test.ts
+# **/*.test.tsx
+# **/__tests__/
+
+# Documentation
+*.md
+
+# Logs
+*.log
