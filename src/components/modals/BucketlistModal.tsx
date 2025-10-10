@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { 
-  bucketlistAtom,
   addBucketlistItemAtom,
   updateBucketlistItemAtom,
   rolesAtom,
   settingsAtom,
   visionsAtom
 } from '@/stores/appStore';
+import { useBucketlistSettings } from '@/utils/settingsMirror';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,25 +24,28 @@ interface BucketlistModalProps {
 }
 
 export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: BucketlistModalProps) {
-  const [bucketlistItems] = useAtom(bucketlistAtom);
+  // const [bucketlistItems] = useAtom(bucketlistAtom);
   const [, addBucketlistItem] = useAtom(addBucketlistItemAtom);
   const [, updateBucketlistItem] = useAtom(updateBucketlistItemAtom);
   const [roles] = useAtom(rolesAtom);
   const [settings] = useAtom(settingsAtom);
   const [visions] = useAtom(visionsAtom);
 
+  // Use settings mirror system for bucketlist settings
+  const bucketlistSettings = useBucketlistSettings();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'Adventure',
-    priority: 'Q1' as 'Q1' | 'Q2' | 'Q3' | 'Q4',
-    status: 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'on-hold',
+    category: (bucketlistSettings.bucketlistCategories || [])[0]?.name || 'Adventure',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    status: (bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors)[0] : 'not-started') as string,
     roleId: 'none',
     visionId: 'none',
     dueDate: '',
     bucketlistType: 'location' as 'location' | 'experience',
     country: 'US',
-    state: '',
+    state: 'none',
     city: '',
     experienceCategory: ''
   });
@@ -56,15 +59,17 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
         setFormData({
           title: bucketlistItem.title,
           description: bucketlistItem.description || '',
-          category: bucketlistItem.category || 'Adventure',
-          priority: bucketlistItem.priority || 'Q1',
-          status: bucketlistItem.status || 'not-started',
+          category: bucketlistItem.category || (bucketlistSettings.bucketlistCategories || [])[0]?.name || 'Adventure',
+          priority: (bucketlistItem.priority === 'Q1' || bucketlistItem.priority === 'Q2' || bucketlistItem.priority === 'Q3' || bucketlistItem.priority === 'Q4') 
+            ? 'high' : bucketlistItem.priority === 'high' ? 'high' : bucketlistItem.priority === 'medium' ? 'medium' : 'low',
+          status: (bucketlistItem.status === 'in-progress' || bucketlistItem.status === 'completed' || bucketlistItem.status === 'not-started' || bucketlistItem.status === 'on-hold') 
+            ? bucketlistItem.status : 'not-started',
           roleId: bucketlistItem.roleId || 'none',
           visionId: bucketlistItem.visionId || 'none',
           dueDate: bucketlistItem.dueDate || '',
           bucketlistType: bucketlistItem.bucketlistType || 'location',
           country: bucketlistItem.country || 'US',
-          state: bucketlistItem.state || '',
+          state: bucketlistItem.state || 'none',
           city: bucketlistItem.city || '',
           experienceCategory: bucketlistItem.experienceCategory || ''
         });
@@ -73,15 +78,15 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
         setFormData({
           title: '',
           description: '',
-          category: 'Adventure',
-          priority: 'Q1',
-          status: 'not-started',
+          category: (bucketlistSettings.bucketlistCategories || [])[0]?.name || 'Adventure',
+          priority: 'medium',
+          status: (bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors)[0] : 'not-started'),
           roleId: 'none',
           visionId: 'none',
           dueDate: '',
           bucketlistType: 'location',
           country: 'US',
-          state: '',
+        state: 'none',
           city: '',
           experienceCategory: ''
         });
@@ -100,14 +105,14 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
-        priority: formData.priority,
-        status: formData.status,
+        priority: formData.priority as 'high' | 'medium' | 'low',
+        status: formData.status as 'in-progress' | 'completed' | 'not-started' | 'on-hold',
         roleId: formData.roleId === 'none' ? undefined : formData.roleId,
         visionId: formData.visionId === 'none' ? undefined : formData.visionId,
         dueDate: formData.dueDate || undefined,
         bucketlistType: formData.bucketlistType,
         country: formData.bucketlistType === 'location' ? formData.country : undefined,
-        state: formData.bucketlistType === 'location' ? formData.state : undefined,
+        state: formData.bucketlistType === 'location' ? (formData.state === 'none' ? '' : formData.state) : undefined,
         city: formData.bucketlistType === 'location' ? formData.city : undefined,
         experienceCategory: formData.bucketlistType === 'experience' ? formData.experienceCategory : undefined,
         order: 0,
@@ -121,19 +126,27 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
 
       onClose();
     } catch (error) {
-      console.error('Error saving bucketlist item:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      
+      // Clear state when country changes from US to something else
+      if (field === 'country' && value !== 'US') {
+        newData.state = 'none';
+      }
+      
+      return newData;
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
@@ -147,7 +160,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
               Title *
@@ -158,7 +171,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Enter bucketlist item title..."
               required
-              className="w-full"
+              className="w-full min-h-[44px]"
             />
           </div>
 
@@ -203,7 +216,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="category" className="text-sm font-medium">
                 Category
@@ -216,9 +229,15 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {['Adventure', 'Travel', 'Learning', 'Experience', 'Achievement', 'Personal'].map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {(bucketlistSettings.bucketlistCategories || []).map((category) => (
+                    <SelectItem key={category.name} value={category.name}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        ></div>
+                        {category.name}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -237,14 +256,18 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {['Q1', 'Q2', 'Q3', 'Q4'].map((priority) => (
-                    <SelectItem key={priority} value={priority}>
+                  {[
+                    { value: 'low', label: 'Low Priority', color: bucketlistSettings.getPriorityColor('low') },
+                    { value: 'medium', label: 'Medium Priority', color: bucketlistSettings.getPriorityColor('medium') },
+                    { value: 'high', label: 'High Priority', color: bucketlistSettings.getPriorityColor('high') }
+                  ].map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value}>
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: settings.priorityColors?.[priority as keyof typeof settings.priorityColors] || '#6B7280' }}
+                          style={{ backgroundColor: priority.color }}
                         />
-                        {priority}
+                        {priority.label}
                       </div>
                     </SelectItem>
                   ))}
@@ -253,7 +276,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="status" className="text-sm font-medium">
                 Status
@@ -266,12 +289,12 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {['not-started', 'in-progress', 'completed', 'on-hold'].map((status) => (
+                  {(bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors) : ['not-started', 'in-progress', 'completed', 'on-hold']).map((status) => (
                     <SelectItem key={status} value={status}>
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: settings.statusColors?.[status as keyof typeof settings.statusColors] || '#6B7280' }}
+                          style={{ backgroundColor: bucketlistSettings.getStatusColor(status) }}
                         />
                         {status}
                       </div>
@@ -290,12 +313,12 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                className="w-full"
+                className="w-full min-h-[44px]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="role" className="text-sm font-medium">
                 Role
@@ -344,7 +367,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
           {/* Conditional fields based on bucketlist type */}
           {formData.bucketlistType === 'location' ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="country" className="text-sm font-medium">
                     Country
@@ -376,18 +399,75 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                   </Select>
                 </div>
                 
+                {formData.country === 'US' && (
                 <div className="space-y-2">
                   <label htmlFor="state" className="text-sm font-medium">
-                    State/Province
+                      State
                   </label>
-                  <Input
-                    id="state"
+                    <Select
                     value={formData.state}
-                    onChange={(e) => handleInputChange('state', e.target.value)}
-                    placeholder="State or Province"
-                    className="w-full"
-                  />
+                      onValueChange={(value) => handleInputChange('state', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="AL">Alabama</SelectItem>
+                        <SelectItem value="AK">Alaska</SelectItem>
+                        <SelectItem value="AZ">Arizona</SelectItem>
+                        <SelectItem value="AR">Arkansas</SelectItem>
+                        <SelectItem value="CA">California</SelectItem>
+                        <SelectItem value="CO">Colorado</SelectItem>
+                        <SelectItem value="CT">Connecticut</SelectItem>
+                        <SelectItem value="DE">Delaware</SelectItem>
+                        <SelectItem value="FL">Florida</SelectItem>
+                        <SelectItem value="GA">Georgia</SelectItem>
+                        <SelectItem value="HI">Hawaii</SelectItem>
+                        <SelectItem value="ID">Idaho</SelectItem>
+                        <SelectItem value="IL">Illinois</SelectItem>
+                        <SelectItem value="IN">Indiana</SelectItem>
+                        <SelectItem value="IA">Iowa</SelectItem>
+                        <SelectItem value="KS">Kansas</SelectItem>
+                        <SelectItem value="KY">Kentucky</SelectItem>
+                        <SelectItem value="LA">Louisiana</SelectItem>
+                        <SelectItem value="ME">Maine</SelectItem>
+                        <SelectItem value="MD">Maryland</SelectItem>
+                        <SelectItem value="MA">Massachusetts</SelectItem>
+                        <SelectItem value="MI">Michigan</SelectItem>
+                        <SelectItem value="MN">Minnesota</SelectItem>
+                        <SelectItem value="MS">Mississippi</SelectItem>
+                        <SelectItem value="MO">Missouri</SelectItem>
+                        <SelectItem value="MT">Montana</SelectItem>
+                        <SelectItem value="NE">Nebraska</SelectItem>
+                        <SelectItem value="NV">Nevada</SelectItem>
+                        <SelectItem value="NH">New Hampshire</SelectItem>
+                        <SelectItem value="NJ">New Jersey</SelectItem>
+                        <SelectItem value="NM">New Mexico</SelectItem>
+                        <SelectItem value="NY">New York</SelectItem>
+                        <SelectItem value="NC">North Carolina</SelectItem>
+                        <SelectItem value="ND">North Dakota</SelectItem>
+                        <SelectItem value="OH">Ohio</SelectItem>
+                        <SelectItem value="OK">Oklahoma</SelectItem>
+                        <SelectItem value="OR">Oregon</SelectItem>
+                        <SelectItem value="PA">Pennsylvania</SelectItem>
+                        <SelectItem value="RI">Rhode Island</SelectItem>
+                        <SelectItem value="SC">South Carolina</SelectItem>
+                        <SelectItem value="SD">South Dakota</SelectItem>
+                        <SelectItem value="TN">Tennessee</SelectItem>
+                        <SelectItem value="TX">Texas</SelectItem>
+                        <SelectItem value="UT">Utah</SelectItem>
+                        <SelectItem value="VT">Vermont</SelectItem>
+                        <SelectItem value="VA">Virginia</SelectItem>
+                        <SelectItem value="WA">Washington</SelectItem>
+                        <SelectItem value="WV">West Virginia</SelectItem>
+                        <SelectItem value="WI">Wisconsin</SelectItem>
+                        <SelectItem value="WY">Wyoming</SelectItem>
+                        <SelectItem value="DC">District of Columbia</SelectItem>
+                      </SelectContent>
+                    </Select>
                 </div>
+                )}
                 
                 <div className="space-y-2">
                   <label htmlFor="city" className="text-sm font-medium">
@@ -398,7 +478,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
                     placeholder="City"
-                    className="w-full"
+                    className="w-full min-h-[44px]"
                   />
                 </div>
               </div>
@@ -413,12 +493,12 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 value={formData.experienceCategory}
                 onChange={(e) => handleInputChange('experienceCategory', e.target.value)}
                 placeholder="e.g., Adventure, Learning, Achievement..."
-                className="w-full"
+                className="w-full min-h-[44px]"
               />
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"

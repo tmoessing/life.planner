@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { storiesAtom, rolesAtom, visionsAtom, safeSprintsAtom, settingsAtom, updateStoryAtom, deleteStoryAtom, goalsAtom, projectsAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 import { FilterBar } from '@/components/forms/FilterBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { Plus, Target, Calendar, Grid, Edit, Weight, Users, Star, List, PieChart, Filter, X } from 'lucide-react';
 import type { Priority, StoryType, Story } from '@/types';
 
-type BoardType = 'Priority' | 'Role' | 'Type' | 'Vision' | 'Weight' | 'Size';
+type BoardType = 'Priority' | 'Role' | 'Type' | 'Vision' | 'Weight' | 'Size' | 'Status' | 'Project' | 'Task Categories' | 'Location';
 type ViewType = 'list' | 'pie';
 
 export function StoryBoardsView() {
@@ -25,6 +26,9 @@ export function StoryBoardsView() {
   const [settings] = useAtom(settingsAtom);
   const [, updateStory] = useAtom(updateStoryAtom);
   const [, deleteStory] = useAtom(deleteStoryAtom);
+
+  // Use settings mirror system for story settings
+  const storySettings = useStorySettings();
   
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [showEditStoryModal, setShowEditStoryModal] = useState(false);
@@ -57,13 +61,8 @@ export function StoryBoardsView() {
 
   const priorities: Priority[] = ['Q1', 'Q2', 'Q3', 'Q4'];
   const weights = [1, 3, 5, 8, 13, 21];
-  const sizes = settings.storySizes || [
-    { name: 'XS', color: '#10B981', timeEstimate: '15 min' },
-    { name: 'S', color: '#3B82F6', timeEstimate: '30 min' },
-    { name: 'M', color: '#F59E0B', timeEstimate: '1 hour' },
-    { name: 'L', color: '#EF4444', timeEstimate: '2-4 hours' },
-    { name: 'XL', color: '#8B5CF6', timeEstimate: '1+ days' }
-  ];
+  // Use story sizes from settings mirror system
+  const sizes = storySettings.storySizes;
   
   // Filter stories based on all selected filters
   const getFilteredStories = () => {
@@ -183,32 +182,40 @@ export function StoryBoardsView() {
     return getFilteredStories().filter(story => story.size === size);
   };
 
+  const getStoriesByStatus = (status: string) => {
+    return getFilteredStories().filter(story => story.status === status);
+  };
+
+  const getStoriesByProject = (projectId: string) => {
+    return getFilteredStories().filter(story => story.projectId === projectId);
+  };
+
+  const getStoriesByTaskCategory = (category: string) => {
+    return getFilteredStories().filter(story => 
+      story.taskCategories && story.taskCategories.includes(category)
+    );
+  };
+
+  const getStoriesByLocation = (location: string) => {
+    return getFilteredStories().filter(story => story.location === location);
+  };
+
   const getPriorityColor = (priority: Priority) => {
-    switch (priority) {
-      case 'Q1':
-        return 'bg-red-50 border-red-200';
-      case 'Q2':
-        return 'bg-orange-50 border-orange-200';
-      case 'Q3':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'Q4':
-        return 'bg-gray-50 border-gray-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
-    }
+    const priorityColor = storySettings.getPriorityColor(priority);
+    return `bg-[${priorityColor}]/10 border-[${priorityColor}]/30 text-[${priorityColor}]`;
   };
 
   // Get badge color based on type and value
   const getBadgeColor = (type: 'size' | 'priority' | 'weight', value: any) => {
     switch (type) {
       case 'size':
-        const size = sizes.find(s => s.name === value);
-        return size ? `bg-[${size.color}]/10 border-[${size.color}]/30 text-[${size.color}]` : 'bg-gray-50 border-gray-200';
+        const sizeColor = storySettings.getSizeColor(value);
+        return `bg-[${sizeColor}]/10 border-[${sizeColor}]/30 text-[${sizeColor}]`;
       case 'priority':
         return getPriorityColor(value);
       case 'weight':
         // Color based on weight gradient from settings
-        const gradientColor = getWeightGradientColor(value, settings.weightBaseColor, 21);
+        const gradientColor = getWeightGradientColor(value, storySettings.weightBaseColor, 21);
         return `bg-[${gradientColor}]/10 border-[${gradientColor}]/30 text-[${gradientColor}]`;
       default:
         return 'bg-gray-50 border-gray-200';
@@ -218,14 +225,12 @@ export function StoryBoardsView() {
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, storyId: string) => {
-    console.log('Drag start for story:', storyId);
     setDraggedStoryId(storyId);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', storyId);
   };
 
   const handleDragEnd = () => {
-    console.log('Drag end');
     setDraggedStoryId(null);
     setDragOverBoardId(null);
   };
@@ -236,19 +241,16 @@ export function StoryBoardsView() {
   };
 
   const handleDragOverBoard = (boardId: string) => {
-    console.log('Drag over board:', boardId);
     setDragOverBoardId(boardId);
   };
 
   const handleDragLeaveBoard = () => {
-    console.log('Drag leave board');
     setDragOverBoardId(null);
   };
 
   const handleDrop = (e: React.DragEvent, targetBoardId: string, targetValue: any) => {
     e.preventDefault();
     const storyId = e.dataTransfer.getData('text/plain');
-    console.log('Drop event:', { storyId, targetBoardId, targetValue, draggedStoryId });
     
     if (storyId) {
       // Update the story based on the board type
@@ -273,9 +275,31 @@ export function StoryBoardsView() {
         case 'Size':
           updates.size = targetValue;
           break;
+        case 'Status':
+          updates.status = targetValue;
+          break;
+        case 'Project':
+          updates.projectId = targetValue;
+          break;
+        case 'Task Categories':
+          // For task categories, we need to add/remove from the array
+          const currentStory = stories.find(s => s.id === storyId);
+          if (currentStory) {
+            const currentCategories = currentStory.taskCategories || [];
+            if (currentCategories.includes(targetValue)) {
+              // Remove if already present
+              updates.taskCategories = currentCategories.filter(cat => cat !== targetValue);
+            } else {
+              // Add if not present
+              updates.taskCategories = [...currentCategories, targetValue];
+            }
+          }
+          break;
+        case 'Location':
+          updates.location = targetValue;
+          break;
       }
       
-      console.log('Updating story with:', updates);
       updateStory(storyId, updates);
     }
     
@@ -429,9 +453,7 @@ export function StoryBoardsView() {
         return priorities.map(priority => ({
           label: priority,
           value: getStoriesByPriority(priority).length,
-          color: getPriorityColor(priority).includes('red') ? '#EF4444' : 
-                 getPriorityColor(priority).includes('orange') ? '#F59E0B' :
-                 getPriorityColor(priority).includes('yellow') ? '#EAB308' : '#6B7280'
+          color: storySettings.getPriorityColor(priority)
         }));
       
       case 'Role':
@@ -442,12 +464,8 @@ export function StoryBoardsView() {
         }));
       
       case 'Type':
-        const storyTypes = settings.storyTypes || [
-          { name: 'Spiritual', color: '#8B5CF6' },
-          { name: 'Physical', color: '#EF4444' },
-          { name: 'Intellectual', color: '#3B82F6' },
-          { name: 'Social', color: '#10B981' }
-        ];
+        // Use story types from settings mirror system
+        const storyTypes = storySettings.storyTypes;
         return storyTypes.map(type => ({
           label: type.name,
           value: getStoriesByType(type.name as StoryType).length,
@@ -458,7 +476,7 @@ export function StoryBoardsView() {
         return visions.map(vision => ({
           label: vision.title,
           value: getStoriesByVision(vision.id).length,
-          color: settings.visionTypes?.find(vt => vt.name === vision.type)?.color || '#8B5CF6'
+          color: storySettings.getVisionTypeColor(vision.type)
         }));
       
       case 'Weight':
@@ -473,6 +491,41 @@ export function StoryBoardsView() {
           label: size.name,
           value: getStoriesBySize(size.name).length,
           color: size.color
+        }));
+      
+      case 'Status':
+        const statuses = ['icebox', 'backlog', 'todo', 'progress', 'review', 'done'];
+        return statuses.map(status => ({
+          label: status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' '),
+          value: getStoriesByStatus(status).length,
+          color: storySettings.getStatusColor(status)
+        }));
+      
+      case 'Project':
+        return projects.map(project => ({
+          label: project.name,
+          value: getStoriesByProject(project.id).length,
+          color: storySettings.weightBaseColor
+        }));
+      
+      case 'Task Categories':
+        // Use task categories from settings mirror system
+        const taskCategories = storySettings.taskCategories;
+        return taskCategories.map(category => ({
+          label: category.name,
+          value: getStoriesByTaskCategory(category.name).length,
+          color: category.color
+        }));
+      
+      case 'Location':
+        const locations = [...new Set(getFilteredStories()
+          .map(story => story.location)
+          .filter(location => location && location.trim() !== '')
+        )];
+        return locations.map(location => ({
+          label: location || 'Unknown',
+          value: getStoriesByLocation(location || '').length,
+          color: storySettings.weightBaseColor
         }));
       
       default:
@@ -645,12 +698,8 @@ export function StoryBoardsView() {
         });
 
       case 'Type':
-        const storyTypes = settings.storyTypes || [
-          { name: 'Spiritual', color: '#8B5CF6' },
-          { name: 'Physical', color: '#EF4444' },
-          { name: 'Intellectual', color: '#3B82F6' },
-          { name: 'Social', color: '#10B981' }
-        ];
+        // Use story types from settings mirror system
+        const storyTypes = storySettings.storyTypes;
         return storyTypes.map((type) => {
           const typeStories = getStoriesByType(type.name as StoryType);
           return (
@@ -714,7 +763,7 @@ export function StoryBoardsView() {
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: visionType?.color || '#8B5CF6' }}
+                      style={{ backgroundColor: storySettings.getVisionTypeColor(vision.type) }}
                     />
                     <CardTitle className="text-base">{vision.title}</CardTitle>
                   </div>
@@ -835,6 +884,179 @@ export function StoryBoardsView() {
           );
         });
 
+      case 'Status':
+        const statuses = ['icebox', 'backlog', 'todo', 'progress', 'review', 'done'];
+        return statuses.map((status) => {
+          const statusStories = getStoriesByStatus(status);
+          return (
+            <Card 
+              key={status} 
+              className={`bg-gray-50 border-gray-200 ${
+                dragOverBoardId === status ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onDragOver={handleDragOver}
+              onDragEnter={() => handleDragOverBoard(status)}
+              onDragLeave={handleDragLeaveBoard}
+              onDrop={(e) => handleDrop(e, status, status)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base capitalize">{status.replace('-', ' ')}</CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {statusStories.length}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {statusStories.map((story, index) => renderStoryCard(story, statusStories, index))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowAddStoryModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Story
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        });
+
+      case 'Project':
+        return projects.map((project) => {
+          const projectStories = getStoriesByProject(project.id);
+          return (
+            <Card 
+              key={project.id} 
+              className={`bg-blue-50 border-blue-200 ${
+                dragOverBoardId === project.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onDragOver={handleDragOver}
+              onDragEnter={() => handleDragOverBoard(project.id)}
+              onDragLeave={handleDragLeaveBoard}
+              onDrop={(e) => handleDrop(e, project.id, project.id)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">{project.name}</CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {projectStories.length}
+                  </Badge>
+                </div>
+                {project.description && (
+                  <div className="text-xs text-muted-foreground">
+                    {project.description}
+                  </div>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {projectStories.map((story, index) => renderStoryCard(story, projectStories, index))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowAddStoryModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Story
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        });
+
+      case 'Task Categories':
+        // Use task categories from settings mirror system
+        const taskCategories = storySettings.taskCategories;
+        return taskCategories.map((category) => {
+          const categoryStories = getStoriesByTaskCategory(category.name);
+          return (
+            <Card 
+              key={category.name} 
+              className={`bg-gray-50 border-gray-200 ${
+                dragOverBoardId === category.name ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onDragOver={handleDragOver}
+              onDragEnter={() => handleDragOverBoard(category.name)}
+              onDragLeave={handleDragLeaveBoard}
+              onDrop={(e) => handleDrop(e, category.name, category.name)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <CardTitle className="text-base">{category.name}</CardTitle>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {categoryStories.length}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {categoryStories.map((story, index) => renderStoryCard(story, categoryStories, index))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowAddStoryModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Story
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        });
+
+      case 'Location':
+        // Get unique locations from stories
+        const locations = [...new Set(getFilteredStories()
+          .map(story => story.location)
+          .filter(location => location && location.trim() !== '')
+        )];
+        
+        return locations.map((location) => {
+          const loc = location || 'Unknown';
+          const locationStories = getStoriesByLocation(loc);
+          return (
+            <Card 
+              key={loc} 
+              className={`bg-green-50 border-green-200 ${
+                dragOverBoardId === loc ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onDragOver={handleDragOver}
+              onDragEnter={() => handleDragOverBoard(loc)}
+              onDragLeave={handleDragLeaveBoard}
+              onDrop={(e) => handleDrop(e, loc, loc)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">{location}</CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {locationStories.length}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {locationStories.map((story, index) => renderStoryCard(story, locationStories, index))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowAddStoryModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Story
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        });
+
       default:
         return null;
     }
@@ -847,29 +1069,38 @@ export function StoryBoardsView() {
           <Target className="h-6 w-6" />
           <h2 className="text-2xl font-bold">Story Boards</h2>
         </div>
-        {selectedStoryIds.size > 0 && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {selectedStoryIds.size} selected
-            </Badge>
-            <Button 
-              size="sm" 
-              variant="destructive" 
-              onClick={handleDeleteSelected}
-              className="text-xs h-6"
-            >
-              Delete
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={clearSelection}
-              className="text-xs h-6"
-            >
-              Clear
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => setShowAddStoryModal(true)}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Story
+          </Button>
+          {selectedStoryIds.size > 0 && (
+            <>
+              <Badge variant="secondary" className="text-xs">
+                {selectedStoryIds.size} selected
+              </Badge>
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                onClick={handleDeleteSelected}
+                className="text-xs h-6"
+              >
+                Delete
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={clearSelection}
+                className="text-xs h-6"
+              >
+                Clear
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Sprint and Board Type Selection */}
@@ -911,6 +1142,10 @@ export function StoryBoardsView() {
               <SelectItem value="Vision">Vision</SelectItem>
               <SelectItem value="Weight">Weight</SelectItem>
               <SelectItem value="Size">Size</SelectItem>
+              <SelectItem value="Status">Status</SelectItem>
+              <SelectItem value="Project">Project</SelectItem>
+              <SelectItem value="Task Categories">Task Categories</SelectItem>
+              <SelectItem value="Location">Location</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -997,7 +1232,7 @@ export function StoryBoardsView() {
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: settings.priorityColors?.[priority] || '#6B7280' }}
+                            style={{ backgroundColor: storySettings.getPriorityColor(priority) }}
                           />
                           {priority}
                         </div>
@@ -1016,7 +1251,7 @@ export function StoryBoardsView() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    {settings.storyTypes?.map((type) => (
+                    {storySettings.storyTypes?.map((type) => (
                       <SelectItem key={type.name} value={type.name}>
                         <div className="flex items-center gap-2">
                           <div 
@@ -1123,7 +1358,7 @@ export function StoryBoardsView() {
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: getWeightGradientColor(weight, settings.weightBaseColor, 21) }}
+                            style={{ backgroundColor: getWeightGradientColor(weight, storySettings.weightBaseColor, 21) }}
                           />
                           Weight {weight}
                         </div>
@@ -1171,7 +1406,7 @@ export function StoryBoardsView() {
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: settings.statusColors?.[status] || '#6B7280' }}
+                            style={{ backgroundColor: storySettings.getStatusColor(status) }}
                           />
                           {status}
                         </div>

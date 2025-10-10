@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { StoryCard } from '@/components/boards/StoryCard';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { currentSprintAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { Plus } from 'lucide-react';
 import type { Column, Story } from '@/types';
 
@@ -19,62 +18,43 @@ interface KanbanColumnProps {
   onStoryClick: (storyId: string, event: React.MouseEvent, storyList?: Story[], index?: number) => void;
   onEditStory: (story: Story) => void;
   projectId?: string;
-  isDragOver?: boolean;
-  activeStoryId?: string | null;
   activeStory?: Story | null;
+  isDragOver?: boolean;
+  activeStoryId?: string;
 }
 
-export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, isDragOver, activeStoryId, activeStory }: KanbanColumnProps) {
+export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, activeStory, isDragOver, activeStoryId }: KanbanColumnProps) {
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [currentSprint] = useAtom(currentSprintAtom);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const storySettings = useStorySettings();
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: column.id,
     data: {
       type: 'column',
     },
   });
-
-  const { setNodeRef: setDroppableRef } = useDroppable({
-    id: column.id,
-    data: {
-      type: 'column',
-    },
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
 
   const getColumnColor = (columnName: string) => {
-    switch (columnName) {
-      case 'Icebox':
-        return 'bg-gray-100 border-gray-200';
-      case 'Backlog':
-        return 'bg-blue-50 border-blue-200';
-      case 'To Do':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'In Progress':
-        return 'bg-orange-50 border-orange-200';
-      case 'Review':
-        return 'bg-purple-50 border-purple-200';
-      case 'Done':
-        return 'bg-green-50 border-green-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
-    }
+    // Map column names to status values
+    const statusMap: Record<string, string> = {
+      'Icebox': 'icebox',
+      'Backlog': 'backlog', 
+      'To Do': 'todo',
+      'In Progress': 'progress',
+      'Review': 'review',
+      'Done': 'done'
+    };
+    
+    const status = statusMap[columnName];
+    if (!status) return 'bg-gray-50 border-gray-200';
+    
+    const statusColor = storySettings.getStatusColor(status);
+    return `bg-[${statusColor}]/10 border-[${statusColor}]/30 text-[${statusColor}]`;
   };
 
   // Check if we're dragging from Review to Done
   const isDraggingFromReviewToDone = () => {
-    if (!activeStory || !isDragOver || column.name !== 'Done') return false;
+    if (!activeStory || !isOver || column.name !== 'Done') return false;
     
     return activeStory.status === 'review';
   };
@@ -84,15 +64,14 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
   return (
     <>
       <Card 
-        ref={setNodeRef}
-        style={style}
-        className={`${getColumnColor(column.name)} ${isDragging ? 'opacity-50' : ''} ${
+        ref={setDroppableRef}
+        className={`${getColumnColor(column.name)} ${
+          isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
+        } ${
           isDraggingFromReviewToDoneValue 
             ? 'ring-2 ring-red-500 ring-opacity-75 bg-red-50 border-red-300 shadow-lg' 
             : ''
         } h-fit sm:h-auto transition-all duration-200`}
-        {...attributes}
-        {...listeners}
       >
         <CardHeader className="pb-2 sm:pb-3">
           <div className="flex items-center justify-between">

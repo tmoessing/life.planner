@@ -10,9 +10,10 @@ import {
   updateProjectAtom 
 } from '@/stores/appStore';
 import { Plus, FolderOpen } from 'lucide-react';
+import { useProjectSettings } from '@/utils/settingsMirror';
 import type { Project } from '@/types';
 
-// Project Status Columns
+// Project Status Columns - will be updated with settings colors
 const PROJECT_COLUMNS = [
   { id: 'icebox', name: 'Icebox', color: 'bg-gray-100 border-gray-300' },
   { id: 'backlog', name: 'Backlog', color: 'bg-blue-100 border-blue-300' },
@@ -29,7 +30,8 @@ function ProjectKanbanColumn({
   onProjectClick,
   onEditProject, 
   onOpenKanban, 
-  onOpenStoryManager 
+  onOpenStoryManager,
+  projectSettings
 }: { 
   column: typeof PROJECT_COLUMNS[0]; 
   projects: Project[]; 
@@ -38,6 +40,7 @@ function ProjectKanbanColumn({
   onEditProject: (project: Project) => void;
   onOpenKanban: (project: Project) => void;
   onOpenStoryManager: (project: Project) => void;
+  projectSettings: any;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
@@ -64,8 +67,12 @@ function ProjectKanbanColumn({
       <div 
         ref={setNodeRef}
         className={`flex-1 space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors overflow-y-auto ${
-          isOver ? 'border-blue-400 bg-blue-50' : column.color
+          isOver ? 'border-blue-400 bg-blue-50' : ''
         }`}
+        style={{
+          backgroundColor: isOver ? undefined : `${projectSettings.getStatusColor(column.id)}20`,
+          borderColor: isOver ? undefined : `${projectSettings.getStatusColor(column.id)}40`
+        }}
       >
         {projects.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-gray-500">
@@ -114,6 +121,7 @@ export function ProjectKanbanView({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const projectSettings = useProjectSettings();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -170,18 +178,15 @@ export function ProjectKanbanView({
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log('Project drag started:', event.active.id);
     setActiveId(event.active.id as string);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    console.log('Project drag over:', { active: active.id, over: over?.id });
+  const handleDragOver = (_event: DragOverEvent) => {
+    // Handle drag over if needed
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('Project drag ended:', { active: active.id, over: over?.id, overData: over?.data?.current });
     setActiveId(null);
 
     if (!over) return;
@@ -214,12 +219,10 @@ export function ProjectKanbanView({
       }
     }
 
-    console.log('Move project:', { fromColumnId, toColumnId, activeId });
 
     if (fromColumnId && toColumnId && fromColumnId !== toColumnId) {
       // If multiple projects are selected and the dragged project is one of them, move all selected projects
       if (selectedProjects.includes(activeId) && selectedProjects.length > 1) {
-        console.log('Moving multiple projects:', selectedProjects);
         selectedProjects.forEach(projectId => {
           // Find which column each selected project is in
           for (const [status, projectList] of Object.entries(projectsByStatus)) {
@@ -269,12 +272,10 @@ export function ProjectKanbanView({
         {PROJECT_COLUMNS.map((column) => (
           <div key={column.id} className="bg-card p-3 sm:p-4 rounded-lg border">
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
-                column.id === 'icebox' ? 'bg-gray-500' : 
-                column.id === 'backlog' ? 'bg-blue-500' :
-                column.id === 'to-do' ? 'bg-yellow-500' :
-                column.id === 'in-progress' ? 'bg-orange-500' : 'bg-green-500'
-              }`}></div>
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: projectSettings.getStatusColor(column.id) }}
+              ></div>
               <span className="text-xs sm:text-sm font-medium">{column.name}</span>
             </div>
             <p className="text-lg sm:text-2xl font-bold mt-1">
@@ -303,6 +304,7 @@ export function ProjectKanbanView({
                   onEditProject={onEditProject}
                   onOpenKanban={onOpenKanban}
                   onOpenStoryManager={onOpenStoryManager}
+                  projectSettings={projectSettings}
                 />
               </div>
             ))}

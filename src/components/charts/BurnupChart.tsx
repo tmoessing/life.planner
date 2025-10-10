@@ -13,13 +13,9 @@ export function BurnupChart() {
   // Use selected sprint or fall back to current sprint
   const selectedSprint = sprints.find(sprint => sprint.id === selectedSprintId) || currentSprint;
 
-  console.log('BurnupChart - selectedSprintId:', selectedSprintId);
-  console.log('BurnupChart - selectedSprint:', selectedSprint);
-  console.log('BurnupChart - stories count:', stories.length);
 
   const generateBurnupData = () => {
     if (!selectedSprint) {
-      console.log('No selected sprint found');
       return [];
     }
 
@@ -52,9 +48,6 @@ export function BurnupChart() {
   };
 
   const data = generateBurnupData();
-
-  // Debug logging
-  console.log('BurnupChart data:', { selectedSprint, data });
 
   if (!selectedSprint) {
     return (

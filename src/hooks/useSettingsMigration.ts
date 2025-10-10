@@ -2,6 +2,25 @@ import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { settingsAtom, rolesAtom } from '@/stores/appStore';
 
+// Manual reset function for debugging - can be called from browser console
+if (typeof window !== 'undefined') {
+  (window as any).resetGoalTypes = () => {
+    const correctGoalTypes = [
+      { name: 'Spiritual', color: '#8B5CF6' },
+      { name: 'Physical', color: '#EF4444' },
+      { name: 'Intellectual', color: '#3B82F6' },
+      { name: 'Social', color: '#10B981' },
+      { name: 'Financial', color: '#F59E0B' },
+      { name: 'Protector', color: '#81E6D9' }
+    ];
+    
+    const currentSettings = JSON.parse(localStorage.getItem('life-planner-settings') || '{}');
+    currentSettings.goalTypes = correctGoalTypes;
+    localStorage.setItem('life-planner-settings', JSON.stringify(currentSettings));
+    return correctGoalTypes;
+  };
+}
+
 /**
  * Hook to handle settings migration and ensure required settings exist
  */
@@ -11,6 +30,7 @@ export function useSettingsMigration() {
 
   useEffect(() => {
     const settingsUpdates: Partial<typeof settings> = {};
+    let needsUpdate = false;
     
     if (!settings.storySizes) {
       settingsUpdates.storySizes = [
@@ -20,6 +40,7 @@ export function useSettingsMigration() {
         { name: 'L', color: '#EF4444', timeEstimate: '2-4 hours' },
         { name: 'XL', color: '#8B5CF6', timeEstimate: '1+ days' }
       ];
+      needsUpdate = true;
     }
     
     if (!settings.visionTypes) {
@@ -29,6 +50,7 @@ export function useSettingsMigration() {
         { name: 'Intellectual', color: '#3B82F6' },
         { name: 'Social', color: '#10B981' }
       ];
+      needsUpdate = true;
     }
     
     if (!settings.taskCategories) {
@@ -37,6 +59,7 @@ export function useSettingsMigration() {
         { name: 'Actions', color: '#10B981' },
         { name: 'Involve Others', color: '#F59E0B' }
       ];
+      needsUpdate = true;
     }
     
     if (!settings.statusColors) {
@@ -48,6 +71,7 @@ export function useSettingsMigration() {
         'review': '#8B5CF6',    // Purple
         'done': '#10B981'       // Green
       };
+      needsUpdate = true;
     }
     
     if (!settings.goalCategories) {
@@ -55,17 +79,37 @@ export function useSettingsMigration() {
         { name: 'Target', color: '#3B82F6' },
         { name: 'Lifestyle/Value', color: '#10B981' }
       ];
+      needsUpdate = true;
     }
     
-    if (!settings.goalTypes) {
-      settingsUpdates.goalTypes = [
-        { name: 'Spiritual', color: '#8B5CF6' },
-        { name: 'Physical', color: '#EF4444' },
-        { name: 'Intellectual', color: '#3B82F6' },
-        { name: 'Social', color: '#10B981' },
-        { name: 'Financial', color: '#F59E0B' },
-        { name: 'Protector', color: '#EF4444' }
+    if (!settings.goalStatuses) {
+      settingsUpdates.goalStatuses = [
+        { name: 'Icebox', color: '#6B7280' },
+        { name: 'Backlog', color: '#3B82F6' },
+        { name: 'To Do', color: '#F59E0B' },
+        { name: 'In Progress', color: '#10B981' },
+        { name: 'Review', color: '#8B5CF6' },
+        { name: 'Done', color: '#22C55E' }
       ];
+      needsUpdate = true;
+    }
+    
+    // Check if goal types need updating (only update if different)
+    const correctGoalTypes = [
+      { name: 'Spiritual', color: '#8B5CF6' },
+      { name: 'Physical', color: '#EF4444' },
+      { name: 'Intellectual', color: '#3B82F6' },
+      { name: 'Social', color: '#10B981' },
+      { name: 'Financial', color: '#F59E0B' },
+      { name: 'Protector', color: '#81E6D9' }
+    ];
+    
+    const goalTypesChanged = !settings.goalTypes || 
+      JSON.stringify(settings.goalTypes) !== JSON.stringify(correctGoalTypes);
+    
+    if (goalTypesChanged) {
+      settingsUpdates.goalTypes = correctGoalTypes;
+      needsUpdate = true;
     }
     
     if (!settings.bucketlistTypes) {
@@ -73,12 +117,67 @@ export function useSettingsMigration() {
         { name: 'Location', color: '#3B82F6' },
         { name: 'Experience', color: '#10B981' }
       ];
+      needsUpdate = true;
     }
     
-    if (Object.keys(settingsUpdates).length > 0) {
+    if (!settings.bucketlistPriorityColors) {
+      settingsUpdates.bucketlistPriorityColors = {
+        'high': '#EF4444', // Red for High Priority
+        'medium': '#F59E0B', // Yellow for Medium Priority
+        'low': '#6B7280'  // Gray for Low Priority
+      };
+      needsUpdate = true;
+    }
+    
+    if (!settings.projectTypes) {
+      settingsUpdates.projectTypes = [
+        { name: 'Work', color: '#3B82F6' },
+        { name: 'Personal', color: '#8B5CF6' },
+        { name: 'Learning', color: '#10B981' },
+        { name: 'Health', color: '#EF4444' }
+      ];
+      needsUpdate = true;
+    }
+    
+    if (!settings.traditionTypes) {
+      settingsUpdates.traditionTypes = [
+        { name: 'Spiritual', color: '#8B5CF6' },
+        { name: 'Physical', color: '#10B981' },
+        { name: 'Intellectual', color: '#F59E0B' },
+        { name: 'Social', color: '#3B82F6' }
+      ];
+      needsUpdate = true;
+    }
+    
+    if (!settings.traditionalCategories) {
+      settingsUpdates.traditionalCategories = [
+        { name: 'Christmas', color: '#EF4444' },
+        { name: 'Birthday', color: '#F59E0B' },
+        { name: 'New Year', color: '#8B5CF6' },
+        { name: 'Easter', color: '#10B981' },
+        { name: 'Thanksgiving', color: '#F97316' },
+        { name: 'Halloween', color: '#7C3AED' },
+        { name: 'Valentine\'s Day', color: '#EC4899' },
+        { name: 'Anniversary', color: '#06B6D4' }
+      ];
+      needsUpdate = true;
+    }
+    
+    if (!settings.importantDateTypes) {
+      settingsUpdates.importantDateTypes = [
+        { name: 'Birthday', color: '#F59E0B' },
+        { name: 'Anniversary', color: '#EC4899' },
+        { name: 'Holiday', color: '#EF4444' },
+        { name: 'Reminder', color: '#3B82F6' },
+        { name: 'Event', color: '#10B981' }
+      ];
+      needsUpdate = true;
+    }
+    
+    if (needsUpdate) {
       setSettings({ ...settings, ...settingsUpdates });
     }
-  }, [settings, setSettings]);
+  }, [setSettings]);
 
   // Role migration: Add missing default roles
   useEffect(() => {
@@ -99,5 +198,5 @@ export function useSettingsMigration() {
     if (missingRoles.length > 0) {
       setRoles([...roles, ...missingRoles]);
     }
-  }, [roles, setRoles]);
+  }, [setRoles]);
 }

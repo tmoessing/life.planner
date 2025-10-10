@@ -27,11 +27,12 @@ export const getWeightGradientColor = (weight: number, baseColor: string, maxVal
   // Calculate intensity based on weight (0 to 1)
   const intensity = Math.min(weight / maxValue, 1);
   
-  // Lighten the color by increasing RGB values (reverse gradient)
-  const lightenFactor = 0.3 + (intensity * 0.7); // Range from 0.3 to 1.0
-  const newR = Math.floor(rgb.r + (255 - rgb.r) * lightenFactor);
-  const newG = Math.floor(rgb.g + (255 - rgb.g) * lightenFactor);
-  const newB = Math.floor(rgb.b + (255 - rgb.b) * lightenFactor);
+  // Create a gradient that goes from light to dark (more saturated)
+  // Lower weights get lighter colors, higher weights get darker/more saturated colors
+  const darkenFactor = intensity; // Range from 0 to 1
+  const newR = Math.floor(rgb.r * (1 - darkenFactor * 0.4)); // Darken by up to 40%
+  const newG = Math.floor(rgb.g * (1 - darkenFactor * 0.4));
+  const newB = Math.floor(rgb.b * (1 - darkenFactor * 0.4));
   
   return rgbToHex(newR, newG, newB);
 };

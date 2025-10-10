@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import { currentSprintAtom, storiesAtom, selectedSprintIdAtom, safeSprintsAtom, updateStoryAtom, settingsAtom, rolesAtom, labelsAtom } from '@/stores/appStore';
+import { currentSprintAtom, storiesAtom, selectedSprintIdAtom, safeSprintsAtom, updateStoryAtom, rolesAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +18,8 @@ export function RoadmapSection() {
   const [selectedSprintId] = useAtom(selectedSprintIdAtom);
   const [sprints] = useAtom(safeSprintsAtom);
   const [, updateStory] = useAtom(updateStoryAtom);
-  const [settings] = useAtom(settingsAtom);
+  const storySettings = useStorySettings();
   const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [showEditStoryModal, setShowEditStoryModal] = useState(false);
@@ -64,7 +64,6 @@ export function RoadmapSection() {
     const newScheduledDate = story.scheduled === date ? undefined : date;
     
     updateStory(storyId, { scheduled: newScheduledDate });
-    console.log(`Story ${storyId} ${newScheduledDate ? 'scheduled for' : 'unscheduled from'} ${date}`);
   };
 
   const isStoryScheduledOnDate = (storyId: string, date: string) => {
@@ -107,7 +106,7 @@ export function RoadmapSection() {
             <div className="flex items-center gap-1">
               <div 
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: settings.roadmapScheduledColor || '#10b981' }}
+                style={{ backgroundColor: storySettings.roadmapScheduledColor || '#10b981' }}
               ></div>
               <span>Scheduled</span>
             </div>
@@ -183,8 +182,8 @@ export function RoadmapSection() {
                         : 'bg-background border-gray-200'
                     }`}
                     style={isStoryScheduledOnDate(story.id, day.date) ? {
-                      backgroundColor: settings.roadmapScheduledColor || '#10b981',
-                      borderColor: settings.roadmapScheduledColor || '#10b981'
+                      backgroundColor: storySettings.roadmapScheduledColor || '#10b981',
+                      borderColor: storySettings.roadmapScheduledColor || '#10b981'
                     } : {}}
                     onClick={() => handleCellClick(story.id, day.date)}
                     title={isStoryScheduledOnDate(story.id, day.date) 
@@ -271,9 +270,9 @@ export function RoadmapSection() {
                     <span className="text-sm font-medium">Priority:</span>
                     <Badge 
                       style={{
-                        backgroundColor: `${settings.priorityColors?.[selectedStory.priority as keyof typeof settings.priorityColors] || '#6B7280'}20`,
-                        color: settings.priorityColors?.[selectedStory.priority as keyof typeof settings.priorityColors] || '#6B7280',
-                        borderColor: `${settings.priorityColors?.[selectedStory.priority as keyof typeof settings.priorityColors] || '#6B7280'}40`
+                        backgroundColor: `${storySettings.getPriorityColor(selectedStory.priority)}20`,
+                        color: storySettings.getPriorityColor(selectedStory.priority),
+                        borderColor: `${storySettings.getPriorityColor(selectedStory.priority)}40`
                       }}
                     >
                       {selectedStory.priority}
@@ -290,9 +289,9 @@ export function RoadmapSection() {
                     <span className="text-sm font-medium">Type:</span>
                     <Badge 
                       style={{
-                        backgroundColor: `${settings.storyTypes?.find(st => st.name === selectedStory.type)?.color || '#6B7280'}20`,
-                        color: settings.storyTypes?.find(st => st.name === selectedStory.type)?.color || '#6B7280',
-                        borderColor: `${settings.storyTypes?.find(st => st.name === selectedStory.type)?.color || '#6B7280'}40`
+                        backgroundColor: `${storySettings.getTypeColor(selectedStory.type)}20`,
+                        color: storySettings.getTypeColor(selectedStory.type),
+                        borderColor: `${storySettings.getTypeColor(selectedStory.type)}40`
                       }}
                     >
                       {selectedStory.type}
@@ -303,9 +302,9 @@ export function RoadmapSection() {
                     <span className="text-sm font-medium">Size:</span>
                     <Badge 
                       style={{
-                        backgroundColor: `${settings.storySizes?.find(ss => ss.name === selectedStory.size)?.color || '#6B7280'}20`,
-                        color: settings.storySizes?.find(ss => ss.name === selectedStory.size)?.color || '#6B7280',
-                        borderColor: `${settings.storySizes?.find(ss => ss.name === selectedStory.size)?.color || '#6B7280'}40`
+                        backgroundColor: `${storySettings.getSizeColor(selectedStory.size)}20`,
+                        color: storySettings.getSizeColor(selectedStory.size),
+                        borderColor: `${storySettings.getSizeColor(selectedStory.size)}40`
                       }}
                     >
                       {selectedStory.size}
@@ -342,9 +341,9 @@ export function RoadmapSection() {
                     <span className="text-sm font-medium">Status:</span>
                     <Badge 
                       style={{
-                        backgroundColor: `${settings.statusColors?.[selectedStory.status as keyof typeof settings.statusColors] || '#6B7280'}20`,
-                        color: settings.statusColors?.[selectedStory.status as keyof typeof settings.statusColors] || '#6B7280',
-                        borderColor: `${settings.statusColors?.[selectedStory.status as keyof typeof settings.statusColors] || '#6B7280'}40`
+                        backgroundColor: `${storySettings.getStatusColor(selectedStory.status)}20`,
+                        color: storySettings.getStatusColor(selectedStory.status),
+                        borderColor: `${storySettings.getStatusColor(selectedStory.status)}40`
                       }}
                     >
                       {selectedStory.status}
@@ -353,30 +352,6 @@ export function RoadmapSection() {
                 </div>
               </div>
 
-              {/* Labels */}
-              {selectedStory.labels && selectedStory.labels.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Labels:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedStory.labels.map((labelId) => {
-                      const label = labels.find(l => l.id === labelId);
-                      return label ? (
-                        <Badge 
-                          key={labelId} 
-                          style={{
-                            backgroundColor: `${label.color}20`,
-                            color: label.color,
-                            borderColor: `${label.color}40`
-                          }}
-                          className="text-xs"
-                        >
-                          {label.name}
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Checklist */}
               {selectedStory.checklist && selectedStory.checklist.length > 0 && (

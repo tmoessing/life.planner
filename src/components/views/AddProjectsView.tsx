@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { 
-  projectsAtom,
-  addProjectAtom,
-  rolesAtom,
-  settingsAtom,
-  visionsAtom
+  projectsAtom, 
+  addProjectAtom, 
+  rolesAtom, 
+  visionsAtom 
 } from '@/stores/appStore';
+import { useProjectSettings } from '@/utils/settingsMirror';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,8 +48,8 @@ export function AddProjectsView() {
   const [projects] = useAtom(projectsAtom);
   const [, addProject] = useAtom(addProjectAtom);
   const [roles] = useAtom(rolesAtom);
-  const [settings] = useAtom(settingsAtom);
   const [visions] = useAtom(visionsAtom);
+  const projectSettings = useProjectSettings();
   
   const [projectForms, setProjectForms] = useState<ProjectFormData[]>([{ ...defaultProject }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,10 +58,10 @@ export function AddProjectsView() {
   
   // Default options for bulk editing
   const [defaultOptions, setDefaultOptions] = useState({
-    status: 'none',
-    priority: 'none',
-    roleId: 'none',
-    visionId: 'none',
+    status: 'none' as 'none' | 'not-started' | 'in-progress' | 'completed' | 'on-hold',
+    priority: 'none' as 'none' | 'Q1' | 'Q2' | 'Q3' | 'Q4',
+    roleId: 'none' as string,
+    visionId: 'none' as string,
     startDate: '',
     endDate: ''
   });
@@ -224,7 +224,6 @@ export function AddProjectsView() {
       // Reset forms
       setProjectForms([{ ...defaultProject }]);
     } catch (error) {
-      console.error('Error adding projects:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -459,12 +458,12 @@ export function AddProjectsView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['not-started', 'in-progress', 'completed', 'on-hold'].map((status) => (
+                          {['Icebox', 'Backlog', 'To do', 'In Progress', 'Done'].map((status) => (
                             <SelectItem key={status} value={status}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.statusColors?.[status as keyof typeof settings.statusColors] || '#6B7280' }}
+                                  style={{ backgroundColor: projectSettings.getStatusColor(status) }}
                                 />
                                 {status}
                               </div>
@@ -500,7 +499,7 @@ export function AddProjectsView() {
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.priorityColors?.[priority as keyof typeof settings.priorityColors] || '#6B7280' }}
+                                  style={{ backgroundColor: projectSettings.getPriorityColor(priority) }}
                                 />
                                 {priority}
                               </div>

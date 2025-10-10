@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { addStoryAtom, addStoryToProjectAtom, rolesAtom, labelsAtom, visionsAtom, settingsAtom, safeSprintsAtom, currentSprintAtom, projectsAtom } from '@/stores/appStore';
+import { addStoryAtom, addStoryToProjectAtom, rolesAtom, visionsAtom, settingsAtom, safeSprintsAtom, currentSprintAtom, projectsAtom, storyPrioritiesAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 import type { Story, Priority, StoryType } from '@/types';
 
@@ -21,46 +21,24 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
   const [, addStory] = useAtom(addStoryAtom);
   const [, addStoryToProject] = useAtom(addStoryToProjectAtom);
   const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);
   const [settings] = useAtom(settingsAtom);
   const [sprints] = useAtom(safeSprintsAtom);
   const [currentSprint] = useAtom(currentSprintAtom);
   const [projects] = useAtom(projectsAtom);
+  const [storyPriorities] = useAtom(storyPrioritiesAtom);
 
-  // Debug: Log sprints data
-
-  // Helper function to get all available story types
-  const getAllStoryTypes = () => {
-    const defaultTypes = [
-      { name: 'Spiritual', color: '#8B5CF6' },
-      { name: 'Physical', color: '#EF4444' },
-      { name: 'Intellectual', color: '#3B82F6' },
-      { name: 'Social', color: '#10B981' }
-    ];
-    
-    const settingsTypes = settings.storyTypes || [];
-    const allTypes = [...settingsTypes];
-    
-    // Add default types that aren't already in settings
-    defaultTypes.forEach(defaultType => {
-      if (!settingsTypes.some(setting => setting.name === defaultType.name)) {
-        allTypes.push(defaultType);
-      }
-    });
-    
-    return allTypes;
-  };
+  // Use settings mirror system for story settings
+  const storySettings = useStorySettings();
 
 
   const [formData, setFormData] = useState<Partial<Story>>({
     title: '',
     description: '',
-    priority: 'Q1',
-    weight: 1,
-    size: 'M',
-    type: 'Intellectual',
-    labels: [],
+    priority: undefined,
+    weight: undefined,
+    size: undefined,
+    type: undefined,
     roleId: undefined,
     visionId: undefined,
     dueDate: undefined,
@@ -90,8 +68,6 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
       description: formData.description?.trim() || ''
     };
     
-    console.log('AddStoryModal - storyData being created:', storyData);
-    console.log('AddStoryModal - projectId:', formData.projectId);
     
     if (repeatWeekly) {
       // Create stories for multiple sprints
@@ -143,7 +119,6 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
       weight: 1,
       size: 'M',
       type: 'Intellectual',
-      labels: [],
       roleId: undefined,
       visionId: undefined,
       dueDate: undefined,
@@ -155,16 +130,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
     onOpenChange(false);
   };
 
-  const handleLabelToggle = (labelId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      labels: prev.labels?.includes(labelId)
-        ? prev.labels.filter(id => id !== labelId)
-        : [...(prev.labels || []), labelId]
-    }));
-  };
 
-  const priorities: Priority[] = ['Q1', 'Q2', 'Q3', 'Q4'];
+  const priorities = storyPriorities.map(p => p.name as Priority);
   const weights = [1, 3, 5, 8, 13, 21];
   // Use story sizes from settings instead of hardcoded array
 
@@ -204,69 +171,39 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                   onValueChange={(value: Priority) => setFormData(prev => ({ ...prev, priority: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue>
-                      {formData.priority && (
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ 
-                              backgroundColor: formData.priority === 'Q1' ? '#EF4444' : 
-                                             formData.priority === 'Q2' ? '#F59E0B' :
-                                             formData.priority === 'Q3' ? '#3B82F6' : '#6B7280'
-                            }}
-                          />
-                          {formData.priority === 'Q1' ? 'Q1 - Urgent & Important' :
-                           formData.priority === 'Q2' ? 'Q2 - Not Urgent & Important' :
-                           formData.priority === 'Q3' ? 'Q3 - Urgent & Not Important' :
-                           formData.priority === 'Q4' ? 'Q4 - Not Urgent & Not Important' : formData.priority}
-                        </div>
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priorities.map(priority => {
-                      const getPriorityLabel = (p: Priority) => {
-                        switch (p) {
-                          case 'Q1':
-                            return 'Q1 - Urgent & Important';
-                          case 'Q2':
-                            return 'Q2 - Not Urgent & Important';
-                          case 'Q3':
-                            return 'Q3 - Urgent & Not Important';
-                          case 'Q4':
-                            return 'Q4 - Not Urgent & Not Important';
-                          default:
-                            return p;
-                        }
-                      };
-                      
-                      const getPriorityColor = (p: Priority) => {
-                        switch (p) {
-                          case 'Q1':
-                            return '#EF4444'; // Red
-                          case 'Q2':
-                            return '#F59E0B'; // Orange
-                          case 'Q3':
-                            return '#3B82F6'; // Blue
-                          case 'Q4':
-                            return '#6B7280'; // Gray
-                          default:
-                            return '#6B7280';
-                        }
-                      };
-                      
-                      return (
-                        <SelectItem key={priority} value={priority}>
+                    <SelectValue placeholder="Select priority...">
+                      {formData.priority && (() => {
+                        const selectedPriority = storyPriorities.find(p => p.name === formData.priority);
+                        return selectedPriority ? (
                           <div className="flex items-center gap-2">
                             <div 
                               className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: getPriorityColor(priority) }}
+                              style={{ backgroundColor: selectedPriority.color }}
                             />
-                            {getPriorityLabel(priority)}
+                            <div>
+                              <div className="font-medium">{selectedPriority.name}</div>
+                              <div className="text-xs text-muted-foreground">{selectedPriority.description}</div>
+                            </div>
                           </div>
-                        </SelectItem>
-                      );
-                    })}
+                        ) : formData.priority;
+                      })()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {storyPriorities.map(priority => (
+                      <SelectItem key={priority.id} value={priority.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: priority.color }}
+                          />
+                          <div>
+                            <div className="font-medium">{priority.name}</div>
+                            <div className="text-xs text-muted-foreground">{priority.description}</div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -315,19 +252,19 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type...">
-                      {formData.type && (
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.storyTypes?.find(t => t.name === formData.type)?.color || '#6B7280' }}
-                          />
-                          {formData.type}
-                        </div>
-                      )}
-                    </SelectValue>
+                        {formData.type && (
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: storySettings.getTypeColor(formData.type) }}
+                            />
+                            {formData.type}
+                          </div>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {getAllStoryTypes().map(type => (
+                      {storySettings.storyTypes.map(type => (
                         <SelectItem key={type.name} value={type.name}>
                           <div className="flex items-center gap-2">
                             <div 
@@ -384,7 +321,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.backlog || '#3B82F6' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('backlog') }}
                           ></div>
                           <span>Backlog</span>
                         </div>
@@ -393,7 +330,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.todo || '#F59E0B' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('todo') }}
                           ></div>
                           <span>To Do</span>
                         </div>
@@ -411,7 +348,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.review || '#8B5CF6' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('review') }}
                           ></div>
                           <span>Review</span>
                         </div>
@@ -420,7 +357,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.done || '#10B981' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('done') }}
                           ></div>
                           <span>Done</span>
                         </div>
@@ -442,7 +379,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, weight: parseInt(value) as Story['weight'] }))}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select weight..." />
                     </SelectTrigger>
                     <SelectContent>
                       {weights.map(weight => {
@@ -470,7 +407,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                     onValueChange={(value: Story['size']) => setFormData(prev => ({ ...prev, size: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue>
+                      <SelectValue placeholder="Select size...">
                         {formData.size && (
                           <div className="flex items-center gap-2">
                             <div 
@@ -559,7 +496,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: '#3B82F6' }}
+                            style={{ backgroundColor: storySettings.weightBaseColor }}
                           />
                           {projects.find(p => p.id === formData.projectId)?.name}
                         </div>
@@ -578,7 +515,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                           <div className="flex items-center gap-2">
                             <div 
                               className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: '#3B82F6' }}
+                              style={{ backgroundColor: storySettings.weightBaseColor }}
                             />
                             {project.name}
                           </div>
@@ -615,7 +552,6 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                 <Select
                   value={formData.sprintId || 'none'}
                   onValueChange={(value) => {
-                    console.log('Sprint selection changed:', value);
                     setFormData(prev => ({ ...prev, sprintId: value === 'none' ? undefined : value }));
                   }}
                 >
@@ -762,23 +698,6 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
             </div>
 
             {/* Labels */}
-            {labels.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Labels</label>
-                <div className="flex flex-wrap gap-2">
-                  {labels.map(label => (
-                    <Badge
-                      key={label.id}
-                      variant={formData.labels?.includes(label.id) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => handleLabelToggle(label.id)}
-                    >
-                      {label.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Actions */}

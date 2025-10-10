@@ -3,7 +3,8 @@ import { goalsAtom, deleteGoalAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Edit, Trash2, Calendar, Users } from 'lucide-react';
+import { Plus, Target, Edit, Trash2, Calendar } from 'lucide-react';
+import { useGoalSettings } from '@/utils/settingsMirror';
 import type { Goal } from '@/types';
 
 interface GoalKanbanViewProps {
@@ -16,81 +17,41 @@ interface GoalKanbanViewProps {
 export function GoalKanbanView({ 
   onAddGoal, 
   onEditGoal, 
-  onDeleteGoal, 
+  onDeleteGoal: _onDeleteGoal, 
   onOpenKanban 
 }: GoalKanbanViewProps) {
   const [goals] = useAtom(goalsAtom);
   const [, deleteGoal] = useAtom(deleteGoalAtom);
+  const goalSettings = useGoalSettings();
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Q1':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Q2':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'Q3':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Q4':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const color = goalSettings.getPriorityColor(priority);
+    return `bg-[${color}20] text-[${color}] border-[${color}40]`;
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'in-progress':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'on-hold':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'not-started':
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const color = goalSettings.getStatusColor(status);
+    return `bg-[${color}20] text-[${color}] border-[${color}40]`;
   };
 
   const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'Spiritual':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Physical':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Intellectual':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Social':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'Financial':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Protector':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const color = goalSettings.getTypeColor(category);
+    return `bg-[${color}20] text-[${color}] border-[${color}40]`;
   };
 
   const getGoalTypeColor = (goalType: string) => {
-    switch (goalType) {
-      case 'target':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'lifestyle-value':
-        return 'bg-green-100 text-green-800 border-green-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const color = goalSettings.getCategoryColor(goalType);
+    return `bg-[${color}20] text-[${color}] border-[${color}40]`;
   };
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
-      case 'Q1':
-        return 'Q1 - Urgent & Important';
-      case 'Q2':
-        return 'Q2 - Important, Not Urgent';
-      case 'Q3':
-        return 'Q3 - Urgent, Not Important';
-      case 'Q4':
-        return 'Q4 - Not Urgent, Not Important';
+      case 'high':
+        return 'High Priority';
+      case 'medium':
+        return 'Medium Priority';
+      case 'low':
+        return 'Low Priority';
       default:
         return priority;
     }
@@ -109,14 +70,18 @@ export function GoalKanbanView({
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'not-started':
-        return 'Not Started';
+      case 'icebox':
+        return 'Icebox';
+      case 'backlog':
+        return 'Backlog';
+      case 'todo':
+        return 'To Do';
       case 'in-progress':
         return 'In Progress';
-      case 'completed':
-        return 'Completed';
-      case 'on-hold':
-        return 'On Hold';
+      case 'review':
+        return 'Review';
+      case 'done':
+        return 'Done';
       default:
         return status;
     }

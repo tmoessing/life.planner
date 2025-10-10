@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import { visionsAtom, reorderVisionsAtom, addVisionAtom, updateVisionAtom, deleteVisionAtom, settingsAtom } from '@/stores/appStore';
+import { visionsAtom, reorderVisionsAtom, updateVisionAtom, deleteVisionAtom, settingsAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, GripVertical, Target, Edit2, Trash2, Check, X } from 'lucide-react';
+import { ImportanceModal } from '@/components/modals/ImportanceModal';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
@@ -79,9 +80,10 @@ function SortableVision({
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing"
+            className="cursor-grab active:cursor-grabbing touch-manipulation select-none p-2 -m-2 rounded hover:bg-gray-100 active:bg-gray-200"
+            style={{ touchAction: 'none' }}
           >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+            <GripVertical className="h-5 w-5 text-muted-foreground" />
           </div>
           
           {/* Ranking Number */}
@@ -100,13 +102,13 @@ function SortableVision({
               <div className="space-y-2">
                 <Input
                   value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditTitle(e.target.value)}
                   className="text-sm"
                   placeholder="Vision title..."
                 />
                 <Textarea
                   value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditDescription(e.target.value)}
                   className="text-sm resize-none"
                   placeholder="Short description (optional)..."
                   rows={2}
@@ -191,17 +193,20 @@ function SortableVision({
 export function ImportanceView() {
   const [visions, setVisions] = useAtom(visionsAtom);
   const [, reorderVisions] = useAtom(reorderVisionsAtom);
-  const [, addVision] = useAtom(addVisionAtom);
   const [, updateVision] = useAtom(updateVisionAtom);
   const [, deleteVision] = useAtom(deleteVisionAtom);
   const [settings] = useAtom(settingsAtom);
   
-  const [newVisionTitle, setNewVisionTitle] = useState('');
-  const [newVisionDescription, setNewVisionDescription] = useState('');
-  const [newVisionType, setNewVisionType] = useState('Intellectual');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [editingVision, setEditingVision] = useState<any>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -221,17 +226,20 @@ export function ImportanceView() {
   };
 
   const handleAddVision = () => {
-    if (newVisionTitle.trim()) {
-      addVision({
-        title: newVisionTitle.trim(),
-        description: newVisionDescription.trim(),
-        type: newVisionType,
-        order: visions.length
-      });
-      setNewVisionTitle('');
-      setNewVisionDescription('');
-      setNewVisionType('Intellectual');
-    }
+    setModalMode('add');
+    setEditingVision(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditVision = (vision: any) => {
+    setModalMode('edit');
+    setEditingVision(vision);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingVision(null);
   };
 
   const handleUpdateVision = (visionId: string, updates: any) => {
@@ -250,18 +258,35 @@ export function ImportanceView() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Target className="h-6 w-6" />
-        <h2 className="text-2xl font-bold">Importance List</h2>
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      {/* Header */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold">Importance List</h2>
+            <p className="text-sm text-muted-foreground">
+              Order your visions by importance. 
+              <span className="hidden sm:inline"> Drag to reorder.</span>
+              <span className="sm:hidden"> Touch and hold the grip icon to reorder.</span>
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleAddVision}
+              className="gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              Add New Importance
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Your Visions</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Order your visions by importance. Drag to reorder.
-          </p>
         </CardHeader>
         <CardContent>
           <DndContext
@@ -287,59 +312,16 @@ export function ImportanceView() {
             </SortableContext>
           </DndContext>
 
-          {/* Add Vision Form */}
-          <div className="mt-6 p-4 border-2 border-dashed border-muted rounded-lg">
-            <h4 className="font-medium mb-3">Add New Importance</h4>
-            <div className="space-y-3">
-              <Input
-                placeholder="Importance title..."
-                value={newVisionTitle}
-                onChange={(e) => setNewVisionTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddVision();
-                  }
-                }}
-              />
-              <Textarea
-                placeholder="Short description (optional)..."
-                value={newVisionDescription}
-                onChange={(e) => setNewVisionDescription(e.target.value)}
-                className="resize-none"
-                rows={2}
-              />
-              <Select value={newVisionType} onValueChange={setNewVisionType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select vision type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {visionTypes.map(type => (
-                    <SelectItem key={type.name} value={type.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: type.color }}
-                        />
-                        {type.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={handleAddVision}
-                  disabled={!newVisionTitle.trim()}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Importance
-                </Button>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
+
+      {/* Importance Modal */}
+      <ImportanceModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        mode={modalMode}
+        vision={editingVision}
+      />
     </div>
   );
 }

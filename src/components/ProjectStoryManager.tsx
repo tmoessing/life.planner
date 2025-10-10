@@ -217,40 +217,28 @@ export function ProjectStoryManager({ project, onClose }: ProjectStoryManagerPro
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log('Drag started:', event.active.id);
     setActiveId(event.active.id as string);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    console.log('Drag over:', { active: active.id, over: over?.id });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('Drag ended:', { 
-      active: active.id, 
-      over: over?.id
-    });
     setActiveId(null);
 
     if (!over) {
-      console.log('No drop target');
       return;
     }
 
     const storyId = active.id as string;
-    console.log('Current project story IDs:', currentProject.storyIds);
 
     // Simple ID-based approach
     if (over.id === 'project-stories' && !currentProject.storyIds?.includes(storyId)) {
-      console.log('Adding story to project:', storyId);
       addStoryToProject(currentProject.id, storyId);
     } else if (over.id === 'available-stories' && currentProject.storyIds?.includes(storyId)) {
-      console.log('Removing story from project:', storyId);
       removeStoryFromProject(currentProject.id, storyId);
-    } else {
-      console.log('Invalid drop or story already in correct zone');
     }
   };
 
@@ -304,8 +292,8 @@ export function ProjectStoryManager({ project, onClose }: ProjectStoryManagerPro
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <div className="border-b p-4 flex items-center justify-between">
+      {/* Header - positioned below main app header */}
+      <div className="border-b p-4 flex items-center justify-between mt-14 md:mt-16">
         <div>
           <h2 className="text-xl font-bold">{currentProject.name} - Product Management</h2>
           <p className="text-sm text-muted-foreground">
@@ -321,7 +309,7 @@ export function ProjectStoryManager({ project, onClose }: ProjectStoryManagerPro
       </div>
 
       {/* Controls */}
-      <div className="border-b p-4 space-y-4">
+      <div className="border-b p-4 space-y-4 pb-20 lg:pb-4">
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

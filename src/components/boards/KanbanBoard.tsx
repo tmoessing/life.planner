@@ -47,15 +47,12 @@ export function KanbanBoard() {
   const handleUndo = () => {
     if (undoStack.length > 0) {
       const lastAction = undoStack[undoStack.length - 1];
-      console.log('Undo action:', lastAction);
       
       if (lastAction.type === 'delete' && lastAction.story) {
         // Restore deleted story by setting deleted: false
-        console.log('Undo delete: restoring story', lastAction.storyId);
         updateStory(lastAction.storyId, { deleted: false });
         
         // Story will be restored to the icebox column by default
-        console.log('Story restored to icebox column');
       } else if (lastAction.type === 'move' && lastAction.previousColumnId) {
         // Restore previous column assignment
         // Find the current column of the story
@@ -68,7 +65,6 @@ export function KanbanBoard() {
         }
         if (currentColumnId && currentColumnId !== lastAction.previousColumnId) {
           moveStory(lastAction.storyId, lastAction.previousColumnId);
-          console.log('Undo move:', lastAction.storyId, 'back to column:', lastAction.previousColumnId);
         }
       }
       
@@ -139,7 +135,6 @@ export function KanbanBoard() {
   };
 
   const handleEditStory = (story: Story) => {
-    console.log('Edit story called for:', story.title);
     setEditingStory(story);
     setShowEditModal(true);
   };
@@ -152,7 +147,6 @@ export function KanbanBoard() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    console.log('Drag end:', { activeId, overId, activeData: active.data.current, overData: over.data.current });
 
     // Find which column the active item is in
     let fromColumnId = '';
@@ -179,12 +173,10 @@ export function KanbanBoard() {
       }
     }
 
-    console.log('Move story:', { fromColumnId, toColumnId, activeId });
 
     if (fromColumnId && toColumnId && fromColumnId !== toColumnId) {
       // If multiple stories are selected and the dragged story is one of them, move all selected stories
       if (selectedStories.includes(activeId) && selectedStories.length > 1) {
-        console.log('Moving multiple stories:', selectedStories);
         selectedStories.forEach(storyId => {
           // Find which column each selected story is in
           for (const [columnId, stories] of Object.entries(storiesByColumn)) {
@@ -224,11 +216,9 @@ export function KanbanBoard() {
   const handleDragStart = (event: DragStartEvent) => {
     const activeId = event.active.id as string;
     setActiveId(activeId);
-    console.log('Drag start:', activeId);
     
     // If the dragged story is part of a multi-selection, show that in console
     if (selectedStories.includes(activeId) && selectedStories.length > 1) {
-      console.log('Dragging multiple stories:', selectedStories);
     }
   };
 

@@ -2,6 +2,7 @@
 export { Header } from './Header';
 export { NavigationDropdown } from './NavigationDropdown';
 export { AddDropdown } from './AddDropdown';
+export { LoadingScreen } from './LoadingScreen';
 
 // Modal Components
 export { AddStoryModal } from './modals/AddStoryModal';
@@ -31,6 +32,7 @@ export { ProjectStoryManager } from './ProjectStoryManager';
 export { RoadmapSection } from './RoadmapSection';
 
 // View Components
+export { TodayView } from './views/TodayView';
 export { SprintView } from './views/SprintView';
 export { StoryBoardsView } from './views/StoryBoardsView';
 export { ImportanceView } from './views/ImportanceView';

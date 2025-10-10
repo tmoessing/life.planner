@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreHorizontal, Calendar, FolderOpen, Target, Kanban, Settings, Weight, Clock } from 'lucide-react';
+import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3 } from 'lucide-react';
 import type { Project } from '@/types';
 import { useAtom } from 'jotai';
-import { storiesAtom, settingsAtom } from '@/stores/appStore';
+import { storiesAtom, settingsAtom, currentViewAtom, selectedProjectIdAtom } from '@/stores/appStore';
+import { useProjectSettings } from '@/utils/settingsMirror';
 
 interface ProjectCardProps {
   project: Project;
@@ -18,9 +19,14 @@ interface ProjectCardProps {
   onOpenStoryManager?: (project: Project) => void;
 }
 
-export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOpenKanban, onOpenStoryManager }: ProjectCardProps) {
+export function ProjectCard({ project, isSelected = false, onClick, onEdit }: ProjectCardProps) {
   const [stories] = useAtom(storiesAtom);
   const [settings] = useAtom(settingsAtom);
+  const [, setCurrentView] = useAtom(currentViewAtom);
+  const [, setSelectedProjectId] = useAtom(selectedProjectIdAtom);
+
+  // Use settings mirror system for project settings
+  const projectSettings = useProjectSettings();
 
   const {
     attributes,
@@ -80,20 +86,12 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
   };
 
   const getStatusColor = (status: Project['status']) => {
-    switch (status) {
-      case 'Icebox':
-        return { backgroundColor: '#6B728020', color: '#6B7280', borderColor: '#6B728040' };
-      case 'Backlog':
-        return { backgroundColor: '#3B82F620', color: '#3B82F6', borderColor: '#3B82F640' };
-      case 'To do':
-        return { backgroundColor: '#F59E0B20', color: '#F59E0B', borderColor: '#F59E0B40' };
-      case 'In Progress':
-        return { backgroundColor: '#F9731620', color: '#F97316', borderColor: '#F9731640' };
-      case 'Done':
-        return { backgroundColor: '#10B98120', color: '#10B981', borderColor: '#10B98140' };
-      default:
-        return { backgroundColor: '#6B728020', color: '#6B7280', borderColor: '#6B728040' };
-    }
+    const statusColor = projectSettings.getStatusColor(status.toLowerCase());
+    return { 
+      backgroundColor: `${statusColor}20`, 
+      color: statusColor, 
+      borderColor: `${statusColor}40` 
+    };
   };
 
   const statusColors = getStatusColor(project.status);
@@ -205,11 +203,12 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
               className="h-6 w-6 p-0"
               onClick={(e) => {
                 e.stopPropagation();
-                onOpenKanban?.(project);
+                setSelectedProjectId(project.id);
+                setCurrentView('projects-kanban');
               }}
               title="Open Kanban Board"
             >
-              <Kanban className="h-3 w-3" />
+              <LayoutDashboard className="h-3 w-3" />
             </Button>
             <Button
               variant="ghost"
@@ -217,11 +216,12 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
               className="h-6 w-6 p-0"
               onClick={(e) => {
                 e.stopPropagation();
-                onOpenStoryManager?.(project);
+                setSelectedProjectId(project.id);
+                setCurrentView('project-product-management');
               }}
-              title="Product Management"
+              title="Project Management"
             >
-              <Settings className="h-3 w-3" />
+              <BarChart3 className="h-3 w-3" />
             </Button>
           </div>
           <Button

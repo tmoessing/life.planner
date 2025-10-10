@@ -7,6 +7,7 @@ import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { SwipeableContainer } from '@/components/ui/swipeable-container';
 import { 
   goalsAtom, 
   storiesAtom, 
@@ -14,7 +15,8 @@ import {
   deleteStoryAtom,
   addStoryAtom
 } from '@/stores/appStore';
-import { Target, Undo } from 'lucide-react';
+import { AddStoryModal } from '@/components/modals/AddStoryModal';
+import { Target, Undo, Plus } from 'lucide-react';
 import type { Story } from '@/types';
 
 export function GoalsKanbanBoardsView() {
@@ -32,6 +34,7 @@ export function GoalsKanbanBoardsView() {
     : null;
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [undoStack, setUndoStack] = useState<Array<{
@@ -65,12 +68,12 @@ export function GoalsKanbanBoardsView() {
 
   // Define status columns for Kanban
   const statusColumns = [
-    { id: 'icebox', name: 'Icebox' },
-    { id: 'backlog', name: 'Backlog' },
-    { id: 'todo', name: 'To Do' },
-    { id: 'progress', name: 'In Progress' },
-    { id: 'review', name: 'Review' },
-    { id: 'done', name: 'Done' }
+    { id: 'icebox', name: 'Icebox', color: '#6B7280' },
+    { id: 'backlog', name: 'Backlog', color: '#3B82F6' },
+    { id: 'todo', name: 'To Do', color: '#F59E0B' },
+    { id: 'progress', name: 'In Progress', color: '#F97316' },
+    { id: 'review', name: 'Review', color: '#8B5CF6' },
+    { id: 'done', name: 'Done', color: '#10B981' }
   ];
 
   // Group stories by status
@@ -89,17 +92,14 @@ export function GoalsKanbanBoardsView() {
   const handleUndo = () => {
     if (undoStack.length > 0) {
       const lastAction = undoStack[undoStack.length - 1];
-      console.log('Undo action:', lastAction);
       
       if (lastAction.type === 'delete' && lastAction.story) {
         // Restore deleted story by adding it back
         const storyToRestore = { ...lastAction.story, deleted: false };
-        console.log('Undo delete: restoring story', lastAction.storyId);
         addStory(storyToRestore);
       } else if (lastAction.type === 'move' && lastAction.previousColumnId) {
         // Restore previous status
         updateStory(lastAction.storyId, { status: lastAction.previousColumnId as any });
-        console.log('Undo move:', lastAction.storyId, 'back to status:', lastAction.previousColumnId);
       }
       
       // Remove from undo stack
@@ -219,7 +219,7 @@ export function GoalsKanbanBoardsView() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-lg sm:text-2xl font-bold">Goals - Kanban Boards</h2>
             <p className="text-sm text-muted-foreground">
@@ -227,40 +227,49 @@ export function GoalsKanbanBoardsView() {
             </p>
           </div>
           
-          {/* Goal Selector */}
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
-            <Select
-              value={selectedGoalId || ''}
-              onValueChange={(goalId) => {
-                setSelectedGoalId(goalId);
-                setSelectedStories([]); // Clear selection when switching goals
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-64">
-                <SelectValue placeholder="Select a goal..." />
-              </SelectTrigger>
-              <SelectContent>
-                {goals.length === 0 ? (
-                  <SelectItem value="none" disabled>
-                    No goals available
+          <Button 
+            onClick={() => setShowAddStoryModal(true)}
+            className="gap-2 w-full sm:w-auto"
+            disabled={!selectedGoal}
+          >
+            <Plus className="h-4 w-4" />
+            Add Story
+          </Button>
+        </div>
+          
+        {/* Goal Selector */}
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-muted-foreground" />
+          <Select
+            value={selectedGoalId || ''}
+            onValueChange={(goalId) => {
+              setSelectedGoalId(goalId);
+              setSelectedStories([]); // Clear selection when switching goals
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue placeholder="Select a goal..." />
+            </SelectTrigger>
+            <SelectContent>
+              {goals.length === 0 ? (
+                <SelectItem value="none" disabled>
+                  No goals available
+                </SelectItem>
+              ) : (
+                goals.map((goal) => (
+                  <SelectItem key={goal.id} value={goal.id}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span>{goal.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({goalStories.length} stories)
+                      </span>
+                    </div>
                   </SelectItem>
-                ) : (
-                  goals.map((goal) => (
-                    <SelectItem key={goal.id} value={goal.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                        <span>{goal.title}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({goalStories.length} stories)
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Actions */}
@@ -326,7 +335,8 @@ export function GoalsKanbanBoardsView() {
               onDragEnd={handleDragEnd}
               sensors={sensors}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
+              {/* Desktop Grid Layout */}
+              <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
                 {statusColumns.map((status) => (
                   <div key={status.id} className="min-w-0">
                     <KanbanColumn
@@ -338,6 +348,50 @@ export function GoalsKanbanBoardsView() {
                     />
                   </div>
                 ))}
+              </div>
+
+              {/* Mobile Swipeable Layout */}
+              <div className="sm:hidden min-h-[500px]">
+                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-sm text-blue-800">Mobile Swipeable Layout Active</p>
+                </div>
+                <SwipeableContainer showNavigation={true} className="min-h-[400px]">
+                  {statusColumns.map((status) => (
+                    <div key={status.id} className="w-full px-4 min-h-[400px]">
+                      <div className="mb-4">
+                        <h3 
+                          className="text-lg font-semibold text-center mb-2"
+                          style={{ color: status.color }}
+                        >
+                          {status.name}
+                        </h3>
+                        <div className="text-sm text-muted-foreground text-center">
+                          {storiesByStatus[status.id]?.length || 0} stories
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        {(storiesByStatus[status.id] || []).map((story, index) => (
+                          <div
+                            key={story.id}
+                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                              selectedStories.includes(story.id)
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                            onClick={(e) => handleStoryClick(story.id, e, storiesByStatus[status.id], index)}
+                          >
+                            <StoryCard story={story} />
+                          </div>
+                        ))}
+                        {(!storiesByStatus[status.id] || storiesByStatus[status.id].length === 0) && (
+                          <div className="text-center text-muted-foreground py-8">
+                            No stories in {status.name.toLowerCase()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </SwipeableContainer>
               </div>
 
               <DragOverlay>
@@ -369,6 +423,13 @@ export function GoalsKanbanBoardsView() {
           story={editingStory}
         />
       )}
+
+      {/* Add Story Modal */}
+      <AddStoryModal 
+        open={showAddStoryModal} 
+        onOpenChange={setShowAddStoryModal}
+        initialData={{ goalId: selectedGoalId || undefined }}
+      />
     </div>
   );
 }

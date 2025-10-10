@@ -1,6 +1,6 @@
 // IDs are strings (uuid style)
 
-export type Priority = "Q1" | "Q2" | "Q3" | "Q4"; // First Things First
+export type Priority = "Q1" | "Q2" | "Q3" | "Q4" | "high" | "medium" | "low"; // Priority levels (Eisenhower Matrix + traditional)
 export type StoryType = "Spiritual" | "Physical" | "Intellectual" | "Social" | string;
 
 export type Role = {
@@ -18,6 +18,7 @@ export type Label = {
 export type Vision = {
   id: string;
   title: string;
+  name: string; // alias for title for compatibility
   description?: string; // optional short description
   type: StoryType;
   order: number; // for Importance view ordering
@@ -26,12 +27,13 @@ export type Vision = {
 export type Goal = {
   id: string;
   title: string;
+  name: string; // alias for title for compatibility
   description?: string;
   visionId?: string; // reference to a vision
   category: 'target' | 'lifestyle-value'; // goal category (Target or Lifestyle/Value)
   goalType: string; // goal type (Spiritual, Physical, Intellectual, Social, Financial, Protector)
   roleId?: string; // reference to a role
-  priority: 'Q1' | 'Q2' | 'Q3' | 'Q4'; // priority tied to settings
+  priority: Priority; // priority tied to settings
   status: 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done';
   order: number;
   storyIds?: string[]; // references to stories assigned to this goal
@@ -48,7 +50,7 @@ export type BucketlistItem = {
   completed: boolean;
   completedAt?: string;
   category?: string;
-  priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  priority: Priority;
   bucketlistType: 'location' | 'experience';
   status?: 'in-progress' | 'completed' | 'not-started' | 'on-hold';
   roleId?: string;
@@ -65,12 +67,30 @@ export type BucketlistItem = {
   updatedAt: string;
 };
 
+export type ImportantDate = {
+  id: string;
+  title: string;
+  date: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Tradition = {
+  id: string;
+  title: string;
+  description: string;
+  traditionType: string; // Holiday, Celebration, Traditional
+  traditionalCategory: string; // Social, Spiritual, Physical, Intellectual
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Project = {
   id: string;
   name: string;
   description: string;
   status: 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done';
-  priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  priority: Priority;
   roleId?: string;
   visionId?: string;
   order: number;
@@ -168,6 +188,12 @@ export type BucketlistTypeConfig = {
   color: string; // hex color
 };
 
+export type TraditionTypeConfig = {
+  id: string;
+  name: string;
+  color: string; // hex color
+};
+
 export type Settings = {
   theme: "light" | "dark" | "system";
   roles: Role[]; // editable
@@ -178,13 +204,28 @@ export type Settings = {
   visionTypes: VisionTypeConfig[]; // vision types with colors
   goalCategories: GoalCategoryConfig[]; // goal categories with colors (Target, Lifestyle/Value)
   goalTypes: GoalTypeConfig[]; // goal types with colors (Spiritual, Physical, Intellectual, Social, Financial, Protector)
+  goalStatuses: StoryTypeConfig[]; // goal statuses with colors (Not Started, In Progress, Completed, Paused, Cancelled)
   bucketlistTypes: BucketlistTypeConfig[]; // bucketlist types with colors (Location, Experience)
-  priorityColors: Record<Priority, string>; // priority colors
+  bucketlistCategories: StoryTypeConfig[]; // bucketlist categories with colors (Adventure, Travel, Learning, etc.)
+  countries: string[]; // list of countries for location-based bucketlist items
+  usStates: string[]; // list of US states
+  experienceCategories: string[]; // list of experience categories
+  projectTypes: StoryTypeConfig[]; // project types with colors
+  traditionTypes: StoryTypeConfig[]; // tradition types with colors
+  traditionalCategories: StoryTypeConfig[]; // traditional categories with colors
+  importantDateTypes: StoryTypeConfig[]; // important date types with colors
+  priorityColors: Record<Priority, string>; // priority colors (Q1, Q2, Q3, Q4 for stories)
+  bucketlistPriorityColors: Record<string, string>; // bucketlist priority colors (low, medium, high)
   weightBaseColor: string; // base color for weight gradient
   roleToTypeMap: Record<string, StoryType>; // Disciple -> Spiritual, Friend -> Social, etc.
   statusColors: Record<string, string>; // status colors (icebox, backlog, todo, progress, review, done)
+  projectStatusColors: Record<string, string>; // project status colors (icebox, backlog, todo, progress, done)
   roadmapScheduledColor: string; // color for scheduled items in roadmap
   sizeColors: Record<string, string>; // size colors for story sizes
+  chartColors: {
+    ideal: string;
+    actual: string;
+  }; // chart colors for burndown/burnup charts
   
   // UI Customization
   ui: UICustomization;
@@ -479,7 +520,7 @@ export type AppState = {
 };
 
 // View types
-export type ViewType = "sprint" | "story-boards" | "importance" | "goals" | "goals-kanban" | "bucketlist" | "planner" | "sprint-planning" | "sprint-review" | "add-stories" | "add-goals" | "add-projects" | "add-bucketlist" | "projects" | "projects-kanban" | "project-product-management";
+export type ViewType = "today" | "sprint" | "story-boards" | "importance" | "goals" | "goals-kanban" | "bucketlist" | "planner" | "sprint-planning" | "add-stories" | "add-goals" | "add-projects" | "add-bucketlist" | "projects" | "projects-kanban" | "project-product-management" | "important-dates" | "traditions" | "goal-boards" | "settings";
 
 // Filter keyword types
 export type FilterKey = "sprint" | "type" | "role" | "priority" | "label" | "weight" | "size" | "due" | "dueSoon";
@@ -520,3 +561,6 @@ export type RoadmapColumn = {
   storyTitle: string;
   cells: RoadmapCell[];
 };
+
+// Re-export types from story.ts
+export type { StoryFilters, StoryFormData } from './story';

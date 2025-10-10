@@ -17,8 +17,10 @@ import {
   rolesAtom,
   labelsAtom,
   visionsAtom,
-  settingsAtom
+  settingsAtom,
+  selectedProjectIdAtom
 } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { FolderOpen, Plus, Weight, MoreHorizontal } from 'lucide-react';
 import type { Project, Story, Priority } from '@/types';
 import { getWeightGradientColor } from '@/utils';
@@ -39,20 +41,15 @@ function AvailableStoryCard({
   const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);
   const [settings] = useAtom(settingsAtom);
+  const storySettings = useStorySettings();
 
   const role = roles.find(r => r.id === story.roleId);
   const vision = visions.find(v => v.id === story.visionId);
   const storyLabels = labels.filter(l => story.labels.includes(l.id));
 
   const getPriorityColor = (priority: Priority) => {
-    const fallbackColors = {
-      'Q1': '#EF4444',
-      'Q2': '#10B981',
-      'Q3': '#F59E0B',
-      'Q4': '#6B7280'
-    };
     
-    const priorityColor = settings.priorityColors?.[priority] || fallbackColors[priority];
+    const priorityColor = storySettings.getPriorityColor(priority);
     return {
       backgroundColor: `${priorityColor}20`,
       color: priorityColor,
@@ -215,20 +212,15 @@ function ProjectStoryCard({
   const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);
   const [settings] = useAtom(settingsAtom);
+  const storySettings = useStorySettings();
 
   const role = roles.find(r => r.id === story.roleId);
   const vision = visions.find(v => v.id === story.visionId);
   const storyLabels = labels.filter(l => story.labels.includes(l.id));
 
   const getPriorityColor = (priority: Priority) => {
-    const fallbackColors = {
-      'Q1': '#EF4444',
-      'Q2': '#10B981',
-      'Q3': '#F59E0B',
-      'Q4': '#6B7280'
-    };
     
-    const priorityColor = settings.priorityColors?.[priority] || fallbackColors[priority];
+    const priorityColor = storySettings.getPriorityColor(priority);
     return {
       backgroundColor: `${priorityColor}20`,
       color: priorityColor,
@@ -415,7 +407,6 @@ function DraggableAvailableStoryCard({
       onClick={(e) => {
         // Only handle click if not dragging and not a drag operation
         if (!isDragging) {
-          console.log('Story card clicked:', { isDragging, storyId: story.id });
           onClick(e);
         }
       }}
@@ -431,14 +422,12 @@ function DraggableAvailableStoryCard({
         
         // Special handling for Ctrl+Shift to prevent drag interference
         if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-          console.log('Ctrl+Shift mouse down - preventing drag');
           e.stopPropagation();
         }
       }}
       onKeyDown={(e) => {
         // Handle keyboard combinations
         if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-          console.log('Ctrl+Shift key down detected');
         }
       }}
     >
@@ -491,7 +480,6 @@ function DraggableProjectStoryCard({
       onClick={(e) => {
         // Only handle click if not dragging and not a drag operation
         if (!isDragging) {
-          console.log('Story card clicked:', { isDragging, storyId: story.id });
           onClick(e);
         }
       }}
@@ -507,14 +495,12 @@ function DraggableProjectStoryCard({
         
         // Special handling for Ctrl+Shift to prevent drag interference
         if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-          console.log('Ctrl+Shift mouse down - preventing drag');
           e.stopPropagation();
         }
       }}
       onKeyDown={(e) => {
         // Handle keyboard combinations
         if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-          console.log('Ctrl+Shift key down detected');
         }
       }}
     >
@@ -637,7 +623,15 @@ export function ProjectProductManagementView() {
   const [, removeStoryFromProject] = useAtom(removeStoryFromProjectAtom);
   const [, updateStory] = useAtom(updateStoryAtom);
 
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useAtom(selectedProjectIdAtom);
+
+  // Use settings mirror system for story settings
+  const storySettings = useStorySettings();
+  
+  // Get the current selected project from the projects atom
+  const selectedProject = selectedProjectId 
+    ? projects.find(p => p.id === selectedProjectId) || null
+    : null;
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
@@ -645,7 +639,7 @@ export function ProjectProductManagementView() {
   // Auto-select first project when projects load or change
   useEffect(() => {
     if (projects.length > 0 && !selectedProject) {
-      setSelectedProject(projects[0]);
+      setSelectedProjectId(projects[0].id);
     }
   }, [projects, selectedProject]);
 
@@ -685,44 +679,28 @@ export function ProjectProductManagementView() {
     : [];
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log('Drag started:', event.active.id);
     setActiveId(event.active.id as string);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    console.log('Drag over:', { 
-      active: active.id, 
-      over: over?.id,
-      overData: over?.data?.current,
-      activeData: active.data?.current
-    });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('Drag ended:', { 
-      active: active.id, 
-      over: over?.id,
-      overData: over?.data?.current
-    });
     setActiveId(null);
 
     if (!over || !currentProject) {
-      console.log('No drop target or no project selected');
       return;
     }
 
     const storyId = active.id as string;
     const isStoryInProject = currentProject.storyIds.includes(storyId);
-    console.log('Story in project:', isStoryInProject, 'Drop zone:', over.id);
 
     // Check if dropping on the correct zone
     if (over.id === 'available-stories' && isStoryInProject) {
-      console.log('Removing story from project:', storyId);
       removeStoryFromProject(currentProject.id, storyId);
     } else if (over.id === 'project-stories' && !isStoryInProject) {
-      console.log('Adding story to project:', storyId);
       
       // First, remove the story from any other project it might be assigned to
       const otherProjects = projects.filter(project => 
@@ -731,7 +709,6 @@ export function ProjectProductManagementView() {
       
       // Remove from other projects
       otherProjects.forEach(project => {
-        console.log('Removing story from other project:', project.name, storyId);
         removeStoryFromProject(project.id, storyId);
       });
       
@@ -739,11 +716,9 @@ export function ProjectProductManagementView() {
       addStoryToProject(currentProject.id, storyId);
     } else if (over.data?.current?.zone === 'available' && isStoryInProject) {
       // Fallback: check data zone
-      console.log('Removing story from project (fallback):', storyId);
       removeStoryFromProject(currentProject.id, storyId);
     } else if (over.data?.current?.zone === 'project' && !isStoryInProject) {
       // Fallback: check data zone
-      console.log('Adding story to project (fallback):', storyId);
       
       // First, remove the story from any other project it might be assigned to
       const otherProjects = projects.filter(project => 
@@ -752,34 +727,17 @@ export function ProjectProductManagementView() {
       
       // Remove from other projects
       otherProjects.forEach(project => {
-        console.log('Removing story from other project (fallback):', project.name, storyId);
         removeStoryFromProject(project.id, storyId);
       });
       
       // Then add to current project
       addStoryToProject(currentProject.id, storyId);
-    } else {
-      console.log('Invalid drop or story already in correct zone', {
-        dropZone: over.id,
-        dropZoneData: over.data?.current,
-        isInProject: isStoryInProject,
-        storyId
-      });
     }
   };
 
   const handleStoryToggle = (storyId: string, event: React.MouseEvent) => {
-    console.log('Story toggle:', {
-      storyId,
-      ctrlKey: event.ctrlKey,
-      metaKey: event.metaKey,
-      shiftKey: event.shiftKey,
-      selectedCount: selectedStories.length
-    });
-
     // Handle Ctrl+Shift combination (Ctrl+Shift takes priority)
     if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
-      console.log('Ctrl+Shift+Click detected');
       // Ctrl+Shift: Add to selection without clearing previous
       setSelectedStories(prev => 
         prev.includes(storyId) 
@@ -787,7 +745,6 @@ export function ProjectProductManagementView() {
           : [...prev, storyId]
       );
     } else if (event.ctrlKey || event.metaKey) {
-      console.log('Ctrl+Click detected');
       // Multi-selection with Ctrl/Cmd - toggle individual stories
       setSelectedStories(prev => 
         prev.includes(storyId) 
@@ -795,7 +752,6 @@ export function ProjectProductManagementView() {
           : [...prev, storyId]
       );
     } else if (event.shiftKey && selectedStories.length > 0) {
-      console.log('Shift+Click detected');
       // Range selection with Shift - select range from last selected to current
       const allStories = [...projectStories, ...availableStories];
       const currentIndex = allStories.findIndex(s => s.id === storyId);
@@ -809,7 +765,6 @@ export function ProjectProductManagementView() {
       setSelectedStories(prev => [...new Set([...prev, ...rangeStories])]);
       }
     } else {
-      console.log('Regular click detected');
       // Single selection - clear previous selections and select only this story
       setSelectedStories([storyId]);
     }
@@ -839,8 +794,7 @@ export function ProjectProductManagementView() {
             <Select
               value={selectedProject?.id || ''}
               onValueChange={(projectId) => {
-                const project = projects.find(p => p.id === projectId);
-                setSelectedProject(project || null);
+                setSelectedProjectId(projectId);
                 setSelectedStories([]); // Clear selection when switching projects
               }}
             >

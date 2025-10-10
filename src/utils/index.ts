@@ -54,6 +54,7 @@ export const createLabel = (overrides: Partial<Label> = {}): Label => ({
 export const createVision = (overrides: Partial<Vision> = {}): Vision => ({
   id: uuidv4(),
   title: '',
+  name: '', // alias for title
   description: '',
   type: 'Intellectual',
   order: 0,
@@ -112,17 +113,98 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'Intellectual', color: '#3B82F6' },
     { name: 'Social', color: '#10B981' },
     { name: 'Financial', color: '#F59E0B' },
-    { name: 'Protector', color: '#EF4444' }
+    { name: 'Protector', color: '#81E6D9' }
+  ],
+  goalStatuses: [
+    { name: 'Not Started', color: '#6B7280' },
+    { name: 'In Progress', color: '#3B82F6' },
+    { name: 'Completed', color: '#10B981' },
+    { name: 'Paused', color: '#F59E0B' },
+    { name: 'Cancelled', color: '#EF4444' }
   ],
   bucketlistTypes: [
     { name: 'Location', color: '#3B82F6' },
     { name: 'Experience', color: '#10B981' }
   ],
+  bucketlistCategories: [
+    { name: 'Adventure', color: '#EF4444' },
+    { name: 'Travel', color: '#3B82F6' },
+    { name: 'Learning', color: '#8B5CF6' },
+    { name: 'Experience', color: '#10B981' },
+    { name: 'Achievement', color: '#F59E0B' },
+    { name: 'Personal', color: '#EC4899' }
+  ],
+  countries: [
+    'US', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 
+    'Japan', 'China', 'India', 'Australia', 'Brazil', 'Argentina', 'Chile', 'Peru',
+    'South Africa', 'Egypt', 'Morocco', 'Nigeria', 'Kenya', 'Thailand', 'Vietnam',
+    'Indonesia', 'Philippines', 'South Korea', 'Singapore', 'Malaysia', 'New Zealand'
+  ],
+  usStates: [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+    'Wisconsin', 'Wyoming'
+  ],
+  experienceCategories: [
+    'Adventure', 'Cultural', 'Educational', 'Entertainment', 'Food & Drink', 'Nature',
+    'Sports', 'Wellness', 'Art & Music', 'History', 'Technology', 'Business',
+    'Volunteer', 'Spiritual', 'Social', 'Personal Growth'
+  ],
+  
+  // Project types for project settings mirror
+  projectTypes: [
+    { name: 'Work', color: '#3B82F6' },
+    { name: 'Personal', color: '#8B5CF6' },
+    { name: 'Learning', color: '#10B981' },
+    { name: 'Health', color: '#EF4444' }
+  ],
+  
+  // Tradition types for tradition settings mirror
+  traditionTypes: [
+    { name: 'Spiritual', color: '#8B5CF6' },
+    { name: 'Physical', color: '#10B981' },
+    { name: 'Intellectual', color: '#F59E0B' },
+    { name: 'Social', color: '#3B82F6' }
+  ],
+  
+  // Traditional categories for tradition settings mirror
+  traditionalCategories: [
+    { name: 'Christmas', color: '#EF4444' },
+    { name: 'Birthday', color: '#F59E0B' },
+    { name: 'New Year', color: '#8B5CF6' },
+    { name: 'Easter', color: '#10B981' },
+    { name: 'Thanksgiving', color: '#F97316' },
+    { name: 'Halloween', color: '#7C3AED' },
+    { name: 'Valentine\'s Day', color: '#EC4899' },
+    { name: 'Anniversary', color: '#06B6D4' }
+  ],
+  
+  // Important date types for important date settings mirror
+  importantDateTypes: [
+    { name: 'Birthday', color: '#F59E0B' },
+    { name: 'Anniversary', color: '#EC4899' },
+    { name: 'Holiday', color: '#EF4444' },
+    { name: 'Reminder', color: '#3B82F6' },
+    { name: 'Event', color: '#10B981' }
+  ],
   priorityColors: {
     'Q1': '#EF4444', // Red for Urgent & Important
     'Q2': '#10B981', // Green for Important, Not Urgent
     'Q3': '#F59E0B', // Yellow for Urgent, Not Important
-    'Q4': '#6B7280'  // Gray for Not Urgent, Not Important
+    'Q4': '#6B7280', // Gray for Not Urgent, Not Important
+    'high': '#EF4444',
+    'medium': '#F59E0B',
+    'low': '#6B7280'
+  },
+  bucketlistPriorityColors: {
+    'high': '#EF4444', // Red for High Priority
+    'medium': '#F59E0B', // Yellow for Medium Priority
+    'low': '#6B7280'  // Gray for Low Priority
   },
   weightBaseColor: '#3B82F6', // Base color for weight gradient
   roleToTypeMap: {
@@ -142,6 +224,13 @@ export const getDefaultSettings = (): Settings => ({
     'review': '#8B5CF6',    // Purple
     'done': '#10B981'       // Green
   },
+  projectStatusColors: {
+    'icebox': '#6B7280',
+    'backlog': '#3B82F6',
+    'to-do': '#F59E0B',
+    'in-progress': '#F97316',
+    'done': '#10B981'
+  },
   roadmapScheduledColor: '#8B5CF6', // Purple for scheduled items
   sizeColors: {
     'XS': '#10B981', // Green
@@ -149,6 +238,10 @@ export const getDefaultSettings = (): Settings => ({
     'M': '#F59E0B',  // Yellow
     'L': '#EF4444',  // Red
     'XL': '#8B5CF6'  // Purple
+  },
+  chartColors: {
+    ideal: '#8884d8', // Purple for ideal line
+    actual: '#82ca9d'  // Green for actual line
   },
   
   // UI Customization
@@ -483,7 +576,6 @@ export const saveToLocalStorage = (key: string, data: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
-    console.error('Failed to save to localStorage:', error);
   }
 };
 
@@ -492,7 +584,6 @@ export const loadFromLocalStorage = <T>(key: string, defaultValue: T): T => {
     const item = localStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
   } catch (error) {
-    console.error('Failed to load from localStorage:', error);
     return defaultValue;
   }
 };
@@ -503,7 +594,6 @@ export const loadStories = (): any[] => {
     const stories = localStorage.getItem('life-scrum-stories');
     return stories ? JSON.parse(stories) : [];
   } catch (error) {
-    console.error('Failed to load stories:', error);
     return [];
   }
 };
@@ -512,7 +602,6 @@ export const saveStories = (stories: any[]): void => {
   try {
     localStorage.setItem('life-scrum-stories', JSON.stringify(stories));
   } catch (error) {
-    console.error('Failed to save stories:', error);
   }
 };
 
@@ -525,9 +614,13 @@ export const exportAllData = (data: any) => {
     exportedAt: new Date().toISOString(),
     stories: activeStories,
     sprints: data.sprints || [],
+    goals: data.goals || [],
+    projects: data.projects || [],
     roles: data.roles || [],
-    labels: data.labels || [],
     visions: data.visions || [],
+    bucketlist: data.bucketlist || [],
+    importantDates: data.importantDates || [],
+    traditions: data.traditions || [],
     columns: data.columns || [],
     boards: data.boards || [],
     settings: data.settings || {}
@@ -576,9 +669,13 @@ export const importAllData = (file: File): Promise<{ data: any, mode: 'overwrite
             data: {
               stories: data.stories || [],
               sprints: data.sprints || [],
+              goals: data.goals || [],
+              projects: data.projects || [],
               roles: data.roles || [],
-              labels: data.labels || [],
               visions: data.visions || [],
+              bucketlist: data.bucketlist || [],
+              importantDates: data.importantDates || [],
+              traditions: data.traditions || [],
               columns: data.columns || [],
               boards: data.boards || [],
               settings: data.settings || {}

@@ -8,18 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Target, Edit, Trash2 } from 'lucide-react';
 import { 
   goalsAtom, 
-  updateGoalAtom,
-  settingsAtom
+  updateGoalAtom
 } from '@/stores/appStore';
+import { useGoalSettings } from '@/utils/settingsMirror';
 import type { Goal } from '@/types';
 
 // Draggable Goal Card Component
-function DraggableGoalCard({ goal, onEdit, onDelete, settings }: { 
+function DraggableGoalCard({ goal, onEdit, onDelete }: { 
   goal: Goal; 
   onEdit: (goal: Goal) => void; 
   onDelete: (goalId: string) => void;
-  settings: any;
 }) {
+  const goalSettings = useGoalSettings();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: goal.id,
   });
@@ -29,62 +29,41 @@ function DraggableGoalCard({ goal, onEdit, onDelete, settings }: {
   } : undefined;
 
   const getPriorityColor = (priority: string) => {
-    const prioritySetting = settings.priorityColors?.[priority];
-    if (prioritySetting) {
-      return `bg-[${prioritySetting}]20 text-[${prioritySetting}] border-[${prioritySetting}]40`;
-    }
-    // Fallback colors
-    switch (priority) {
-      case 'Q1':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Q2':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'Q3':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Q4':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const priorityColor = goalSettings.getPriorityColor(priority);
+    return `bg-[${priorityColor}]20 text-[${priorityColor}] border-[${priorityColor}]40`;
   };
 
   const getCategoryColor = (category: string) => {
-    const categorySetting = settings.goalTypes?.find((type: any) => type.name === category);
-    if (categorySetting) {
-      return `bg-[${categorySetting.color}]20 text-[${categorySetting.color}] border-[${categorySetting.color}]40`;
-    }
-    // Fallback colors
-    switch (category) {
-      case 'Spiritual':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Physical':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Intellectual':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Social':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'Financial':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Protector':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const categoryColor = goalSettings.getTypeColor(category);
+    return `bg-[${categoryColor}]20 text-[${categoryColor}] border-[${categoryColor}]40`;
   };
 
   const getGoalTypeColor = (goalType: string) => {
-    const goalTypeSetting = settings.goalCategories?.find((cat: any) => cat.name.toLowerCase().replace('/', '-') === goalType);
-    if (goalTypeSetting) {
-      return `bg-[${goalTypeSetting.color}]20 text-[${goalTypeSetting.color}] border-[${goalTypeSetting.color}]40`;
-    }
-    // Fallback colors
-    switch (goalType) {
-      case 'target':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'lifestyle-value':
-        return 'bg-green-100 text-green-800 border-green-200';
+    const goalTypeColor = goalSettings.getCategoryColor(goalType);
+    return `bg-[${goalTypeColor}]20 text-[${goalTypeColor}] border-[${goalTypeColor}]40`;
+  };
+
+  const getStatusColor = (status: string) => {
+    const statusColor = goalSettings.getStatusColor(status);
+    return `bg-[${statusColor}]20 text-[${statusColor}] border-[${statusColor}]40`;
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'icebox':
+        return 'Icebox';
+      case 'backlog':
+        return 'Backlog';
+      case 'todo':
+        return 'To Do';
+      case 'in-progress':
+        return 'In Progress';
+      case 'review':
+        return 'Review';
+      case 'done':
+        return 'Done';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return status;
     }
   };
 
@@ -132,6 +111,9 @@ function DraggableGoalCard({ goal, onEdit, onDelete, settings }: {
       <CardContent className="space-y-2">
         {/* Badges */}
         <div className="flex flex-wrap gap-1">
+          <Badge variant="outline" className={`text-xs ${getStatusColor(goal.status)}`}>
+            {getStatusText(goal.status)}
+          </Badge>
           <Badge variant="outline" className={`text-xs ${getCategoryColor(goal.category)}`}>
             {goal.category}
           </Badge>
@@ -160,20 +142,19 @@ function DroppableColumn({
   status, 
   goals, 
   onEdit, 
-  onDelete,
-  settings
+  onDelete
 }: { 
   status: { id: string; name: string }; 
   goals: Goal[];
   onEdit: (goal: Goal) => void;
   onDelete: (goalId: string) => void;
-  settings: any;
 }) {
+  const goalSettings = useGoalSettings();
   const { isOver, setNodeRef } = useDroppable({
     id: status.id,
   });
 
-  const statusColor = settings.statusColors?.[status.id] || '#6B7280';
+  const statusColor = goalSettings.getStatusColor(status.id);
   
   return (
     <div className="flex-1 flex flex-col">
@@ -192,7 +173,7 @@ function DroppableColumn({
           isOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-gray-50'
         }`}
         style={{
-          borderColor: isOver ? '#3B82F6' : statusColor + '40',
+          borderColor: isOver ? goalSettings.weightBaseColor : statusColor + '40',
           backgroundColor: isOver ? '#EFF6FF' : statusColor + '10'
         }}
       >
@@ -210,7 +191,6 @@ function DroppableColumn({
               goal={goal}
               onEdit={onEdit}
               onDelete={onDelete}
-              settings={settings}
             />
           ))
         )}
@@ -227,7 +207,7 @@ interface AllGoalsKanbanBoardProps {
 
 export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: AllGoalsKanbanBoardProps) {
   const [goals] = useAtom(goalsAtom);
-  const [settings] = useAtom(settingsAtom);
+  const goalSettings = useGoalSettings();
   const [, updateGoal] = useAtom(updateGoalAtom);
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -240,15 +220,11 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
     })
   );
 
-  // Define status columns for Kanban
-  const statusColumns = [
-    { id: 'icebox', name: 'Icebox' },
-    { id: 'backlog', name: 'Backlog' },
-    { id: 'todo', name: 'To Do' },
-    { id: 'in-progress', name: 'In Progress' },
-    { id: 'review', name: 'Review' },
-    { id: 'done', name: 'Done' }
-  ];
+  // Define status columns for Kanban using goal statuses from settings
+  const statusColumns = goalSettings.goalStatuses.map(status => ({
+    id: status.name.toLowerCase().replace(' ', '-'),
+    name: status.name
+  }));
 
   // Group goals by status
   const goalsByStatus = statusColumns.reduce((acc, status) => {
@@ -301,7 +277,7 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-6">
         {statusColumns.map((column) => {
           const goalCount = goalsByStatus[column.id]?.length || 0;
-          const statusColor = settings.statusColors?.[column.id] || '#6B7280';
+          const statusColor = goalSettings.getStatusColor(column.id);
           
           return (
             <div key={column.id} className="bg-card p-3 sm:p-4 rounded-lg border">
@@ -333,7 +309,6 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
                   goals={goalsByStatus[status.id] || []}
                   onEdit={onEditGoal}
                   onDelete={onDeleteGoal}
-                  settings={settings}
                 />
               </div>
             ))}
@@ -346,7 +321,6 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
                   goal={activeGoal}
                   onEdit={onEditGoal}
                   onDelete={onDeleteGoal}
-                  settings={settings}
                 />
               </div>
             ) : null}

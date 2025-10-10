@@ -115,12 +115,10 @@ export function SprintPlanningView() {
       if (lastAction.type === 'delete' && lastAction.story) {
         // Restore deleted story by adding it back
         const storyToRestore = { ...lastAction.story, deleted: false };
-        console.log('Undo delete: restoring story', lastAction.storyId);
         addStory(storyToRestore);
       } else if (lastAction.type === 'move' && lastAction.previousSprintId !== undefined) {
         // Restore previous sprint assignment
         updateStory(lastAction.storyId, { sprintId: lastAction.previousSprintId });
-        console.log('Undo move:', lastAction.storyId, 'back to sprint:', lastAction.previousSprintId);
       }
       
       // Remove from undo stack
@@ -157,7 +155,6 @@ export function SprintPlanningView() {
   };
 
   const handleDragStart = (e: React.DragEvent, storyId: string) => {
-    console.log('DRAG START TRIGGERED for story:', storyId);
     setDraggedStoryId(storyId);
     e.dataTransfer.effectAllowed = 'move';
     
@@ -167,7 +164,6 @@ export function SprintPlanningView() {
       : [storyId];
     
     const dragData = JSON.stringify(storiesToDrag);
-    console.log('Drag start - Story ID:', storyId, 'Stories to drag:', storiesToDrag, 'Data:', dragData);
     e.dataTransfer.setData('text/plain', dragData);
     
     // Add some visual feedback
@@ -190,7 +186,6 @@ export function SprintPlanningView() {
   };
 
   const handleDragOverSprint = (e: React.DragEvent, sprintId: string) => {
-    console.log('DRAG OVER sprint:', sprintId);
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setDragOverSprintId(sprintId);
@@ -201,15 +196,12 @@ export function SprintPlanningView() {
   };
 
   const handleDrop = (e: React.DragEvent, targetSprintId: string) => {
-    console.log('DROP EVENT TRIGGERED for sprint:', targetSprintId);
     e.preventDefault();
     const data = e.dataTransfer.getData('text/plain');
-    console.log('Drop data:', data, 'Target sprint:', targetSprintId);
     
     if (data) {
       try {
         const storyIds = JSON.parse(data);
-        console.log('Parsed story IDs:', storyIds);
         if (Array.isArray(storyIds)) {
           // Move multiple stories
           storyIds.forEach(storyId => {
@@ -222,7 +214,6 @@ export function SprintPlanningView() {
                 previousSprintId: story.sprintId
               }]);
             }
-            console.log('Updating story:', storyId, 'to sprint:', targetSprintId);
             updateStory(storyId, { sprintId: targetSprintId });
           });
         } else {
@@ -236,11 +227,9 @@ export function SprintPlanningView() {
               previousSprintId: story.sprintId
             }]);
           }
-          console.log('Updating single story:', data, 'to sprint:', targetSprintId);
           updateStory(data, { sprintId: targetSprintId });
         }
       } catch (error) {
-        console.log('JSON parse error, treating as single story:', error);
         // Fallback for single story
         const story = stories.find(s => s.id === data);
         if (story) {
@@ -334,7 +323,7 @@ export function SprintPlanningView() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <p className="text-muted-foreground">
-            Drag stories between sprints or to unassigned. Hold Ctrl/Cmd and click to select multiple stories, then drag them together. Press Delete key to remove selected stories. Press Ctrl+Z to undo operations.
+            Drag stories between sprints to organize your work
           </p>
           {selectedStoryIds.size > 0 && (
             <div className="flex items-center gap-2">

@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Calendar, User, Star, Weight } from 'lucide-react';
 import type { Story, Priority } from '@/types';
 import { useAtom } from 'jotai';
-import { rolesAtom, labelsAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
+import { rolesAtom, visionsAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 
 interface StoryCardProps {
@@ -19,9 +20,8 @@ interface StoryCardProps {
 
 export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryCardProps) {
   const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);
-  const [settings] = useAtom(settingsAtom);
+  const storySettings = useStorySettings();
 
   const {
     attributes,
@@ -45,18 +45,9 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
 
   const role = roles.find(r => r.id === story.roleId);
   const vision = visions.find(v => v.id === story.visionId);
-  const storyLabels = labels.filter(l => story.labels.includes(l.id));
 
   const getPriorityColor = (priority: Priority) => {
-    // Fallback colors for when priorityColors is not yet available
-    const fallbackColors = {
-      'Q1': '#EF4444', // Red for Urgent & Important
-      'Q2': '#10B981', // Green for Important, Not Urgent
-      'Q3': '#F59E0B', // Yellow for Urgent, Not Important
-      'Q4': '#6B7280'  // Gray for Not Urgent, Not Important
-    };
-    
-    const priorityColor = settings.priorityColors?.[priority] || fallbackColors[priority];
+    const priorityColor = storySettings.getPriorityColor(priority);
     return {
       backgroundColor: `${priorityColor}20`,
       color: priorityColor,
@@ -65,7 +56,7 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
   };
 
   const getWeightColor = (weight: number) => {
-    const gradientColor = getWeightGradientColor(weight, settings.weightBaseColor, 21);
+    const gradientColor = getWeightGradientColor(weight, storySettings.weightBaseColor, 21);
     return {
       backgroundColor: `${gradientColor}20`,
       color: gradientColor,
@@ -74,8 +65,7 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
   };
 
   const getStoryTypeColor = (type: string) => {
-    const storyType = settings.storyTypes.find(st => st.name === type);
-    const typeColor = storyType?.color || '#6B7280';
+    const typeColor = storySettings.getTypeColor(type);
     return {
       backgroundColor: `${typeColor}20`,
       color: typeColor,
@@ -83,14 +73,13 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
     };
   };
 
-  const getStorySizeConfig = (size: string) => {
-    const storySize = settings.storySizes?.find(ss => ss.name === size);
-    return storySize || { name: size, color: '#6B7280', timeEstimate: '' };
-  };
+  // const getStorySizeConfig = (size: string) => {
+  //   const storySize = storySettings.storySizes?.find(ss => ss.name === size);
+  //   return storySize || { name: size, color: '#6B7280', timeEstimate: '' };
+  // };
 
   const getStorySizeColor = (size: string) => {
-    const sizeConfig = getStorySizeConfig(size);
-    const sizeColor = sizeConfig.color;
+    const sizeColor = storySettings.getSizeColor(size);
     return {
       backgroundColor: `${sizeColor}20`,
       color: sizeColor,
@@ -99,8 +88,7 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
   };
 
   const getTaskCategoryColor = (category: string) => {
-    const taskCategory = settings.taskCategories?.find(tc => tc.name === category);
-    return taskCategory?.color || '#6B7280';
+    return storySettings.getTaskCategoryColor(category);
   };
 
   return (
@@ -123,7 +111,6 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
         e.stopPropagation();
         // Only handle double-click if not dragging
         if (!isDragging) {
-          console.log('Double-click detected, opening edit modal for:', story.title);
           onEdit?.(story);
         }
       }}
@@ -236,36 +223,6 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
           )}
         </div>
 
-        {/* Labels - Show only first 2 on mobile */}
-        {storyLabels.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {storyLabels.slice(0, 2).map((label) => (
-              <Badge
-                key={label.id}
-                variant="secondary"
-                className="text-xs px-1.5 py-0.5"
-                style={{ backgroundColor: label.color + '20', color: label.color }}
-              >
-                {label.name}
-              </Badge>
-            ))}
-            {storyLabels.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 sm:hidden">
-                +{storyLabels.length - 2}
-              </Badge>
-            )}
-            {storyLabels.slice(2).map((label) => (
-              <Badge
-                key={label.id}
-                variant="secondary"
-                className="text-xs px-1.5 py-0.5 hidden sm:inline-flex"
-                style={{ backgroundColor: label.color + '20', color: label.color }}
-              >
-                {label.name}
-              </Badge>
-            ))}
-          </div>
-        )}
 
         {/* Due Date - Hidden on mobile to save space */}
         {story.dueDate && (

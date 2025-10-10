@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
 import { StoryCard } from '@/components/boards/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { 
-  projectsAtom,
   storiesAtom, 
   columnsAtom,
   moveStoryAtom
@@ -19,13 +17,12 @@ interface ProjectKanbanBoardProps {
 }
 
 export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps) {
-  const [projects] = useAtom(projectsAtom);
   const [stories] = useAtom(storiesAtom);
   const [columns] = useAtom(columnsAtom);
   const [, moveStory] = useAtom(moveStoryAtom);
   // const [, updateStory] = useAtom(updateStoryAtom);
 
-  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
 
   // Get project stories
@@ -67,7 +64,7 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
 
   const activeStory = activeId ? stories.find(s => s.id === activeId) : null;
 
-  const handleStoryClick = (storyId: string, event: React.MouseEvent) => {
+  const handleStoryClick = (storyId: string, _event: React.MouseEvent) => {
     const story = stories.find(s => s.id === storyId);
     if (story) {
       setEditingStory(story);
@@ -80,8 +77,8 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <div className="border-b p-4 flex items-center justify-between">
+      {/* Header - positioned below main app header */}
+      <div className="border-b p-4 flex items-center justify-between mt-14 md:mt-16">
         <div>
           <h2 className="text-xl font-bold">{project.name} - Kanban Board</h2>
           <p className="text-sm text-muted-foreground">{project.description}</p>
@@ -95,7 +92,7 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 p-4 overflow-hidden">
+      <div className="flex-1 p-4 overflow-hidden pb-20 lg:pb-4">
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex gap-4 h-full overflow-x-auto">
             {columns.map((column) => (

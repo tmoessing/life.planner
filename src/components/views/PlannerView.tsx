@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import { storiesAtom, rolesAtom, visionsAtom } from '@/stores/appStore';
+import { storiesAtom, rolesAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Brain, Clock, Target } from 'lucide-react';
 import type { BrainLevel, TimeBucket, Priority } from '@/types';
 import { getBrainLevelWeights, getPriorityOrder } from '@/utils';
+import { getWeightGradientColor } from '@/utils/color';
 
 export function PlannerView() {
   const [stories] = useAtom(storiesAtom);
   const [roles] = useAtom(rolesAtom);
   // const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);
+  const [settings] = useAtom(settingsAtom);
 
   const [selectedBrainLevel, setSelectedBrainLevel] = useState<BrainLevel>('moderate');
   const [selectedTimeBucket, setSelectedTimeBucket] = useState<TimeBucket>('M');
@@ -68,6 +70,19 @@ export function PlannerView() {
     return 'bg-red-100 text-red-800';
   };
 
+  const getStorySizeColor = (size: string) => {
+    const sizeConfig = settings.storySizes?.find(ss => ss.name === size);
+    return sizeConfig?.color || '#6B7280';
+  };
+
+  const getBrainLevelColor = (level: BrainLevel) => {
+    const weights = getBrainLevelWeights(level);
+    // Use the middle weight as representative for the color
+    const representativeWeight = weights[Math.floor(weights.length / 2)];
+    const baseColor = settings.weightBaseColor || '#3B82F6';
+    return getWeightGradientColor(representativeWeight, baseColor, 21);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -92,9 +107,33 @@ export function PlannerView() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low (1-3 weight)</SelectItem>
-                  <SelectItem value="moderate">Moderate (5-8 weight)</SelectItem>
-                  <SelectItem value="high">High (8-21 weight)</SelectItem>
+                  <SelectItem value="low">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getBrainLevelColor('low') }}
+                      />
+                      Low (1-3 weight)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="moderate">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getBrainLevelColor('moderate') }}
+                      />
+                      Moderate (5-8 weight)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getBrainLevelColor('high') }}
+                      />
+                      High (8-21 weight)
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -106,11 +145,51 @@ export function PlannerView() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="XS">XS (15-30 min)</SelectItem>
-                  <SelectItem value="S">S (30-60 min)</SelectItem>
-                  <SelectItem value="M">M (1-2 hours)</SelectItem>
-                  <SelectItem value="L">L (2-4 hours)</SelectItem>
-                  <SelectItem value="XL">XL (4+ hours)</SelectItem>
+                  <SelectItem value="XS">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getStorySizeColor('XS') }}
+                      />
+                      XS (15-30 min)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="S">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getStorySizeColor('S') }}
+                      />
+                      S (30-60 min)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="M">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getStorySizeColor('M') }}
+                      />
+                      M (1-2 hours)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="L">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getStorySizeColor('L') }}
+                      />
+                      L (2-4 hours)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="XL">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: getStorySizeColor('XL') }}
+                      />
+                      XL (4+ hours)
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

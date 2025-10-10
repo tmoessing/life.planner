@@ -33,7 +33,6 @@ export function useKeyboardShortcuts() {
           if (!isCtrlOrCmd && !isShift) {
             event.preventDefault();
             // Open Add Story modal
-            console.log('Open Add Story modal');
           }
           break;
 
@@ -76,7 +75,6 @@ export function useKeyboardShortcuts() {
           if (!isCtrlOrCmd && !isShift) {
             event.preventDefault();
             // Open help modal
-            console.log('Open help modal');
           }
           break;
 
@@ -112,7 +110,6 @@ export function useKeyboardShortcuts() {
         case 'escape':
           // Close any open modals or clear selections
           event.preventDefault();
-          console.log('Close modals/clear selections');
           break;
 
         case 'delete':
@@ -120,7 +117,6 @@ export function useKeyboardShortcuts() {
           // Delete selected stories
           if (!isCtrlOrCmd && !isShift) {
             event.preventDefault();
-            console.log('Delete selected stories');
           }
           break;
 
@@ -128,7 +124,6 @@ export function useKeyboardShortcuts() {
           // Edit focused story
           if (!isCtrlOrCmd && !isShift) {
             event.preventDefault();
-            console.log('Edit focused story');
           }
           break;
 
@@ -139,7 +134,6 @@ export function useKeyboardShortcuts() {
           // Navigate stories and columns
           if (!isCtrlOrCmd && !isShift) {
             event.preventDefault();
-            console.log('Navigate stories');
           }
           break;
       }

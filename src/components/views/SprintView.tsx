@@ -23,7 +23,7 @@ export function SprintView() {
     return (
       <>
         <div className="mb-6">
-          <SprintKanbanBoard />
+          <SprintKanbanBoard showAllSprints={selectedSprintId === 'all-sprints'} />
         </div>
         
         <div className="mb-6">
@@ -43,10 +43,16 @@ export function SprintView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div>
+            <h1 className="text-xl sm:text-3xl font-bold mb-2">Sprint View</h1>
             <h2 className="text-lg sm:text-2xl font-bold">
-              {selectedSprint ? `Week ${selectedSprint.isoWeek} - ${selectedSprint.year}` : 'Select Sprint'}
+              {selectedSprintId === 'all-sprints' ? 'All Sprints' : 
+               selectedSprint ? `Week ${selectedSprint.isoWeek} - ${selectedSprint.year}` : 'Select Sprint'}
             </h2>
-            {selectedSprint && (
+            {selectedSprintId === 'all-sprints' ? (
+              <p className="text-sm text-muted-foreground">
+                View all sprints combined
+              </p>
+            ) : selectedSprint && (
               <p className="text-sm text-muted-foreground">
                 {new Date(selectedSprint.startDate).toLocaleDateString()} - {new Date(selectedSprint.endDate).toLocaleDateString()}
               </p>
@@ -72,6 +78,14 @@ export function SprintView() {
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
+                <SelectItem key="all-sprints" value="all-sprints">
+                  <div className="flex flex-col">
+                    <span className="font-medium">All Sprints</span>
+                    <span className="text-xs text-muted-foreground">
+                      View all sprints combined
+                    </span>
+                  </div>
+                </SelectItem>
                 {sprints.map((sprint) => (
                   <SelectItem key={sprint.id} value={sprint.id}>
                     <div className="flex flex-col">

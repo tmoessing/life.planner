@@ -1,6 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAtom } from 'jotai';
 import { currentSprintAtom, storiesAtom, selectedSprintIdAtom, safeSprintsAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { format, eachDayOfInterval, parseISO } from 'date-fns';
 
 export function BurndownChart() {
@@ -8,18 +9,15 @@ export function BurndownChart() {
   const [stories] = useAtom(storiesAtom);
   const [selectedSprintId] = useAtom(selectedSprintIdAtom);
   const [sprints] = useAtom(safeSprintsAtom);
+  const storySettings = useStorySettings();
   // const [columns] = useAtom(safeColumnsAtom);
 
   // Use selected sprint or fall back to current sprint
   const selectedSprint = sprints.find(sprint => sprint.id === selectedSprintId) || currentSprint;
 
-  console.log('BurndownChart - selectedSprintId:', selectedSprintId);
-  console.log('BurndownChart - selectedSprint:', selectedSprint);
-  console.log('BurndownChart - stories count:', stories.length);
 
   const generateBurndownData = () => {
     if (!selectedSprint) {
-      console.log('No selected sprint found');
       return [];
     }
 
@@ -57,9 +55,6 @@ export function BurndownChart() {
 
   const data = generateBurndownData();
 
-  // Debug logging
-  console.log('BurndownChart data:', { selectedSprint, data });
-
   if (!selectedSprint) {
     return (
       <div className="h-64 flex items-center justify-center text-gray-500">
@@ -94,7 +89,7 @@ export function BurndownChart() {
           <Line 
             type="monotone" 
             dataKey="ideal" 
-            stroke="#8884d8" 
+            stroke={storySettings.chartColors?.ideal || "#8884d8"}
             strokeWidth={2}
             name="Ideal"
             strokeDasharray="5 5"
@@ -102,7 +97,7 @@ export function BurndownChart() {
           <Line 
             type="monotone" 
             dataKey="actual" 
-            stroke="#82ca9d" 
+            stroke={storySettings.chartColors?.actual || "#82ca9d"}
             strokeWidth={2}
             name="Actual"
           />

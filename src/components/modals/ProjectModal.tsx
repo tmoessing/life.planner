@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useAtom } from 'jotai';
 import { addProjectAtom, updateProjectAtom, storiesAtom } from '@/stores/appStore';
+import { useProjectSettings } from '@/utils/settingsMirror';
 import type { Project } from '@/types';
 
 interface ProjectModalProps {
@@ -20,6 +21,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
   const [, addProject] = useAtom(addProjectAtom);
   const [, updateProject] = useAtom(updateProjectAtom);
   const [stories] = useAtom(storiesAtom);
+  const projectSettings = useProjectSettings();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -136,11 +138,51 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Icebox">Icebox</SelectItem>
-                <SelectItem value="Backlog">Backlog</SelectItem>
-                <SelectItem value="To do">To do</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Done">Done</SelectItem>
+                <SelectItem value="Icebox">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.getStatusColor('Icebox') }}
+                    />
+                    Icebox
+                  </div>
+                </SelectItem>
+                <SelectItem value="Backlog">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.getStatusColor('Backlog') }}
+                    />
+                    Backlog
+                  </div>
+                </SelectItem>
+                <SelectItem value="To do">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.getStatusColor('To do') }}
+                    />
+                    To do
+                  </div>
+                </SelectItem>
+                <SelectItem value="In Progress">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.getStatusColor('In Progress') }}
+                    />
+                    In Progress
+                  </div>
+                </SelectItem>
+                <SelectItem value="Done">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.getStatusColor('Done') }}
+                    />
+                    Done
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { goalsAtom, addGoalAtom, updateGoalAtom, visionsAtom, rolesAtom, settingsAtom } from '@/stores/appStore';
+import { useGoalSettings } from '@/utils/settingsMirror';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Goal, StoryType } from '@/types';
+import type { Goal, StoryType, Priority } from '@/types';
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -23,15 +24,18 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
   const [, addGoal] = useAtom(addGoalAtom);
   const [, updateGoal] = useAtom(updateGoalAtom);
 
+  // Use settings mirror system for goal settings
+  const goalSettings = useGoalSettings();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     visionId: 'none',
     category: 'target' as 'target' | 'lifestyle-value',
-    goalType: 'target' as 'target' | 'lifestyle-value',
+    goalType: '' as string,
     roleId: 'none',
-    priority: 'Q1' as 'Q1' | 'Q2' | 'Q3' | 'Q4',
-    status: 'backlog' as 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done'
+    priority: 'medium' as Priority,
+    status: 'icebox' as 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done'
   });
 
   useEffect(() => {
@@ -43,8 +47,8 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
         category: goal.category === 'target' || goal.category === 'lifestyle-value' ? goal.category : 'target',
         goalType: goal.goalType || 'target',
         roleId: goal.roleId || 'none',
-        priority: goal.priority || 'Q1',
-        status: goal.status || 'backlog'
+        priority: goal.priority || 'medium',
+        status: goal.status || 'icebox'
       });
     } else {
       setFormData({
@@ -54,8 +58,8 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
         category: 'target',
         goalType: 'target',
         roleId: 'none',
-        priority: 'Q1',
-        status: 'backlog'
+        priority: 'medium',
+        status: 'icebox'
       });
     }
   }, [mode, goal]);
@@ -70,7 +74,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
       description: formData.description.trim(),
       visionId: formData.visionId === 'none' ? undefined : formData.visionId,
       category: formData.category as 'target' | 'lifestyle-value',
-      goalType: formData.goalType,
+      goalType: formData.goalType || 'Spiritual',
       roleId: formData.roleId === 'none' ? undefined : formData.roleId,
       priority: formData.priority,
       status: formData.status,
@@ -154,72 +158,6 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {settings.goalTypes?.map((goalType) => (
-                      <SelectItem key={goalType.name} value={goalType.name}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: goalType.color }}
-                          />
-                          {goalType.name}
-                        </div>
-                      </SelectItem>
-                    )) || (
-                      <>
-                        <SelectItem value="Spiritual">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                            Spiritual
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Physical">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                            Physical
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Intellectual">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                            Intellectual
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Social">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                            Social
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Financial">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                            Financial
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Protector">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                            Protector
-                          </div>
-                        </SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Goal Type</label>
-                <Select
-                  value={formData.goalType}
-                  onValueChange={(value: 'target' | 'lifestyle-value') => setFormData(prev => ({ ...prev, goalType: value }))}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
                     {settings.goalCategories?.map((category) => (
                       <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
                         <div className="flex items-center gap-2">
@@ -249,39 +187,75 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Goal Type</label>
+                <Select
+                  value={formData.goalType}
+                  onValueChange={(value: string) => setFormData(prev => ({ ...prev, goalType: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select goal type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {settings.goalTypes?.map((goalType) => (
+                      <SelectItem key={goalType.name} value={goalType.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: goalType.color }}
+                          />
+                          {goalType.name}
+                        </div>
+                      </SelectItem>
+                    )) || (
+                      <>
+                        <SelectItem value="target">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            Target
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="lifestyle-value">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            Lifestyle/Value
+                          </div>
+                        </SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div>
                 <label className="text-sm font-medium">Priority</label>
                 <Select
                   value={formData.priority}
-                  onValueChange={(value: 'Q1' | 'Q2' | 'Q3' | 'Q4') => setFormData(prev => ({ ...prev, priority: value }))}
+                  onValueChange={(value: Priority) => setFormData(prev => ({ ...prev, priority: value }))}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Q1">
+                    <SelectItem value="low">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span>Q1 - Urgent & Important</span>
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: goalSettings.getPriorityColor('low') }}></div>
+                        <span>Low Priority</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="Q2">
+                    <SelectItem value="medium">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span>Q2 - Important, Not Urgent</span>
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: goalSettings.getPriorityColor('medium') }}></div>
+                        <span>Medium Priority</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="Q3">
+                    <SelectItem value="high">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span>Q3 - Urgent, Not Important</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="Q4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                        <span>Q4 - Not Urgent, Not Important</span>
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: goalSettings.getPriorityColor('high') }}></div>
+                        <span>High Priority</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -325,12 +299,20 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="icebox">Icebox</SelectItem>
-                  <SelectItem value="backlog">Backlog</SelectItem>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="review">Review</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
+                  {settings.goalStatuses?.map((status) => {
+                    const statusId = status.name.toLowerCase().replace(' ', '-');
+                    return (
+                      <SelectItem key={statusId} value={statusId}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: status.color }}
+                          />
+                          {status.name}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

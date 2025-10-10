@@ -1,10 +1,11 @@
 import { useAtom } from 'jotai';
-import { goalsAtom, storiesAtom } from '@/stores/appStore';
+import { storiesAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Target, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Goal } from '@/types';
+import { useGoalSettings } from '@/utils/settingsMirror';
+import type { Goal, Story } from '@/types';
 
 interface GoalKanbanBoardProps {
   goal: Goal;
@@ -13,63 +14,34 @@ interface GoalKanbanBoardProps {
 
 export function GoalKanbanBoard({ goal, onBack }: GoalKanbanBoardProps) {
   const [stories] = useAtom(storiesAtom);
+  const goalSettings = useGoalSettings();
 
   // Get stories assigned to this goal
   const goalStories = stories.filter(story => 
     !story.deleted && goal.storyIds?.includes(story.id)
   );
 
-  // Group stories by status
-  const storiesByStatus = {
-    'not-started': goalStories.filter(story => story.status === 'icebox' || story.status === 'backlog'),
-    'in-progress': goalStories.filter(story => story.status === 'todo' || story.status === 'progress'),
-    'review': goalStories.filter(story => story.status === 'review'),
-    'done': goalStories.filter(story => story.status === 'done')
-  };
+  // Group stories by status using goal statuses from settings
+  const goalStatuses = goalSettings.goalStatuses;
+  const storiesByStatus = goalStatuses.reduce((acc, status) => {
+    const statusId = status.name.toLowerCase().replace(' ', '-');
+    acc[statusId] = goalStories.filter(story => story.status === statusId);
+    return acc;
+  }, {} as Record<string, Story[]>);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'not-started':
-        return 'text-gray-600';
-      case 'in-progress':
-        return 'text-blue-600';
-      case 'review':
-        return 'text-yellow-600';
-      case 'done':
-        return 'text-green-600';
-      default:
-        return 'text-gray-600';
-    }
+    const color = goalSettings.getStatusColor(status);
+    return `text-[${color}]`;
   };
 
   const getStatusText = (status: string) => {
-    switch (status) {
-      case 'not-started':
-        return 'Not Started';
-      case 'in-progress':
-        return 'In Progress';
-      case 'review':
-        return 'Review';
-      case 'done':
-        return 'Done';
-      default:
-        return status;
-    }
+    const goalStatus = goalStatuses.find(s => s.name.toLowerCase().replace(' ', '-') === status);
+    return goalStatus?.name || status;
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Q1':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Q2':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'Q3':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Q4':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    const color = goalSettings.getPriorityColor(priority);
+    return `bg-[${color}20] text-[${color}] border-[${color}40]`;
   };
 
   return (

@@ -12,8 +12,10 @@ import {
   settingsAtom,
   visionsAtom,
   goalsAtom,
-  projectsAtom
+  projectsAtom,
+  storyPrioritiesAtom
 } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,9 +59,9 @@ const defaultStory: StoryFormData = {
   title: '',
   description: '',
   priority: 'Q4',
-  type: 'Spiritual',
-  size: 'M',
-  weight: 5,
+  type: 'none',
+  size: 'none',
+  weight: 0,
   roleId: undefined,
   location: '',
   sprintId: undefined,
@@ -86,9 +88,12 @@ export function AddStoriesView() {
   const [visions] = useAtom(visionsAtom);
   const [goals] = useAtom(goalsAtom);
   const [projects] = useAtom(projectsAtom);
+  const [storyPriorities] = useAtom(storyPrioritiesAtom);
+
+  // Use settings mirror system for story settings
+  const storySettings = useStorySettings();
   
   // Debug: Log projects to see what's available
-  console.log('Available projects:', projects);
   
   const [storyForms, setStoryForms] = useState<StoryFormData[]>([{ ...defaultStory }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -324,7 +329,6 @@ export function AddStoriesView() {
       setStoryForms([{ ...defaultStory }]);
       
     } catch (error) {
-      console.error('Error adding stories:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -488,10 +492,17 @@ export function AddStoriesView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="Q1">Q1</SelectItem>
-                          <SelectItem value="Q2">Q2</SelectItem>
-                          <SelectItem value="Q3">Q3</SelectItem>
-                          <SelectItem value="Q4">Q4</SelectItem>
+                          {storyPriorities.map((priority) => (
+                            <SelectItem key={priority.id} value={priority.name}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-3 h-3 rounded border"
+                                  style={{ backgroundColor: priority.color }}
+                                />
+                                {priority.name}
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -563,7 +574,7 @@ export function AddStoriesView() {
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
                           {Array.from({ length: 10 }, (_, i) => i + 1).map((weight) => {
-                            const gradientColor = getWeightGradientColor(weight, '#3B82F6', 21);
+                            const gradientColor = getWeightGradientColor(weight, storySettings.weightBaseColor, 21);
                             return (
                               <SelectItem key={weight} value={weight.toString()}>
                                 <div className="flex items-center gap-2">
@@ -773,14 +784,14 @@ export function AddStoriesView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Q1', 'Q2', 'Q3', 'Q4'].map((priority) => (
-                            <SelectItem key={priority} value={priority}>
+                          {storyPriorities.map((priority) => (
+                            <SelectItem key={priority.id} value={priority.name}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.priorityColors?.[priority as keyof typeof settings.priorityColors] || '#6B7280' }}
+                                  style={{ backgroundColor: priority.color }}
                                 />
-                                {priority}
+                                {priority.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -789,8 +800,8 @@ export function AddStoriesView() {
                     </td>
                     <td className="p-3">
                       <Select
-                        value={story.type}
-                        onValueChange={(value) => updateStoryForm(index, 'type', value)}
+                        value={story.type === '' ? 'none' : story.type}
+                        onValueChange={(value) => updateStoryForm(index, 'type', value === 'none' ? '' : value)}
                         data-field="type"
                       >
                         <SelectTrigger 
@@ -809,6 +820,12 @@ export function AddStoriesView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-gray-400" />
+                              None
+                            </div>
+                          </SelectItem>
                           {settings.storyTypes?.map((type) => (
                             <SelectItem key={type.name} value={type.name}>
                               <div className="flex items-center gap-2">
@@ -825,8 +842,8 @@ export function AddStoriesView() {
                     </td>
                     <td className="p-3">
                       <Select
-                        value={story.size}
-                        onValueChange={(value) => updateStoryForm(index, 'size', value)}
+                        value={story.size === '' ? 'none' : story.size}
+                        onValueChange={(value) => updateStoryForm(index, 'size', value === 'none' ? '' : value)}
                         data-field="size"
                       >
                         <SelectTrigger 
@@ -845,6 +862,12 @@ export function AddStoriesView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-gray-400" />
+                              None
+                            </div>
+                          </SelectItem>
                           {settings.storySizes?.map((size) => (
                             <SelectItem key={size.name} value={size.name}>
                               <div className="flex items-center gap-2">
@@ -861,8 +884,8 @@ export function AddStoriesView() {
                     </td>
                     <td className="p-3">
                       <Select
-                        value={story.weight.toString()}
-                        onValueChange={(value) => updateStoryForm(index, 'weight', parseInt(value))}
+                        value={story.weight === 0 ? 'none' : story.weight.toString()}
+                        onValueChange={(value) => updateStoryForm(index, 'weight', value === 'none' ? 0 : parseInt(value))}
                         data-field="weight"
                       >
                         <SelectTrigger 
@@ -881,6 +904,13 @@ export function AddStoriesView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded border bg-gray-400" />
+                              <Weight className="h-3 w-3" />
+                              None
+                            </div>
+                          </SelectItem>
                           {[1, 3, 5, 8, 13, 21].map(weight => {
                             const gradientColor = getWeightGradientColor(weight, settings.weightBaseColor, 21);
                             return (

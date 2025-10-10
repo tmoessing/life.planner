@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { updateStoryAtom, rolesAtom, labelsAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, projectsAtom } from '@/stores/appStore';
+import { updateStoryAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, projectsAtom, labelsAtom } from '@/stores/appStore';
+import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 import type { Story, Priority, StoryType } from '@/types';
 
@@ -19,34 +20,15 @@ interface EditStoryModalProps {
 export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProps) {
   const [, updateStory] = useAtom(updateStoryAtom);
   const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);
   const [goals] = useAtom(goalsAtom);
   const [settings] = useAtom(settingsAtom);
   const [sprints] = useAtom(safeSprintsAtom);
   const [projects] = useAtom(projectsAtom);
+  const [labels] = useAtom(labelsAtom);
 
-  // Helper function to get all available story types
-  const getAllStoryTypes = () => {
-    const defaultTypes = [
-      { name: 'Spiritual', color: '#8B5CF6' },
-      { name: 'Physical', color: '#EF4444' },
-      { name: 'Intellectual', color: '#3B82F6' },
-      { name: 'Social', color: '#10B981' }
-    ];
-    
-    const settingsTypes = settings.storyTypes || [];
-    const allTypes = [...settingsTypes];
-    
-    // Add default types that aren't already in settings
-    defaultTypes.forEach(defaultType => {
-      if (!settingsTypes.some(setting => setting.name === defaultType.name)) {
-        allTypes.push(defaultType);
-      }
-    });
-    
-    return allTypes;
-  };
+  // Use settings mirror system for story settings
+  const storySettings = useStorySettings();
 
   const [formData, setFormData] = useState<Partial<Story>>({});
 
@@ -87,8 +69,6 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
       description: formData.description?.trim() || ''
     };
     
-    console.log('EditStoryModal - storyData being updated:', storyData);
-    console.log('EditStoryModal - projectId:', formData.projectId);
     
     updateStory(story.id, storyData);
     onOpenChange(false);
@@ -150,9 +130,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                           <div 
                             className="w-3 h-3 rounded-full" 
                             style={{ 
-                              backgroundColor: formData.priority === 'Q1' ? '#EF4444' : 
-                                             formData.priority === 'Q2' ? '#F59E0B' :
-                                             formData.priority === 'Q3' ? '#3B82F6' : '#6B7280'
+                              backgroundColor: storySettings.getPriorityColor(formData.priority)
                             }}
                           />
                           {formData.priority === 'Q1' ? 'Q1 - Urgent & Important' :
@@ -183,15 +161,15 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                       const getPriorityColor = (p: Priority) => {
                         switch (p) {
                           case 'Q1':
-                            return '#EF4444'; // Red
+                            return storySettings.getPriorityColor('Q1');
                           case 'Q2':
-                            return '#F59E0B'; // Orange
+                            return storySettings.getPriorityColor('Q2');
                           case 'Q3':
-                            return '#3B82F6'; // Blue
+                            return storySettings.getPriorityColor('Q3');
                           case 'Q4':
-                            return '#6B7280'; // Gray
+                            return storySettings.getPriorityColor('Q4');
                           default:
-                            return '#6B7280';
+                            return storySettings.getPriorityColor('Q4');
                         }
                       };
                       
@@ -256,18 +234,18 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                     <SelectTrigger>
                       <SelectValue placeholder="Select type...">
                         {formData.type && (
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: settings.storyTypes?.find(t => t.name === formData.type)?.color || '#6B7280' }}
-                            />
-                            {formData.type}
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: storySettings.getTypeColor(formData.type) }}
+                          />
+                          {formData.type}
+                        </div>
                         )}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {getAllStoryTypes().map(type => (
+                      {storySettings.storyTypes.map(type => (
                         <SelectItem key={type.name} value={type.name}>
                           <div className="flex items-center gap-2">
                             <div 
@@ -324,7 +302,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.backlog || '#3B82F6' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('backlog') }}
                           ></div>
                           <span>Backlog</span>
                         </div>
@@ -333,7 +311,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.todo || '#F59E0B' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('todo') }}
                           ></div>
                           <span>To Do</span>
                         </div>
@@ -351,7 +329,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.review || '#8B5CF6' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('review') }}
                           ></div>
                           <span>Review</span>
                         </div>
@@ -360,7 +338,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.done || '#10B981' }}
+                            style={{ backgroundColor: storySettings.getStatusColor('done') }}
                           ></div>
                           <span>Done</span>
                         </div>
@@ -499,7 +477,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: '#3B82F6' }}
+                            style={{ backgroundColor: storySettings.weightBaseColor }}
                           />
                           {projects.find(p => p.id === formData.projectId)?.name}
                         </div>
@@ -518,7 +496,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                           <div className="flex items-center gap-2">
                             <div 
                               className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: '#3B82F6' }}
+                              style={{ backgroundColor: storySettings.weightBaseColor }}
                             />
                             {project.name}
                           </div>

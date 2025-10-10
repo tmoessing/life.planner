@@ -8,6 +8,7 @@ import {
   visionsAtom,
   projectsAtom
 } from '@/stores/appStore';
+import { useGoalSettings } from '@/utils/settingsMirror';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,10 +27,11 @@ import type { Goal } from '@/types';
 interface GoalFormData {
   title: string;
   description: string;
-  category: string;
-  goalType: 'target' | 'lifestyle-value';
-  priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
-  status: 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done';
+  category: 'target' | 'lifestyle-value' | undefined;
+  goalType: string | undefined;
+  goalCategory: string | undefined;
+  priority: 'low' | 'medium' | 'high' | undefined;
+  status: 'not-started' | 'in-progress' | 'completed' | 'paused' | 'cancelled' | undefined;
   roleId?: string;
   visionId?: string;
   projectId?: string;
@@ -38,10 +40,11 @@ interface GoalFormData {
 const defaultGoal: GoalFormData = {
   title: '',
   description: '',
-  category: 'Spiritual',
-  goalType: 'target',
-  priority: 'Q1',
-  status: 'backlog',
+  category: undefined,
+  goalType: undefined,
+  goalCategory: undefined,
+  priority: undefined,
+  status: undefined,
   roleId: undefined,
   visionId: undefined,
   projectId: undefined
@@ -54,6 +57,11 @@ export function AddGoalsView() {
   const [settings] = useAtom(settingsAtom);
   const [visions] = useAtom(visionsAtom);
   const [projects] = useAtom(projectsAtom);
+
+  // Use settings mirror system for goal settings
+  const goalSettings = useGoalSettings();
+  
+  // Debug: Log settings to see what's available
   
   const [goalForms, setGoalForms] = useState<GoalFormData[]>([{ ...defaultGoal }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,6 +72,7 @@ export function AddGoalsView() {
   const [defaultOptions, setDefaultOptions] = useState({
     category: 'none',
     goalType: 'none',
+    goalCategory: 'none',
     priority: 'none',
     status: 'none',
     roleId: 'none',
@@ -171,12 +180,13 @@ export function AddGoalsView() {
           e.stopPropagation();
           
           // Find which field we're on and move to the next one
-          const fieldOrder = ['title', 'description', 'category', 'goalType', 'priority', 'status', 'role', 'vision', 'project'];
+          const fieldOrder = ['title', 'description', 'category', 'goalType', 'goalCategory', 'priority', 'status', 'role', 'vision', 'project'];
           
           // Try to determine which field we're on based on the active element
           let currentField = 'category'; // default fallback
           if (activeElement.closest('[data-field="category"]')) currentField = 'category';
           else if (activeElement.closest('[data-field="goalType"]')) currentField = 'goalType';
+          else if (activeElement.closest('[data-field="goalCategory"]')) currentField = 'goalCategory';
           else if (activeElement.closest('[data-field="priority"]')) currentField = 'priority';
           else if (activeElement.closest('[data-field="status"]')) currentField = 'status';
           else if (activeElement.closest('[data-field="role"]')) currentField = 'role';
@@ -202,16 +212,27 @@ export function AddGoalsView() {
     setIsSubmitting(true);
     
     try {
-      const validGoals = goalForms.filter(goal => goal.title.trim() !== '');
+      const validGoals = goalForms.filter(goal => 
+        goal.title.trim() !== '' && 
+        goal.category && 
+        goal.goalType && 
+        goal.priority && 
+        goal.status
+      );
       
       for (const goalData of validGoals) {
         const newGoal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'> = {
           title: goalData.title.trim(),
+          name: goalData.title.trim(), // alias for title
           description: goalData.description.trim(),
           category: goalData.category as 'target' | 'lifestyle-value',
-          goalType: goalData.goalType,
-          priority: goalData.priority,
-          status: goalData.status,
+          goalType: goalData.goalType!,
+          priority: goalData.priority!,
+          status: goalData.status === 'completed' ? 'done' : 
+                 goalData.status === 'not-started' ? 'icebox' :
+                 goalData.status === 'in-progress' ? 'in-progress' :
+                 goalData.status === 'paused' ? 'backlog' :
+                 goalData.status === 'cancelled' ? 'icebox' : 'icebox',
           roleId: goalData.roleId,
           visionId: goalData.visionId,
           projectId: goalData.projectId,
@@ -226,7 +247,6 @@ export function AddGoalsView() {
       // Reset forms
       setGoalForms([{ ...defaultGoal }]);
     } catch (error) {
-      console.error('Error adding goals:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -312,7 +332,7 @@ export function AddGoalsView() {
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
                           {settings.goalCategories?.map((category) => (
-                            <SelectItem key={category.name} value={category.name}>
+                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full" 
@@ -338,8 +358,35 @@ export function AddGoalsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
+                          {settings.goalCategories?.map((category) => (
+                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full" 
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                {category.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </th>
+                  <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
+                    <div className="flex flex-col gap-1">
+                      <span>Goal Category</span>
+                      <Select
+                        value={defaultOptions.goalCategory}
+                        onValueChange={(value) => handleDefaultOptionChange('goalCategory', value)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Set default" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
                           {settings.goalTypes?.map((goalType) => (
-                            <SelectItem key={goalType.name} value={goalType.name.toLowerCase().replace('/', '-')}>
+                            <SelectItem key={goalType.name} value={goalType.name}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full" 
@@ -365,10 +412,9 @@ export function AddGoalsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="Q1">Q1</SelectItem>
-                          <SelectItem value="Q2">Q2</SelectItem>
-                          <SelectItem value="Q3">Q3</SelectItem>
-                          <SelectItem value="Q4">Q4</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -504,17 +550,17 @@ export function AddGoalsView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select Category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {settings.goalCategories?.map((category) => (
-                            <SelectItem key={category.name} value={category.name}>
+                          {settings.goalTypes?.map((goalType) => (
+                            <SelectItem key={goalType.name} value={goalType.name}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: category.color }}
+                                  style={{ backgroundColor: goalType.color }}
                                 />
-                                {category.name}
+                                {goalType.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -540,17 +586,53 @@ export function AddGoalsView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select Goal Type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {settings.goalTypes?.map((goalType) => (
-                            <SelectItem key={goalType.name} value={goalType.name.toLowerCase().replace('/', '-')}>
+                          {settings.goalCategories?.map((category) => (
+                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: goalType.color }}
+                                  style={{ backgroundColor: category.color }}
                                 />
-                                {goalType.name}
+                                {category.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="p-3">
+                      <Select
+                        value={goal.goalCategory}
+                        onValueChange={(value) => updateGoalForm(index, 'goalCategory', value)}
+                        data-field="goalCategory"
+                      >
+                        <SelectTrigger 
+                          className="w-full h-8"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Tab') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              moveToNextField(index, 'goalCategory');
+                            } else {
+                              handleKeyDown(e, index, 'goalCategory');
+                            }
+                          }}
+                          tabIndex={0}
+                        >
+                          <SelectValue placeholder="Select Goal Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {settings.goalCategories?.map((category) => (
+                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                {category.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -576,17 +658,21 @@ export function AddGoalsView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select Priority" />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Q1', 'Q2', 'Q3', 'Q4'].map((priority) => (
-                            <SelectItem key={priority} value={priority}>
+                          {[
+                            { value: 'low', label: 'Low', color: goalSettings.getPriorityColor('low') },
+                            { value: 'medium', label: 'Medium', color: goalSettings.getPriorityColor('medium') },
+                            { value: 'high', label: 'High', color: goalSettings.getPriorityColor('high') }
+                          ].map((priority) => (
+                            <SelectItem key={priority.value} value={priority.value}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.priorityColors?.[priority as keyof typeof settings.priorityColors] || '#6B7280' }}
+                                  style={{ backgroundColor: priority.color }}
                                 />
-                                {priority}
+                                {priority.label}
                               </div>
                             </SelectItem>
                           ))}
@@ -612,20 +698,23 @@ export function AddGoalsView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
                         <SelectContent>
-                          {['icebox', 'backlog', 'todo', 'in-progress', 'review', 'done'].map((status) => (
-                            <SelectItem key={status} value={status}>
-                              <div className="flex items-center gap-2">
-                                <div 
-                                  className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.statusColors?.[status as keyof typeof settings.statusColors] || '#6B7280' }}
-                                />
-                                {status}
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {settings.goalStatuses?.map((status) => {
+                            const statusId = status.name.toLowerCase().replace(' ', '-');
+                            return (
+                              <SelectItem key={statusId} value={statusId}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: status.color }}
+                                  />
+                                  {status.name}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </td>

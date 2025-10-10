@@ -27,8 +27,16 @@ export const createStory = (overrides: Partial<Story> = {}): Story => {
  * Get priority order for sorting
  */
 export const getPriorityOrder = (priority: Priority): number => {
-  const order = { Q1: 1, Q2: 2, Q3: 3, Q4: 4 };
-  return order[priority];
+  const order = { 
+    Q1: 1, 
+    Q2: 2, 
+    Q3: 3, 
+    Q4: 4,
+    high: 1,
+    medium: 2,
+    low: 3
+  };
+  return order[priority] || 4;
 };
 
 /**

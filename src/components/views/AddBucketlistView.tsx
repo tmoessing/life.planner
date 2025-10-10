@@ -4,21 +4,21 @@ import {
   bucketlistAtom,
   addBucketlistItemAtom,
   rolesAtom,
-  settingsAtom,
   visionsAtom
 } from '@/stores/appStore';
+import { useBucketlistSettings } from '@/utils/settingsMirror';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Plus, 
   Trash2, 
-  List,
+  // List,
   Save,
-  X
+  // X
 } from 'lucide-react';
 import type { BucketlistItem } from '@/types';
 
@@ -26,7 +26,7 @@ interface BucketlistFormData {
   title: string;
   description: string;
   category: string;
-  priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  priority: 'low' | 'medium' | 'high';
   status: 'not-started' | 'in-progress' | 'completed' | 'on-hold';
   roleId?: string;
   visionId?: string;
@@ -41,8 +41,8 @@ interface BucketlistFormData {
 const defaultBucketlistItem: BucketlistFormData = {
   title: '',
   description: '',
-  category: 'Adventure',
-  priority: 'Q1',
+  category: 'Adventure', // Will be overridden by settings
+  priority: 'low',
   status: 'not-started',
   roleId: undefined,
   visionId: undefined,
@@ -55,20 +55,25 @@ const defaultBucketlistItem: BucketlistFormData = {
 };
 
 export function AddBucketlistView() {
-  const [bucketlistItems] = useAtom(bucketlistAtom);
+  // const [bucketlistItems] = useAtom(bucketlistAtom);
   const [, addBucketlistItem] = useAtom(addBucketlistItemAtom);
   const [roles] = useAtom(rolesAtom);
-  const [settings] = useAtom(settingsAtom);
   const [visions] = useAtom(visionsAtom);
+  const bucketlistSettings = useBucketlistSettings();
   
-  const [bucketlistForms, setBucketlistForms] = useState<BucketlistFormData[]>([{ ...defaultBucketlistItem }]);
+  // Debug roles data
+  
+  const [bucketlistForms, setBucketlistForms] = useState<BucketlistFormData[]>([{ 
+    ...defaultBucketlistItem,
+    category: bucketlistSettings.bucketlistCategories?.[0]?.name || 'Adventure'
+  }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
   const fieldRefs = useRef<{ [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null }>({});
   
   // Default options for bulk editing
   const [defaultOptions, setDefaultOptions] = useState({
-    category: 'none',
+    category: bucketlistSettings.bucketlistCategories?.[0]?.name || 'none',
     priority: 'none',
     status: 'none',
     roleId: 'none',
@@ -83,7 +88,10 @@ export function AddBucketlistView() {
 
   const addNewBucketlistForm = () => {
     // Create new bucketlist item with default options applied
-    const newBucketlistItem = { ...defaultBucketlistItem };
+    const newBucketlistItem = { 
+      ...defaultBucketlistItem,
+      category: bucketlistSettings.bucketlistCategories?.[0]?.name || 'Adventure'
+    };
     
     // Apply default options if they're not 'none' (or empty for text/date fields)
     Object.entries(defaultOptions).forEach(([key, value]) => {
@@ -245,14 +253,22 @@ export function AddBucketlistView() {
       // Reset forms
       setBucketlistForms([{ ...defaultBucketlistItem }]);
     } catch (error) {
-      console.error('Error adding bucketlist items:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDefaultOptionChange = (field: keyof typeof defaultOptions, value: string) => {
-    setDefaultOptions(prev => ({ ...prev, [field]: value }));
+    setDefaultOptions(prev => {
+      const newOptions = { ...prev, [field]: value };
+      
+      // Clear state when country changes from US to something else
+      if (field === 'country' && value !== 'US') {
+        newOptions.state = '';
+      }
+      
+      return newOptions;
+    });
     
     // Apply the default to all existing bucketlist items
     if (field === 'state' || field === 'city' || field === 'experienceCategory' || field === 'dueDate') {
@@ -260,6 +276,13 @@ export function AddBucketlistView() {
       setBucketlistForms(prev => prev.map(item => ({
         ...item,
         [field]: value
+      })));
+    } else if (field === 'country') {
+      // For country changes, update country and clear state if not US
+      setBucketlistForms(prev => prev.map(item => ({
+        ...item,
+        country: value,
+        state: value === 'US' ? item.state : undefined
       })));
     } else if (value !== 'none') {
       // For other fields, only apply if not 'none'
@@ -337,7 +360,7 @@ export function AddBucketlistView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          {settings.bucketlistTypes?.map((type) => (
+                          {bucketlistSettings.bucketlistTypes?.map((type) => (
                             <SelectItem key={type.name} value={type.name.toLowerCase()}>
                               <div className="flex items-center gap-2">
                                 <div 
@@ -426,11 +449,19 @@ export function AddBucketlistView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          {roles.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
-                              {role.name}
-                            </SelectItem>
-                          ))}
+                          {roles?.map((role) => {
+                            return (
+                              <SelectItem key={role.id} value={role.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: role.color }}
+                                  />
+                                  {role.name}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
@@ -502,12 +533,29 @@ export function AddBucketlistView() {
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
                       <span>State</span>
-                      <Input
-                        placeholder="Set default state..."
-                        className="h-8 text-xs"
-                        value={defaultOptions.state || ''}
-                        onChange={(e) => handleDefaultOptionChange('state', e.target.value)}
-                      />
+                      {defaultOptions.country === 'US' ? (
+                        <Select
+                          value={defaultOptions.state || ''}
+                          onValueChange={(value) => handleDefaultOptionChange('state', value)}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Set default state..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            {bucketlistSettings.usStates?.map((state) => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="DC">District of Columbia</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="h-8 flex items-center text-xs text-muted-foreground px-3 border rounded-md bg-muted/50">
+                          Not applicable
+                        </div>
+                      )}
                     </div>
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
@@ -581,7 +629,7 @@ export function AddBucketlistView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {settings.bucketlistTypes?.map((type) => (
+                          {bucketlistSettings.bucketlistTypes?.map((type) => (
                             <SelectItem key={type.name} value={type.name.toLowerCase()}>
                               <div className="flex items-center gap-2">
                                 <div 
@@ -617,9 +665,9 @@ export function AddBucketlistView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Adventure', 'Travel', 'Learning', 'Experience', 'Achievement', 'Personal'].map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
+                          {bucketlistSettings.bucketlistCategories?.map((category) => (
+                            <SelectItem key={category.name} value={category.name}>
+                              {category.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -647,14 +695,18 @@ export function AddBucketlistView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Q1', 'Q2', 'Q3', 'Q4'].map((priority) => (
-                            <SelectItem key={priority} value={priority}>
+                          {[
+                            { value: 'low', label: 'Low', color: bucketlistSettings.getPriorityColor('low') },
+                            { value: 'medium', label: 'Medium', color: bucketlistSettings.getPriorityColor('medium') },
+                            { value: 'high', label: 'High', color: bucketlistSettings.getPriorityColor('high') }
+                          ].map((priority) => (
+                            <SelectItem key={priority.value} value={priority.value}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.priorityColors?.[priority as keyof typeof settings.priorityColors] || '#6B7280' }}
+                                  style={{ backgroundColor: priority.color }}
                                 />
-                                {priority}
+                                {priority.label}
                               </div>
                             </SelectItem>
                           ))}
@@ -688,7 +740,7 @@ export function AddBucketlistView() {
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.statusColors?.[status as keyof typeof settings.statusColors] || '#6B7280' }}
+                                  style={{ backgroundColor: bucketlistSettings.getStatusColor(status) }}
                                 />
                                 {status}
                               </div>
@@ -720,11 +772,19 @@ export function AddBucketlistView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">No Role</SelectItem>
-                          {roles.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
-                              {role.name}
-                            </SelectItem>
-                          ))}
+                          {roles?.map((role) => {
+                            return (
+                              <SelectItem key={role.id} value={role.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: role.color }}
+                                  />
+                                  {role.name}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </td>
@@ -791,33 +851,51 @@ export function AddBucketlistView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="US">United States</SelectItem>
-                          <SelectItem value="CA">Canada</SelectItem>
-                          <SelectItem value="MX">Mexico</SelectItem>
-                          <SelectItem value="GB">United Kingdom</SelectItem>
-                          <SelectItem value="FR">France</SelectItem>
-                          <SelectItem value="DE">Germany</SelectItem>
-                          <SelectItem value="IT">Italy</SelectItem>
-                          <SelectItem value="ES">Spain</SelectItem>
-                          <SelectItem value="JP">Japan</SelectItem>
-                          <SelectItem value="AU">Australia</SelectItem>
-                          <SelectItem value="BR">Brazil</SelectItem>
-                          <SelectItem value="IN">India</SelectItem>
-                          <SelectItem value="CN">China</SelectItem>
-                          <SelectItem value="RU">Russia</SelectItem>
-                          <SelectItem value="ZA">South Africa</SelectItem>
+                          {bucketlistSettings.countries?.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </td>
                     <td className="p-3">
-                      <Input
-                        ref={getFieldRef(index, 'state')}
-                        value={item.state || ''}
-                        onChange={(e) => updateBucketlistForm(index, 'state', e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(e, index, 'state')}
-                        placeholder="State..."
-                        className="w-full h-8 text-sm"
-                      />
+                      {item.country === 'US' ? (
+                        <Select
+                          value={item.state || ''}
+                          onValueChange={(value) => updateBucketlistForm(index, 'state', value)}
+                          data-field="state"
+                        >
+                          <SelectTrigger
+                            className="w-full h-8"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Tab') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                moveToNextField(index, 'state');
+                              } else {
+                                handleKeyDown(e, index, 'state');
+                              }
+                            }}
+                            tabIndex={0}
+                          >
+                            <SelectValue placeholder="Select state..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            {bucketlistSettings.usStates?.map((state) => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="DC">District of Columbia</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="w-full h-8 flex items-center text-sm text-muted-foreground px-3 border rounded-md bg-muted/50">
+                          State not applicable
+                        </div>
+                      )}
                     </td>
                     <td className="p-3">
                       <Input
