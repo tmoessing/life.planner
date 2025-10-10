@@ -30,22 +30,38 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
 
   const getPriorityColor = (priority: string) => {
     const priorityColor = goalSettings.getPriorityColor(priority);
-    return `bg-[${priorityColor}]20 text-[${priorityColor}] border-[${priorityColor}]40`;
+    return {
+      backgroundColor: `${priorityColor}20`,
+      color: priorityColor,
+      borderColor: `${priorityColor}40`
+    };
   };
 
   const getCategoryColor = (category: string) => {
     const categoryColor = goalSettings.getTypeColor(category);
-    return `bg-[${categoryColor}]20 text-[${categoryColor}] border-[${categoryColor}]40`;
+    return {
+      backgroundColor: `${categoryColor}20`,
+      color: categoryColor,
+      borderColor: `${categoryColor}40`
+    };
   };
 
   const getGoalTypeColor = (goalType: string) => {
     const goalTypeColor = goalSettings.getCategoryColor(goalType);
-    return `bg-[${goalTypeColor}]20 text-[${goalTypeColor}] border-[${goalTypeColor}]40`;
+    return {
+      backgroundColor: `${goalTypeColor}20`,
+      color: goalTypeColor,
+      borderColor: `${goalTypeColor}40`
+    };
   };
 
   const getStatusColor = (status: string) => {
     const statusColor = goalSettings.getStatusColor(status);
-    return `bg-[${statusColor}]20 text-[${statusColor}] border-[${statusColor}]40`;
+    return {
+      backgroundColor: `${statusColor}20`,
+      color: statusColor,
+      borderColor: `${statusColor}40`
+    };
   };
 
   const getStatusText = (status: string) => {
@@ -76,12 +92,12 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
       {...attributes}
       {...listeners}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Target className="h-4 w-4 text-blue-600" />
-          {goal.title}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
+        <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-1.5 line-clamp-1">
+          <Target className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
+          <span className="truncate">{goal.title}</span>
         </CardTitle>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
@@ -89,9 +105,9 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
               e.stopPropagation();
               onEdit(goal);
             }}
-            className="h-6 w-6 p-0"
+            className="h-5 w-5 p-0 sm:h-6 sm:w-6"
           >
-            <Edit className="h-3 w-3" />
+            <Edit className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           </Button>
           <Button
             variant="ghost"
@@ -102,34 +118,34 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
                 onDelete(goal.id);
               }
             }}
-            className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-5 w-5 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 sm:h-6 sm:w-6"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-1.5 px-3 pb-3">
         {/* Badges */}
-        <div className="flex flex-wrap gap-1">
-          <Badge variant="outline" className={`text-xs ${getStatusColor(goal.status)}`}>
+        <div className="flex flex-wrap gap-0.5">
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getStatusColor(goal.status)}>
             {getStatusText(goal.status)}
           </Badge>
-          <Badge variant="outline" className={`text-xs ${getCategoryColor(goal.category)}`}>
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getCategoryColor(goal.category)}>
             {goal.category}
           </Badge>
-          <Badge variant="outline" className={`text-xs ${getGoalTypeColor(goal.goalType)}`}>
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getGoalTypeColor(goal.goalType)}>
             {goal.goalType === 'target' ? 'Target' : 'Lifestyle/Value'}
           </Badge>
-          <Badge variant="outline" className={`text-xs ${getPriorityColor(goal.priority)}`}>
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getPriorityColor(goal.priority)}>
             {goal.priority}
           </Badge>
         </div>
 
         {goal.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{goal.description}</p>
         )}
 
-        <div className="text-xs text-muted-foreground">
+        <div className="text-[10px] sm:text-xs text-muted-foreground">
           Stories: {goal.storyIds?.length || 0}
         </div>
       </CardContent>
@@ -174,7 +190,7 @@ function DroppableColumn({
         }`}
         style={{
           borderColor: isOver ? goalSettings.weightBaseColor : statusColor + '40',
-          backgroundColor: isOver ? '#EFF6FF' : statusColor + '10'
+          backgroundColor: isOver ? goalSettings.weightBaseColor + '20' : statusColor + '10'
         }}
       >
         {goals.length === 0 ? (
@@ -281,14 +297,16 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
           
           return (
             <div key={column.id} className="bg-card p-3 sm:p-4 rounded-lg border">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: statusColor }}
-                ></div>
-                <span className="text-xs sm:text-sm font-medium">{column.name}</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: statusColor }}
+                  ></div>
+                  <span className="text-xs sm:text-sm font-medium">{column.name}</span>
+                </div>
+                <span className="text-lg sm:text-2xl font-bold">{goalCount}</span>
               </div>
-              <p className="text-lg sm:text-2xl font-bold mt-1">{goalCount}</p>
             </div>
           );
         })}

@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { useAtom } from 'jotai';
-import { currentViewAtom } from '@/stores/appStore';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 import type { ViewType } from '@/constants';
@@ -52,8 +50,12 @@ const navigationGroups: NavigationGroup[] = [
   }
 ];
 
-export function NavigationDropdown() {
-  const [currentView, setCurrentView] = useAtom(currentViewAtom);
+interface NavigationDropdownProps {
+  currentView: ViewType;
+  setCurrentView: (view: ViewType) => void;
+}
+
+export function NavigationDropdown({ currentView, setCurrentView }: NavigationDropdownProps) {
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<'left' | 'right'>('left');

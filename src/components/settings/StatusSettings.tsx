@@ -143,17 +143,17 @@ export function StatusSettings({ category }: StatusSettingsProps) {
         {/* Add New Status */}
         {isAdding ? (
           <div className="space-y-3 p-3 border rounded-lg">
-            <div className="flex items-center gap-2">
+            <div className="space-y-2">
               <Input
                 placeholder="Status name (e.g., In Progress)"
                 value={newStatus.name}
                 onChange={(e) => setNewStatus({ ...newStatus, name: e.target.value })}
-                className="flex-1"
+                className="w-full"
               />
               <ColorPicker
                 value={newStatus.color}
                 onChange={(color) => setNewStatus({ ...newStatus, color })}
-                className="flex-shrink-0"
+                className="w-full"
               />
             </div>
             <Input
@@ -185,16 +185,16 @@ export function StatusSettings({ category }: StatusSettingsProps) {
             <div key={status.id} className="p-3 border rounded-lg">
               {editingId === status.id ? (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="space-y-2">
                     <Input
                       value={editStatus.name}
                       onChange={(e) => setEditStatus({ ...editStatus, name: e.target.value })}
-                      className="flex-1"
+                      className="w-full"
                     />
                     <ColorPicker
                       value={editStatus.color}
                       onChange={(color) => setEditStatus({ ...editStatus, color })}
-                      className="flex-shrink-0"
+                      className="w-full"
                     />
                   </div>
                   <Input

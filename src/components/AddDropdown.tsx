@@ -1,27 +1,46 @@
 import { useState, useRef, useEffect } from 'react';
-import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { ProjectModal } from '@/components/modals/ProjectModal';
 import { GoalModal } from '@/components/modals/GoalModal';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
-import { currentViewAtom } from '@/stores/appStore';
 import { Plus, ChevronDown, FileText, Target, FolderOpen, List, Layers } from 'lucide-react';
+import { ViewType } from '@/constants/views';
 
-export function AddDropdown() {
+interface AddDropdownProps {
+  setCurrentView: (view: ViewType) => void;
+}
+
+export function AddDropdown({ setCurrentView }: AddDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [showAddGoalModal, setShowAddGoalModal] = useState(false);
   const [showAddBucketlistModal, setShowAddBucketlistModal] = useState(false);
-  const [, setCurrentView] = useAtom(currentViewAtom);
+  const [dropdownPosition, setDropdownPosition] = useState<'left' | 'right'>('right');
   const timeoutRef = useRef<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     setIsOpen(true);
+    
+    // Calculate position for mobile responsiveness
+    setTimeout(() => {
+      if (dropdownRef.current) {
+        const rect = dropdownRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        
+        // If dropdown would go off-screen to the right, position it to the left
+        if (rect.right > viewportWidth - 20) {
+          setDropdownPosition('left');
+        } else {
+          setDropdownPosition('right');
+        }
+      }
+    }, 0);
   };
 
   const handleMouseLeave = () => {
@@ -83,7 +102,12 @@ export function AddDropdown() {
 
         {isOpen && (
           <div 
-            className="absolute right-0 top-full mt-1 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-background border rounded-md shadow-lg z-50"
+            ref={dropdownRef}
+            className={`absolute top-full mt-1 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-background border rounded-md shadow-lg z-50 ${
+              dropdownPosition === 'right' 
+                ? 'right-0' 
+                : 'left-0'
+            }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >

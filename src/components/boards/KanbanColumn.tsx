@@ -34,22 +34,14 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
     },
   });
 
-  const getColumnColor = (columnName: string) => {
-    // Map column names to status values
-    const statusMap: Record<string, string> = {
-      'Icebox': 'icebox',
-      'Backlog': 'backlog', 
-      'To Do': 'todo',
-      'In Progress': 'progress',
-      'Review': 'review',
-      'Done': 'done'
+  const getColumnColor = () => {
+    // Use column ID directly since it already matches the status key
+    const statusColor = storySettings.getStatusColor(column.id);
+    return {
+      backgroundColor: `${statusColor}20`,
+      borderColor: `${statusColor}40`,
+      color: statusColor
     };
-    
-    const status = statusMap[columnName];
-    if (!status) return 'bg-gray-50 border-gray-200';
-    
-    const statusColor = storySettings.getStatusColor(status);
-    return `bg-[${statusColor}]/10 border-[${statusColor}]/30 text-[${statusColor}]`;
   };
 
   // Check if we're dragging from Review to Done
@@ -65,13 +57,14 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
     <>
       <Card 
         ref={setDroppableRef}
-        className={`${getColumnColor(column.name)} ${
+        className={`${
           isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
         } ${
           isDraggingFromReviewToDoneValue 
             ? 'ring-2 ring-red-500 ring-opacity-75 bg-red-50 border-red-300 shadow-lg' 
             : ''
         } h-fit sm:h-auto transition-all duration-200`}
+        style={getColumnColor()}
       >
         <CardHeader className="pb-2 sm:pb-3">
           <div className="flex items-center justify-between">

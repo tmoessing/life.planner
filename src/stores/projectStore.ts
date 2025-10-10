@@ -17,7 +17,7 @@ export const addProjectAtom = atom(
       status: projectData.status || 'Backlog',
       priority: projectData.priority || 'Q2',
       order: projectData.order || 0,
-      startDate: projectData.startDate || new Date().toISOString().split('T')[0],
+      startDate: projectData.startDate || '',
       endDate: projectData.endDate || '',
       storyIds: projectData.storyIds || [],
       createdAt: new Date().toISOString(),

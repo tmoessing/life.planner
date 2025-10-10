@@ -66,17 +66,17 @@ export function GoalCategoriesSettings() {
         {/* Add New Category */}
         {isAdding ? (
           <div className="space-y-3 p-3 border rounded-lg">
-            <div className="flex items-center gap-2">
+            <div className="space-y-2">
               <Input
                 placeholder="Category name (e.g., Target)"
                 value={newCategory.name}
                 onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                className="flex-1"
+                className="w-full"
               />
               <ColorPicker
                 value={newCategory.color}
                 onChange={(color) => setNewCategory({ ...newCategory, color })}
-                className="flex-shrink-0"
+                className="w-full"
               />
             </div>
             <div className="flex gap-2">
@@ -103,15 +103,16 @@ export function GoalCategoriesSettings() {
             <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
               {editingIndex === index ? (
                 <>
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="space-y-2 flex-1">
                     <Input
                       value={editCategory.name}
                       onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })}
-                      className="flex-1"
+                      className="w-full"
                     />
                     <ColorPicker
                       value={editCategory.color}
                       onChange={(color) => setEditCategory({ ...editCategory, color })}
+                      className="w-full"
                     />
                   </div>
                   <div className="flex gap-2">

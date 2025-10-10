@@ -94,8 +94,8 @@ export type Project = {
   roleId?: string;
   visionId?: string;
   order: number;
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
   storyIds: string[];
   createdAt: string;
   updatedAt: string;

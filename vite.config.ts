@@ -6,6 +6,14 @@ import { resolve } from 'path'
 export default defineConfig(({ command }) => ({
   plugins: [react()],
   base: command === 'build' ? '/life.planner/' : '/',
+  server: {
+    port: 5173,
+    host: true,
+    hmr: {
+      port: 5173,
+      host: 'localhost'
+    },
+  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),

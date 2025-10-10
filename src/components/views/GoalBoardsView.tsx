@@ -71,7 +71,7 @@ export function GoalBoardsView() {
         return visions.map(vision => ({
           id: vision.id,
           label: vision.title,
-          color: '#6B7280'
+          color: goalSettings.getTypeColor('Vision') || '#6B7280'
         }));
       default:
         return [];
@@ -193,15 +193,18 @@ export function GoalBoardsView() {
       case 'Vision':
         const vision = visions.find(v => v.id === boardId);
         if (vision) {
+          const visionColor = goalSettings.getTypeColor('Vision') || '#6B7280';
           return {
-            backgroundColor: '#6B728020',
-            borderColor: '#6B728040',
-            color: '#6B7280'
+            backgroundColor: `${visionColor}20`,
+            borderColor: `${visionColor}40`,
+            color: visionColor
           };
         }
-        return { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: '#6B7280' };
+        const defaultColor = goalSettings.getTypeColor('default') || '#6B7280';
+        return { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: defaultColor };
       default:
-        return { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: '#6B7280' };
+        const fallbackColor = goalSettings.getTypeColor('default') || '#6B7280';
+        return { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: fallbackColor };
     }
   };
 
@@ -379,77 +382,194 @@ export function GoalBoardsView() {
 
       {/* Content */}
       {viewType === 'list' ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {boardOptions.map((board) => {
-            const goalsForBoard = getGoalsForBoard(board.id);
-            
-            return (
-              <Card 
-                key={board.id}
-                className={`h-fit ${
-                  dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                style={getBoardColor(board.id)}
-                onDragOver={handleDragOver}
-                onDragEnter={() => handleDragOverBoard(board.id)}
-                onDragLeave={handleDragLeaveBoard}
-                onDrop={(e) => handleDrop(e, board.id)}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="text-base">{board.label}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {goalsForBoard.length}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {goalsForBoard.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No goals</p>
-                    </div>
-                  ) : (
-                    goalsForBoard.map((goal) => (
-                      <div
-                        key={goal.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, goal.id)}
-                        onDragEnd={handleDragEnd}
-                        onClick={() => handleEditGoal(goal)}
-                        className="p-3 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-medium text-sm leading-tight">{goal.title}</h3>
-                          <Badge 
-                            variant="secondary" 
-                            className={`text-xs ${getStatusColor(goal.status)}`}
-                          >
-                            {goal.status.replace('-', ' ')}
-                          </Badge>
-                        </div>
-                        
-                        {goal.description && (
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                            {goal.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="capitalize">{goal.goalType}</span>
-                          <span>•</span>
-                          <span className="capitalize">{goal.category}</span>
-                          <span>•</span>
-                          <span>{goal.priority}</span>
-                        </div>
+        <>
+          {/* Status Labels Section - Fixed at top */}
+          <div className="mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+              {boardOptions.map((board) => {
+                const goalsForBoard = getGoalsForBoard(board.id);
+                const statusColor = goalSettings.getStatusColor(board.id);
+                
+                return (
+                  <div key={board.id} className="bg-card p-3 sm:p-4 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: statusColor }}
+                        ></div>
+                        <span className="text-xs sm:text-sm font-medium">{board.label}</span>
                       </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      <span className="text-lg sm:text-2xl font-bold">{goalsForBoard.length}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Swipeable Kanban Boards */}
+          <div className="sm:hidden">
+            <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+              ← Swipe left/right to navigate between kanban boards →
+            </div>
+            <div 
+              className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 scroll-smooth" 
+              style={{ 
+                scrollbarWidth: 'thin',
+                WebkitOverflowScrolling: 'touch',
+                scrollBehavior: 'smooth'
+              }}
+            >
+              {boardOptions.map((board) => {
+                const goalsForBoard = getGoalsForBoard(board.id);
+                
+                return (
+                  <div 
+                    key={board.id}
+                    className="w-80 flex-shrink-0"
+                  >
+                    <Card 
+                      className={`h-96 overflow-y-auto ${
+                        dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
+                      }`}
+                      style={getBoardColor(board.id)}
+                      onDragOver={handleDragOver}
+                      onDragEnter={() => handleDragOverBoard(board.id)}
+                      onDragLeave={handleDragLeaveBoard}
+                      onDrop={(e) => handleDrop(e, board.id)}
+                    >
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center justify-between">
+                          <span className="text-base">{board.label}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {goalsForBoard.length}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {goalsForBoard.length === 0 ? (
+                          <div className="text-center py-8">
+                            <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">No goals</p>
+                          </div>
+                        ) : (
+                          goalsForBoard.map((goal) => (
+                            <div
+                              key={goal.id}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, goal.id)}
+                              onDragEnd={handleDragEnd}
+                              onClick={() => handleEditGoal(goal)}
+                              className="p-2 sm:p-3 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
+                            >
+                              <div className="flex items-start justify-between mb-1.5 sm:mb-2">
+                                <h3 className="font-medium text-xs sm:text-sm leading-tight line-clamp-1">{goal.title}</h3>
+                                <Badge 
+                                  variant="secondary" 
+                                  className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${getStatusColor(goal.status)}`}
+                                >
+                                  {goal.status.replace('-', ' ')}
+                                </Badge>
+                              </div>
+                              
+                              {goal.description && (
+                                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-1 sm:line-clamp-2">
+                                  {goal.description}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                                <span className="capitalize">{goal.goalType}</span>
+                                <span>•</span>
+                                <span className="capitalize">{goal.category}</span>
+                                <span>•</span>
+                                <span>{goal.priority}</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Desktop Kanban Grid */}
+          <div className="hidden sm:grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {boardOptions.map((board) => {
+              const goalsForBoard = getGoalsForBoard(board.id);
+              
+              return (
+                <Card 
+                  key={board.id}
+                  className={`h-fit ${
+                    dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  style={getBoardColor(board.id)}
+                  onDragOver={handleDragOver}
+                  onDragEnter={() => handleDragOverBoard(board.id)}
+                  onDragLeave={handleDragLeaveBoard}
+                  onDrop={(e) => handleDrop(e, board.id)}
+                >
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="text-base">{board.label}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {goalsForBoard.length}
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {goalsForBoard.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">No goals</p>
+                      </div>
+                    ) : (
+                      goalsForBoard.map((goal) => (
+                        <div
+                          key={goal.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, goal.id)}
+                          onDragEnd={handleDragEnd}
+                          onClick={() => handleEditGoal(goal)}
+                          className="p-2 sm:p-3 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
+                        >
+                          <div className="flex items-start justify-between mb-1.5 sm:mb-2">
+                            <h3 className="font-medium text-xs sm:text-sm leading-tight line-clamp-1">{goal.title}</h3>
+                            <Badge 
+                              variant="secondary" 
+                              className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${getStatusColor(goal.status)}`}
+                            >
+                              {goal.status.replace('-', ' ')}
+                            </Badge>
+                          </div>
+                          
+                          {goal.description && (
+                            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-1 sm:line-clamp-2">
+                              {goal.description}
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                            <span className="capitalize">{goal.goalType}</span>
+                            <span>•</span>
+                            <span className="capitalize">{goal.category}</span>
+                            <span>•</span>
+                            <span>{goal.priority}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <Card>
           <CardHeader>

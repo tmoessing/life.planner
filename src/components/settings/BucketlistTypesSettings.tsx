@@ -66,17 +66,17 @@ export function BucketlistTypesSettings() {
         {/* Add New Type */}
         {isAdding ? (
           <div className="space-y-3 p-3 border rounded-lg">
-            <div className="flex items-center gap-2">
+            <div className="space-y-2">
               <Input
                 placeholder="Type name (e.g., Location, Experience)"
                 value={newType.name}
                 onChange={(e) => setNewType({ ...newType, name: e.target.value })}
-                className="flex-1"
+                className="w-full"
               />
               <ColorPicker
                 value={newType.color}
                 onChange={(color) => setNewType({ ...newType, color })}
-                className="flex-shrink-0"
+                className="w-full"
               />
             </div>
             <div className="flex gap-2">
@@ -103,16 +103,16 @@ export function BucketlistTypesSettings() {
             <div key={index} className="p-3 border rounded-lg">
               {editingIndex === index ? (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="space-y-2">
                     <Input
                       value={editType.name}
                       onChange={(e) => setEditType({ ...editType, name: e.target.value })}
-                      className="flex-1"
+                      className="w-full"
                     />
                     <ColorPicker
                       value={editType.color}
                       onChange={(color) => setEditType({ ...editType, color })}
-                      className="flex-shrink-0"
+                      className="w-full"
                     />
                   </div>
                   <div className="flex gap-2">

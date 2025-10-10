@@ -1,19 +1,13 @@
-import { Provider, useAtom } from 'jotai';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { currentViewAtom } from '@/stores/appStore';
-import { useSettingsMigration } from '@/hooks/useSettingsMigration';
-import { VIEW_COMPONENTS } from '@/constants/views';
+import { VIEW_COMPONENTS, ViewType } from '@/constants/views';
 
 function AppContent() {
-  const [currentView] = useAtom(currentViewAtom);
+  const [currentView, setCurrentView] = useState<ViewType>('today');
   const [isLoading, setIsLoading] = useState(true);
   const [, setIsInitialized] = useState(false);
-  
-  // Handle settings migration
-  useSettingsMigration();
 
   // Check if app is actually loading
   useEffect(() => {
@@ -55,33 +49,28 @@ function AppContent() {
     return <ViewComponent />;
   };
 
+  if (isLoading) {
+    return (
+      <LoadingScreen 
+        isLoading={isLoading} 
+        onComplete={() => setIsLoading(false)} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {isLoading && (
-        <LoadingScreen 
-          isLoading={isLoading} 
-          onComplete={() => setIsLoading(false)} 
-        />
-      )}
-      {!isLoading && (
-        <>
-          <Header />
-          <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
-            {renderView()}
-          </main>
-          <PWAInstallPrompt />
-        </>
-      )}
+      <Header currentView={currentView} setCurrentView={setCurrentView} />
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        {renderView()}
+      </main>
+      <PWAInstallPrompt />
     </div>
   );
 }
 
 function App() {
-  return (
-    <Provider>
-      <AppContent />
-    </Provider>
-  );
+  return <AppContent />;
 }
 
 export default App;

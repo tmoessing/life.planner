@@ -1,12 +1,15 @@
-import { useAtom } from 'jotai';
-import { currentViewAtom } from '@/stores/appStore';
 import { Button } from '@/components/ui/button';
 import { AddDropdown } from '@/components/AddDropdown';
 import { NavigationDropdown } from '@/components/NavigationDropdown';
 import { Brain, Settings, Calendar } from 'lucide-react';
+import { ViewType } from '@/constants/views';
 
-export function Header() {
-  const [currentView, setCurrentView] = useAtom(currentViewAtom);
+interface HeaderProps {
+  currentView: ViewType;
+  setCurrentView: (view: ViewType) => void;
+}
+
+export function Header({ currentView, setCurrentView }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -17,13 +20,13 @@ export function Header() {
             <h1 className="text-sm md:text-lg lg:text-xl font-bold truncate">Life Scrum Board</h1>
           </div>
           <div className="hidden lg:block">
-            <NavigationDropdown />
+            <NavigationDropdown currentView={currentView} setCurrentView={setCurrentView} />
           </div>
         </div>
         
         {/* Right side - Actions */}
         <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
-          <AddDropdown />
+          <AddDropdown setCurrentView={setCurrentView} />
           <Button 
             size="sm" 
             variant="ghost"
@@ -60,7 +63,7 @@ export function Header() {
       {/* Mobile/Tablet Navigation */}
       <div className="lg:hidden border-t bg-background/95 backdrop-blur">
         <div className="px-2 py-1">
-          <NavigationDropdown />
+          <NavigationDropdown currentView={currentView} setCurrentView={setCurrentView} />
         </div>
       </div>
     </header>

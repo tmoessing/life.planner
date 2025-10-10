@@ -212,8 +212,8 @@ export function AddProjectsView() {
           priority: projectData.priority,
           roleId: projectData.roleId,
           visionId: projectData.visionId,
-          startDate: projectData.startDate || new Date().toISOString(),
-          endDate: projectData.endDate || new Date().toISOString(),
+          startDate: projectData.startDate || '',
+          endDate: projectData.endDate || '',
           order: 0,
           storyIds: [],
         };

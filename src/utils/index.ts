@@ -116,11 +116,12 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'Protector', color: '#81E6D9' }
   ],
   goalStatuses: [
-    { name: 'Not Started', color: '#6B7280' },
-    { name: 'In Progress', color: '#3B82F6' },
-    { name: 'Completed', color: '#10B981' },
-    { name: 'Paused', color: '#F59E0B' },
-    { name: 'Cancelled', color: '#EF4444' }
+    { name: 'Icebox', color: '#6B7280' },
+    { name: 'Backlog', color: '#3B82F6' },
+    { name: 'To Do', color: '#F59E0B' },
+    { name: 'In Progress', color: '#10B981' },
+    { name: 'Review', color: '#8B5CF6' },
+    { name: 'Done', color: '#22C55E' }
   ],
   bucketlistTypes: [
     { name: 'Location', color: '#3B82F6' },

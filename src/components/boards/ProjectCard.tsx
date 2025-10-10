@@ -184,7 +184,7 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit }: Pr
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>Start: {new Date(project.startDate).toLocaleDateString()}</span>
+            <span>Start: {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'Not set'}</span>
           </div>
           {project.endDate && (
             <div className="flex items-center gap-1">

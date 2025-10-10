@@ -150,6 +150,99 @@ export function StoryBoardsViewRefactored() {
 
   const groupedStories = getGroupedStories();
 
+  // Get color for board based on type and value
+  const getBoardColor = (boardId: string) => {
+    switch (selectedBoardType) {
+      case 'Priority':
+        const priorityColor = storySettings.getPriorityColor(boardId as Priority);
+        return {
+          backgroundColor: `${priorityColor}20`,
+          borderColor: `${priorityColor}40`,
+          color: priorityColor
+        };
+      case 'Status':
+        const statusColor = storySettings.getStatusColor(boardId);
+        return {
+          backgroundColor: `${statusColor}20`,
+          borderColor: `${statusColor}40`,
+          color: statusColor
+        };
+      case 'Type':
+        const typeColor = storySettings.getTypeColor(boardId);
+        return {
+          backgroundColor: `${typeColor}20`,
+          borderColor: `${typeColor}40`,
+          color: typeColor
+        };
+      case 'Role':
+        const role = roles.find(r => r.id === boardId);
+        const roleColor = role?.color || '#6B7280';
+        return {
+          backgroundColor: `${roleColor}20`,
+          borderColor: `${roleColor}40`,
+          color: roleColor
+        };
+      case 'Vision':
+        const vision = visions.find(v => v.id === boardId);
+        const visionColor = vision ? storySettings.getVisionTypeColor(vision.type) : '#6B7280';
+        return {
+          backgroundColor: `${visionColor}20`,
+          borderColor: `${visionColor}40`,
+          color: visionColor
+        };
+      case 'Goal':
+        const goal = goals.find(g => g.id === boardId);
+        const goalColor = goal ? storySettings.getTypeColor(goal.goalType) : '#6B7280';
+        return {
+          backgroundColor: `${goalColor}20`,
+          borderColor: `${goalColor}40`,
+          color: goalColor
+        };
+      case 'Project':
+        const project = projects.find(p => p.id === boardId);
+        // Projects don't have a type property, use a default color
+        const projectColor = '#6B7280';
+        return {
+          backgroundColor: `${projectColor}20`,
+          borderColor: `${projectColor}40`,
+          color: projectColor
+        };
+      case 'Weight':
+        const weightColor = storySettings.getPriorityColor(boardId as Priority);
+        return {
+          backgroundColor: `${weightColor}20`,
+          borderColor: `${weightColor}40`,
+          color: weightColor
+        };
+      case 'Size':
+        const sizeColor = storySettings.getSizeColor(boardId);
+        return {
+          backgroundColor: `${sizeColor}20`,
+          borderColor: `${sizeColor}40`,
+          color: sizeColor
+        };
+      case 'Location':
+        return {
+          backgroundColor: '#F9FAFB',
+          borderColor: '#E5E7EB',
+          color: '#6B7280'
+        };
+      case 'Task Categories':
+        const taskCategoryColor = storySettings.getTaskCategoryColor(boardId);
+        return {
+          backgroundColor: `${taskCategoryColor}20`,
+          borderColor: `${taskCategoryColor}40`,
+          color: taskCategoryColor
+        };
+      default:
+        return {
+          backgroundColor: '#F9FAFB',
+          borderColor: '#E5E7EB',
+          color: '#6B7280'
+        };
+    }
+  };
+
   // Handle story actions
   const handleEditStory = (story: Story) => {
     setEditingStory(story);
@@ -313,7 +406,11 @@ export function StoryBoardsViewRefactored() {
       {/* Story Groups */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {Object.entries(groupedStories).map(([groupName, groupStories]) => (
-          <Card key={groupName} className={getDragOverClasses(groupName, 'board')}>
+          <Card 
+            key={groupName} 
+            className={getDragOverClasses(groupName, 'board')}
+            style={getBoardColor(groupName)}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">

@@ -11,7 +11,7 @@ import { useSettingsMigration } from '@/hooks/useSettingsMigration';
 import { VIEW_COMPONENTS } from '@/constants/views';
 
 function AppContent() {
-  const [currentView] = useAtom(currentViewAtom);
+  const [currentView, setCurrentView] = useAtom(currentViewAtom);
   const [isLoading, setIsLoading] = useState(true);
   const [, setIsInitialized] = useState(false);
   
@@ -68,7 +68,7 @@ function AppContent() {
       )}
       {!isLoading && (
         <>
-          <Header />
+          <Header currentView={currentView} setCurrentView={setCurrentView} />
           <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
             <ErrorBoundary>
               {renderView()}

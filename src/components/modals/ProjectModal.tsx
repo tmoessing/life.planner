@@ -40,8 +40,8 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         name: project.name,
         description: project.description,
         status: project.status,
-        startDate: project.startDate,
-        endDate: project.endDate,
+        startDate: project.startDate || '',
+        endDate: project.endDate || '',
         storyIds: project.storyIds
       });
       setSelectedStories(project.storyIds);
@@ -50,7 +50,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         name: '',
         description: '',
         status: 'Icebox',
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: '',
         endDate: '',
         storyIds: []
       });

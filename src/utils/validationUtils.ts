@@ -209,15 +209,15 @@ export const validateProject = (project: Partial<Project>): ValidationResult => 
     errors.push('Status is required');
   }
 
-  if (project.startDate && !validateDate(project.startDate)) {
+  if (project.startDate && project.startDate !== '' && !validateDate(project.startDate)) {
     errors.push('Start date must be a valid date');
   }
 
-  if (project.endDate && !validateDate(project.endDate)) {
+  if (project.endDate && project.endDate !== '' && !validateDate(project.endDate)) {
     errors.push('End date must be a valid date');
   }
 
-  if (project.startDate && project.endDate) {
+  if (project.startDate && project.endDate && project.startDate !== '' && project.endDate !== '') {
     if (!validateDateRange(project.startDate, project.endDate)) {
       errors.push('Start date must be before end date');
     }

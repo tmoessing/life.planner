@@ -347,10 +347,10 @@ export const useProjectSettings = () => {
     projectTypes: settings.projectTypes,
     
     // Type colors from settings
-    typeColors: settings.projectTypes.reduce((acc, type) => {
+    typeColors: settings.projectTypes?.reduce((acc, type) => {
       acc[type.name] = type.color;
       return acc;
-    }, {} as Record<string, string>),
+    }, {} as Record<string, string>) || {},
     
     // Roles from settings
     roles: settings.roles,

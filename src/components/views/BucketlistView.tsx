@@ -37,7 +37,7 @@ export function BucketlistView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingItem, setEditingItem] = useState<BucketlistItem | null>(null);
-  const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'in-progress' | 'on-hold'>('in-progress');
+  const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'in-progress' | 'on-hold'>('all');
   
   // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

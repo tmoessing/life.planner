@@ -271,16 +271,18 @@ export function ProjectKanbanView({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-6">
         {PROJECT_COLUMNS.map((column) => (
           <div key={column.id} className="bg-card p-3 sm:p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: projectSettings.getStatusColor(column.id) }}
-              ></div>
-              <span className="text-xs sm:text-sm font-medium">{column.name}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: projectSettings.getStatusColor(column.id) }}
+                ></div>
+                <span className="text-xs sm:text-sm font-medium">{column.name}</span>
+              </div>
+              <span className="text-lg sm:text-2xl font-bold">
+                {projectsByStatus[column.id as keyof typeof projectsByStatus].length}
+              </span>
             </div>
-            <p className="text-lg sm:text-2xl font-bold mt-1">
-              {projectsByStatus[column.id as keyof typeof projectsByStatus].length}
-            </p>
           </div>
         ))}
       </div>

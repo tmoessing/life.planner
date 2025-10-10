@@ -15,6 +15,7 @@ import {
   deleteStoryAtom,
   addStoryAtom
 } from '@/stores/appStore';
+import { useGoalSettings } from '@/utils/settingsMirror';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { Target, Undo, Plus } from 'lucide-react';
 import type { Story } from '@/types';
@@ -25,6 +26,7 @@ export function GoalsKanbanBoardsView() {
   const [, updateStory] = useAtom(updateStoryAtom);
   const [, deleteStory] = useAtom(deleteStoryAtom);
   const [, addStory] = useAtom(addStoryAtom);
+  const goalSettings = useGoalSettings();
 
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   
@@ -66,14 +68,14 @@ export function GoalsKanbanBoardsView() {
       )
     : [];
 
-  // Define status columns for Kanban
+  // Define status columns for Kanban using settings colors
   const statusColumns = [
-    { id: 'icebox', name: 'Icebox', color: '#6B7280' },
-    { id: 'backlog', name: 'Backlog', color: '#3B82F6' },
-    { id: 'todo', name: 'To Do', color: '#F59E0B' },
-    { id: 'progress', name: 'In Progress', color: '#F97316' },
-    { id: 'review', name: 'Review', color: '#8B5CF6' },
-    { id: 'done', name: 'Done', color: '#10B981' }
+    { id: 'icebox', name: 'Icebox', color: goalSettings.getStatusColor('icebox') },
+    { id: 'backlog', name: 'Backlog', color: goalSettings.getStatusColor('backlog') },
+    { id: 'todo', name: 'To Do', color: goalSettings.getStatusColor('todo') },
+    { id: 'in-progress', name: 'In Progress', color: goalSettings.getStatusColor('in-progress') },
+    { id: 'review', name: 'Review', color: goalSettings.getStatusColor('review') },
+    { id: 'done', name: 'Done', color: goalSettings.getStatusColor('done') }
   ];
 
   // Group stories by status
