@@ -18,11 +18,9 @@ export const goalTypesAtom = atom<Array<{id: string, name: string, color: string
 ]);
 
 export const projectTypesAtom = atom<Array<{id: string, name: string, color: string, description: string}>>([
-  { id: 'personal', name: 'Personal', color: '#8B5CF6', description: 'Personal development projects' },
-  { id: 'work', name: 'Work', color: '#3B82F6', description: 'Professional work projects' },
-  { id: 'family', name: 'Family', color: '#F59E0B', description: 'Family and home projects' },
-  { id: 'health', name: 'Health', color: '#10B981', description: 'Health and wellness projects' },
-  { id: 'learning', name: 'Learning', color: '#6366F1', description: 'Educational and skill projects' }
+  { id: 'code', name: 'Code', color: '#3B82F6', description: 'Software development and coding projects' },
+  { id: 'organization', name: 'Organization', color: '#8B5CF6', description: 'Organizational and productivity projects' },
+  { id: 'learning', name: 'Learning', color: '#10B981', description: 'Educational and skill development projects' }
 ]);
 
 export const updateStoryTypesAtom = atom(

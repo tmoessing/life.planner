@@ -27,6 +27,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
     name: '',
     description: '',
     status: 'Icebox' as Project['status'],
+    type: '',
     startDate: '',
     endDate: '',
     storyIds: [] as string[]
@@ -40,6 +41,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         name: project.name,
         description: project.description,
         status: project.status,
+        type: project.type || '',
         startDate: project.startDate || '',
         endDate: project.endDate || '',
         storyIds: project.storyIds
@@ -50,6 +52,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         name: '',
         description: '',
         status: 'Icebox',
+        type: '',
         startDate: '',
         endDate: '',
         storyIds: []
@@ -183,6 +186,34 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
                     Done
                   </div>
                 </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Project Type */}
+          <div className="space-y-2">
+            <Label htmlFor="type">Project Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => 
+                setFormData(prev => ({ ...prev, type: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select project type" />
+              </SelectTrigger>
+              <SelectContent>
+                {projectSettings.projectTypes.map((type) => (
+                  <SelectItem key={type.name} value={type.name}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: type.color }}
+                      />
+                      {type.name}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

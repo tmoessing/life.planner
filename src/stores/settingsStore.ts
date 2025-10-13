@@ -170,7 +170,7 @@ const getDefaultSettings = (): Settings => {
     { name: 'Personal', color: '#EC4899' }
   ],
   countries: [
-    'US', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 
+    'United States', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 
     'Japan', 'China', 'India', 'Australia', 'Brazil', 'Argentina', 'Chile', 'Peru',
     'South Africa', 'Egypt', 'Morocco', 'Nigeria', 'Kenya', 'Thailand', 'Vietnam',
     'Indonesia', 'Philippines', 'South Korea', 'Singapore', 'Malaysia', 'New Zealand'
@@ -191,10 +191,9 @@ const getDefaultSettings = (): Settings => {
     'Volunteer', 'Spiritual', 'Social', 'Personal Growth'
   ],
   projectTypes: [
-    { name: 'Work', color: '#3B82F6' },
-    { name: 'Personal', color: '#8B5CF6' },
-    { name: 'Learning', color: '#10B981' },
-    { name: 'Health', color: '#EF4444' }
+    { name: 'Code', color: '#3B82F6' },
+    { name: 'Organization', color: '#8B5CF6' },
+    { name: 'Learning', color: '#10B981' }
   ],
   traditionTypes: [
     { name: 'Spiritual', color: '#8B5CF6' },

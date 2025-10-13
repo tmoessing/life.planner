@@ -129,13 +129,24 @@ export function useSettingsMigration() {
       needsUpdate = true;
     }
     
-    if (!settings.projectTypes) {
-      settingsUpdates.projectTypes = [
-        { name: 'Work', color: '#3B82F6' },
-        { name: 'Personal', color: '#8B5CF6' },
-        { name: 'Learning', color: '#10B981' },
-        { name: 'Health', color: '#EF4444' }
-      ];
+    // Always update project types to the new defaults
+    const newProjectTypes = [
+      { name: 'Code', color: '#3B82F6' },
+      { name: 'Organization', color: '#8B5CF6' },
+      { name: 'Learning', color: '#10B981' }
+    ];
+    
+    // Check if project types need updating (either missing or different)
+    const currentProjectTypes = settings.projectTypes || [];
+    const needsProjectTypeUpdate = !settings.projectTypes || 
+      currentProjectTypes.length !== newProjectTypes.length ||
+      !currentProjectTypes.every((type, index) => 
+        type.name === newProjectTypes[index]?.name && 
+        type.color === newProjectTypes[index]?.color
+      );
+    
+    if (needsProjectTypeUpdate) {
+      settingsUpdates.projectTypes = newProjectTypes;
       needsUpdate = true;
     }
     

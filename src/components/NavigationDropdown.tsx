@@ -20,8 +20,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { id: 'bucketlist', label: 'Bucketlist', description: 'Life experiences and dreams' },
       { id: 'traditions', label: 'Traditions', description: 'Build meaningful traditions in your life' },
-      { id: 'importance', label: 'Importance List', description: 'Priority matrix view' },
-      { id: 'important-dates', label: 'Important Dates', description: 'Track important dates and events' }
+      { id: 'importance', label: 'Importance List', description: 'Priority matrix view' }
     ]
   },
   {
@@ -46,6 +45,13 @@ const navigationGroups: NavigationGroup[] = [
       { id: 'projects', label: 'Projects', description: 'Project management' },
       { id: 'projects-kanban', label: 'Kanban Board', description: 'Project Kanban boards' },
       { id: 'project-product-management', label: 'Project Management', description: 'Manage project stories' }
+    ]
+  },
+  {
+    label: 'Other',
+    items: [
+      { id: 'planner', label: 'Planner', description: 'Life planning and organization' },
+      { id: 'important-dates', label: 'Important Dates', description: 'Track important dates and events' }
     ]
   }
 ];

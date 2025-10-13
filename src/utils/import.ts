@@ -274,19 +274,33 @@ const parseVisionData = (row: any) => ({
   updatedAt: new Date().toISOString()
 });
 
-const parseBucketlistData = (row: any) => ({
-  id: generateId(),
-  title: row['Title'] || '',
-  description: row['Description'] || '',
-  completed: false,
-  bucketlistType: (row['Type'] || 'Experience').toLowerCase() === 'experience' ? 'experience' : 'location',
-  priority: row['Priority'] || 'Q2',
-  status: row['Status'] === 'pending' ? 'not-started' : 
-          row['Status'] === 'completed' ? 'completed' : 
-          row['Status'] === 'in-progress' ? 'in-progress' : 'not-started',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
-});
+const parseBucketlistData = (row: any) => {
+  const typeValue = (row['Type'] || '').toLowerCase().trim();
+  let bucketlistType: 'location' | 'experience';
+  
+  if (typeValue === 'location') {
+    bucketlistType = 'location';
+  } else if (typeValue === 'experience') {
+    bucketlistType = 'experience';
+  } else {
+    // Default to experience if type is not specified or unrecognized
+    bucketlistType = 'experience';
+  }
+  
+  return {
+    id: generateId(),
+    title: row['Title'] || '',
+    description: row['Description'] || '',
+    completed: false,
+    bucketlistType,
+    priority: row['Priority'] || 'Q2',
+    status: row['Status'] === 'pending' ? 'not-started' : 
+            row['Status'] === 'completed' ? 'completed' : 
+            row['Status'] === 'in-progress' ? 'in-progress' : 'not-started',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+};
 
 const parseImportantDateData = (row: any) => ({
   id: generateId(),

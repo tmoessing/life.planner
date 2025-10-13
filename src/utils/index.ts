@@ -159,10 +159,9 @@ export const getDefaultSettings = (): Settings => ({
   
   // Project types for project settings mirror
   projectTypes: [
-    { name: 'Work', color: '#3B82F6' },
-    { name: 'Personal', color: '#8B5CF6' },
-    { name: 'Learning', color: '#10B981' },
-    { name: 'Health', color: '#EF4444' }
+    { name: 'Code', color: '#3B82F6' },
+    { name: 'Organization', color: '#8B5CF6' },
+    { name: 'Learning', color: '#10B981' }
   ],
   
   // Tradition types for tradition settings mirror

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { AddDropdown } from '@/components/AddDropdown';
 import { NavigationDropdown } from '@/components/NavigationDropdown';
-import { Brain, Settings, Calendar } from 'lucide-react';
+import { Settings, Calendar } from 'lucide-react';
 import { ViewType } from '@/constants/views';
 
 interface HeaderProps {
@@ -36,16 +36,6 @@ export function Header({ currentView, setCurrentView }: HeaderProps) {
           >
             <Calendar className="h-4 w-4" />
             <span className="hidden md:inline">Today</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost"
-            className="gap-1 md:gap-2 text-xs md:text-sm touch-target h-8 w-8 md:h-auto md:w-auto"
-            onClick={() => setCurrentView('planner')}
-            title="Planner"
-          >
-            <Brain className="h-4 w-4" />
-            <span className="hidden md:inline">Planner</span>
           </Button>
           <Button 
             size="sm" 

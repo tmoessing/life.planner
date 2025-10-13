@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { 
   goalsAtom, 
   storiesAtom, 
   currentSprintAtom,
   rolesAtom,
-  currentViewAtom
+  currentViewAtom,
+  updateGoalAtom
 } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { 
   Target, 
   Calendar, 
@@ -20,7 +23,8 @@ import {
   Heart,
   Dumbbell,
   Brain,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 import { getCurrentWeek } from '@/utils/date';
 import { useGoalSettings } from '@/utils/settingsMirror';
@@ -43,6 +47,11 @@ export function TodayView() {
   const [currentSprint] = useAtom(currentSprintAtom);
   const [roles] = useAtom(rolesAtom);
   const [, setCurrentView] = useAtom(currentViewAtom);
+  const [, updateGoal] = useAtom(updateGoalAtom);
+  
+  // State for goal selection modal
+  const [isGoalSelectionOpen, setIsGoalSelectionOpen] = useState(false);
+  const [selectedGoalType, setSelectedGoalType] = useState<string>('');
   
   // Use goal settings mirror for proper colors and types
   const goalSettings = useGoalSettings();
@@ -102,6 +111,28 @@ export function TodayView() {
     return type || { name: goalType, color: '#6B7280', description: '' };
   };
 
+  // Handler for adding a goal to a specific category
+  const handleAddGoal = (goalType: string) => {
+    setSelectedGoalType(goalType);
+    setIsGoalSelectionOpen(true);
+  };
+
+  // Handler for selecting a goal to move to in-progress
+  const handleSelectGoal = (goalId: string) => {
+    updateGoal(goalId, { status: 'in-progress' });
+    setIsGoalSelectionOpen(false);
+    setSelectedGoalType('');
+  };
+
+  // Get available goals for the selected category that are not in progress
+  const getAvailableGoals = () => {
+    return goals.filter(goal => 
+      goal.goalType === selectedGoalType && 
+      goal.status !== 'in-progress' &&
+      goal.status !== 'done'
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -130,6 +161,11 @@ export function TodayView() {
           <Target className="h-5 w-5" />
           Goals in Progress
         </h2>
+        <div className="mb-4 text-center">
+          <p className="text-sm text-muted-foreground italic">
+            "There is no chance, no destiny, no fate, that can circumvent, or hinder or control the firm resolve of a determined soul."
+          </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {['Spiritual', 'Social', 'Intellectual', 'Physical'].map((goalType) => {
             const typeInfo = getGoalTypeInfo(goalType);
@@ -162,9 +198,23 @@ export function TodayView() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   {goalsOfType.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">
-                      No {typeInfo.name.toLowerCase()} goals in progress
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground italic">
+                        No {typeInfo.name.toLowerCase()} goals in progress
+                      </p>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddGoal(goalType);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Goal
+                      </Button>
+                    </div>
                   ) : (
                     <div className="space-y-2">
                       {goalsOfType.slice(0, 3).map((goal) => (
@@ -417,6 +467,72 @@ export function TodayView() {
           </Card>
         </div>
       </div>
+
+      {/* Goal Selection Modal */}
+      <Dialog open={isGoalSelectionOpen} onOpenChange={setIsGoalSelectionOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Select {selectedGoalType} Goal
+            </DialogTitle>
+            <DialogDescription>
+              Choose a goal to move to in-progress status for your {selectedGoalType.toLowerCase()} category. These are goals that are currently in other statuses (icebox, backlog, todo, etc.).
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {getAvailableGoals().length === 0 ? (
+              <div className="text-center py-8">
+                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">
+                  No available {selectedGoalType.toLowerCase()} goals to add.
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('goals')}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create New Goal
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {getAvailableGoals().map((goal) => (
+                  <Card 
+                    key={goal.id} 
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleSelectGoal(goal.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm line-clamp-2">
+                            {goal.title}
+                          </h3>
+                          {goal.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {goal.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                            <span className="capitalize">{goal.status}</span>
+                            <span>•</span>
+                            <span className="capitalize">{goal.priority} priority</span>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          Add to Progress
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

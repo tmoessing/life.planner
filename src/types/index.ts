@@ -91,6 +91,7 @@ export type Project = {
   description: string;
   status: 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done';
   priority: Priority;
+  type?: string; // project type from settings
   roleId?: string;
   visionId?: string;
   order: number;

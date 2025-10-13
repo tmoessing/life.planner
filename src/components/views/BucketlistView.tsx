@@ -49,8 +49,8 @@ export function BucketlistView() {
     title: '',
     description: '',
     type: '',
-    priority: 'medium' as 'low' | 'medium' | 'high',
-    status: 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'on-hold',
+    priority: '' as 'low' | 'medium' | 'high' | '',
+    status: '' as 'not-started' | 'in-progress' | 'completed' | 'on-hold' | '',
     bucketlistType: '',
     category: '',
     dueDate: '',
@@ -65,12 +65,44 @@ export function BucketlistView() {
   const handleAddItem = () => {
     setModalMode('add');
     setEditingItem(null);
+    setFormData({
+      title: '',
+      description: '',
+      type: '',
+      priority: '',
+      status: '',
+      bucketlistType: '',
+      category: '',
+      dueDate: '',
+      roleId: '',
+      visionId: '',
+      country: '',
+      state: '',
+      city: '',
+      experienceCategory: ''
+    });
     setIsModalOpen(true);
   };
 
   const handleEditItem = (item: BucketlistItem) => {
     setModalMode('edit');
     setEditingItem(item);
+    setFormData({
+      title: item.title,
+      description: item.description || '',
+      type: '',
+      priority: (item.priority === 'Q1' || item.priority === 'Q2' || item.priority === 'Q3' || item.priority === 'Q4') ? '' : (item.priority || ''),
+      status: item.status || '',
+      bucketlistType: item.bucketlistType || '',
+      category: item.category || '',
+      dueDate: item.dueDate || '',
+      roleId: item.roleId || '',
+      visionId: item.visionId || '',
+      country: item.country || '',
+      state: item.state || '',
+      city: item.city || '',
+      experienceCategory: item.experienceCategory || ''
+    });
     setIsModalOpen(true);
   };
 
@@ -102,8 +134,8 @@ export function BucketlistView() {
     updateBucketlistItem(item.id, {
       title: formData.title,
       description: formData.description,
-      priority: formData.priority as Priority,
-      status: formData.status as 'not-started' | 'in-progress' | 'completed' | 'on-hold'
+      priority: formData.priority || 'medium' as Priority,
+      status: formData.status || 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'on-hold'
     });
   };
 
@@ -112,8 +144,8 @@ export function BucketlistView() {
       title: '',
       description: '',
       type: '',
-      priority: 'medium',
-      status: 'not-started',
+      priority: '',
+      status: '',
       bucketlistType: '',
       category: '',
       dueDate: '',
@@ -414,9 +446,10 @@ export function BucketlistView() {
                 onValueChange={(value) => setFormData(prev => ({ ...prev, bucketlistType: value as 'location' | 'experience' }))}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue />
+                  <SelectValue placeholder="Select bucketlist type..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">None</SelectItem>
                   {settings.bucketlistTypes?.map((type) => (
                     <SelectItem key={type.name} value={type.name.toLowerCase()}>
                       <div className="flex items-center gap-2">
@@ -440,9 +473,10 @@ export function BucketlistView() {
                   onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue />
+                    <SelectValue placeholder="Select category..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">None</SelectItem>
                     {['Adventure', 'Travel', 'Learning', 'Experience', 'Achievement', 'Personal'].map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
@@ -459,9 +493,10 @@ export function BucketlistView() {
                   onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value as 'low' | 'medium' | 'high' }))}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue />
+                    <SelectValue placeholder="Select priority..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">None</SelectItem>
                     {['low', 'medium', 'high'].map((priority) => (
                       <SelectItem key={priority} value={priority}>
                         <div className="flex items-center gap-2">
@@ -486,9 +521,10 @@ export function BucketlistView() {
                   onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as 'not-started' | 'in-progress' | 'completed' | 'on-hold' }))}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue />
+                    <SelectValue placeholder="Select status..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">None</SelectItem>
                     {['not-started', 'in-progress', 'completed', 'on-hold'].map((status) => (
                       <SelectItem key={status} value={status}>
                         <div className="flex items-center gap-2">
@@ -526,7 +562,7 @@ export function BucketlistView() {
                     <SelectValue placeholder="Select role..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Role</SelectItem>
+                    <SelectItem value="">None</SelectItem>
                     {roles.map((role) => (
                       <SelectItem key={role.id} value={role.id}>
                         {role.name}
@@ -546,7 +582,7 @@ export function BucketlistView() {
                     <SelectValue placeholder="Select vision..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Vision</SelectItem>
+                    <SelectItem value="">None</SelectItem>
                     {visions.map((vision) => (
                       <SelectItem key={vision.id} value={vision.id}>
                         {vision.title}
@@ -626,7 +662,30 @@ export function BucketlistView() {
             
             <div className="flex gap-2">
               <Button
-                onClick={editingItem ? () => editingItem && handleUpdateItem(editingItem) : handleAddItem}
+                onClick={editingItem ? () => editingItem && handleUpdateItem(editingItem) : () => {
+                  if (!formData.title.trim()) return;
+                  
+                  const newItem = {
+                    title: formData.title.trim(),
+                    description: formData.description.trim(),
+                    category: formData.category || undefined,
+                    priority: formData.priority || 'medium' as Priority,
+                    status: formData.status || 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'on-hold',
+                    roleId: formData.roleId || undefined,
+                    visionId: formData.visionId || undefined,
+                    dueDate: formData.dueDate || undefined,
+                    bucketlistType: formData.bucketlistType as 'location' | 'experience',
+                    country: formData.bucketlistType === 'location' ? formData.country || undefined : undefined,
+                    state: formData.bucketlistType === 'location' ? formData.state || undefined : undefined,
+                    city: formData.bucketlistType === 'location' ? formData.city || undefined : undefined,
+                    experienceCategory: formData.bucketlistType === 'experience' ? formData.experienceCategory || undefined : undefined,
+                    order: 0,
+                    completed: false,
+                  };
+                  
+                  addBucketlistItem(newItem);
+                  handleCancel();
+                }}
                 disabled={!formData.title.trim()}
               >
                 {editingItem ? 'Update Item' : 'Add Item'}

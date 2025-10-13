@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 // import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
+import { getCitiesForState } from '@/utils/cityData';
+import { getAllCountries, getRegionsForCountry } from '@/utils/countryData';
 import { 
   Plus, 
   Trash2, 
@@ -48,7 +51,7 @@ const defaultBucketlistItem: BucketlistFormData = {
   visionId: undefined,
   dueDate: undefined,
   bucketlistType: 'location',
-  country: 'US',
+  country: 'United States',
   state: undefined,
   city: undefined,
   experienceCategory: undefined
@@ -61,7 +64,9 @@ export function AddBucketlistView() {
   const [visions] = useAtom(visionsAtom);
   const bucketlistSettings = useBucketlistSettings();
   
-  // Debug roles data
+  // Debug states data
+  console.log('bucketlistSettings.usStates:', bucketlistSettings.usStates);
+  console.log('bucketlistSettings.usStates length:', bucketlistSettings.usStates?.length);
   
   const [bucketlistForms, setBucketlistForms] = useState<BucketlistFormData[]>([{ 
     ...defaultBucketlistItem,
@@ -156,9 +161,19 @@ export function AddBucketlistView() {
     if (currentIndex < fieldOrder.length - 1) {
       // Move to next field in same row
       const nextField = fieldOrder[currentIndex + 1];
-      const nextFieldRef = fieldRefs.current[`${currentRow}-${nextField}`];
-      if (nextFieldRef) {
-        nextFieldRef.focus();
+      
+      // For SearchableSelect components (state, city), we need to find the input element
+      if (nextField === 'state' || nextField === 'city') {
+        // Find the SearchableSelect input by data attribute
+        const nextFieldElement = document.querySelector(`[data-field="${nextField}"][data-row="${currentRow}"] input`);
+        if (nextFieldElement) {
+          (nextFieldElement as HTMLInputElement).focus();
+        }
+      } else {
+        const nextFieldRef = fieldRefs.current[`${currentRow}-${nextField}`];
+        if (nextFieldRef) {
+          nextFieldRef.focus();
+        }
       }
     } else if (currentRow < bucketlistForms.length - 1) {
       // Move to first field of next row
@@ -263,8 +278,14 @@ export function AddBucketlistView() {
       const newOptions = { ...prev, [field]: value };
       
       // Clear state when country changes from US to something else
-      if (field === 'country' && value !== 'US') {
+      if (field === 'country' && value !== 'United States') {
         newOptions.state = '';
+        newOptions.city = '';
+      }
+      
+      // Clear city when state changes
+      if (field === 'state') {
+        newOptions.city = '';
       }
       
       return newOptions;
@@ -282,7 +303,8 @@ export function AddBucketlistView() {
       setBucketlistForms(prev => prev.map(item => ({
         ...item,
         country: value,
-        state: value === 'US' ? item.state : undefined
+        state: value === 'United States' ? item.state : undefined,
+        city: value === 'United States' ? item.city : undefined
       })));
     } else if (value !== 'none') {
       // For other fields, only apply if not 'none'
@@ -502,60 +524,23 @@ export function AddBucketlistView() {
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
                       <span>Country</span>
-                      <Select
-                        value={defaultOptions.country}
-                        onValueChange={(value) => handleDefaultOptionChange('country', value)}
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Set default" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="US">United States</SelectItem>
-                          <SelectItem value="CA">Canada</SelectItem>
-                          <SelectItem value="MX">Mexico</SelectItem>
-                          <SelectItem value="GB">United Kingdom</SelectItem>
-                          <SelectItem value="FR">France</SelectItem>
-                          <SelectItem value="DE">Germany</SelectItem>
-                          <SelectItem value="IT">Italy</SelectItem>
-                          <SelectItem value="ES">Spain</SelectItem>
-                          <SelectItem value="JP">Japan</SelectItem>
-                          <SelectItem value="AU">Australia</SelectItem>
-                          <SelectItem value="BR">Brazil</SelectItem>
-                          <SelectItem value="IN">India</SelectItem>
-                          <SelectItem value="CN">China</SelectItem>
-                          <SelectItem value="RU">Russia</SelectItem>
-                          <SelectItem value="ZA">South Africa</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        placeholder="Set default country..."
+                        className="h-8 text-xs"
+                        value={defaultOptions.country === 'none' ? '' : defaultOptions.country}
+                        onChange={(e) => handleDefaultOptionChange('country', e.target.value)}
+                      />
                     </div>
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
                       <span>State</span>
-                      {defaultOptions.country === 'US' ? (
-                        <Select
-                          value={defaultOptions.state || ''}
-                          onValueChange={(value) => handleDefaultOptionChange('state', value)}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder="Set default state..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">None</SelectItem>
-                            {bucketlistSettings.usStates?.map((state) => (
-                              <SelectItem key={state} value={state}>
-                                {state}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="DC">District of Columbia</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="h-8 flex items-center text-xs text-muted-foreground px-3 border rounded-md bg-muted/50">
-                          Not applicable
-                        </div>
-                      )}
+                      <Input
+                        placeholder="Set default state..."
+                        className="h-8 text-xs"
+                        value={defaultOptions.state || ''}
+                        onChange={(e) => handleDefaultOptionChange('state', e.target.value)}
+                      />
                     </div>
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
@@ -830,12 +815,18 @@ export function AddBucketlistView() {
                       />
                     </td>
                     <td className="p-3">
-                      <Select
-                        value={item.country || 'US'}
-                        onValueChange={(value) => updateBucketlistForm(index, 'country', value)}
-                        data-field="country"
-                      >
-                        <SelectTrigger 
+                      <div data-field="country" data-row={index}>
+                        <SearchableSelect
+                          value={item.country || ''}
+                          onValueChange={(value) => updateBucketlistForm(index, 'country', value)}
+                          placeholder="Type to search countries..."
+                          options={[
+                            { value: '', label: 'None' },
+                            ...getAllCountries().map((country) => ({
+                              value: country,
+                              label: country
+                            }))
+                          ]}
                           className="w-full h-8"
                           onKeyDown={(e) => {
                             if (e.key === 'Tab') {
@@ -847,26 +838,24 @@ export function AddBucketlistView() {
                             }
                           }}
                           tabIndex={0}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {bucketlistSettings.countries?.map((country) => (
-                            <SelectItem key={country} value={country}>
-                              {country}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        />
+                      </div>
                     </td>
                     <td className="p-3">
-                      {item.country === 'US' ? (
-                        <Select
-                          value={item.state || ''}
-                          onValueChange={(value) => updateBucketlistForm(index, 'state', value)}
-                          data-field="state"
-                        >
-                          <SelectTrigger
+                      {item.country === 'United States' ? (
+                        <div data-field="state" data-row={index}>
+                          <SearchableSelect
+                            value={item.state || ''}
+                            onValueChange={(value) => updateBucketlistForm(index, 'state', value)}
+                            placeholder="Type to search states..."
+                            options={[
+                              { value: '', label: 'None' },
+                              ...(bucketlistSettings.usStates?.map((state) => ({
+                                value: state,
+                                label: state
+                              })) || []),
+                              { value: 'DC', label: 'District of Columbia' }
+                            ]}
                             className="w-full h-8"
                             onKeyDown={(e) => {
                               if (e.key === 'Tab') {
@@ -878,19 +867,8 @@ export function AddBucketlistView() {
                               }
                             }}
                             tabIndex={0}
-                          >
-                            <SelectValue placeholder="Select state..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">None</SelectItem>
-                            {bucketlistSettings.usStates?.map((state) => (
-                              <SelectItem key={state} value={state}>
-                                {state}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="DC">District of Columbia</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          />
+                        </div>
                       ) : (
                         <div className="w-full h-8 flex items-center text-sm text-muted-foreground px-3 border rounded-md bg-muted/50">
                           State not applicable
@@ -898,14 +876,31 @@ export function AddBucketlistView() {
                       )}
                     </td>
                     <td className="p-3">
-                      <Input
-                        ref={getFieldRef(index, 'city')}
-                        value={item.city || ''}
-                        onChange={(e) => updateBucketlistForm(index, 'city', e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(e, index, 'city')}
-                        placeholder="City..."
-                        className="w-full h-8 text-sm"
-                      />
+                      <div data-field="city" data-row={index}>
+                        <SearchableSelect
+                          value={item.city || ''}
+                          onValueChange={(value) => updateBucketlistForm(index, 'city', value)}
+                          placeholder="Type to search cities..."
+                          options={[
+                            { value: '', label: 'None' },
+                            ...getCitiesForState(item.state || '').map((city) => ({
+                              value: city,
+                              label: city
+                            }))
+                          ]}
+                          className="w-full h-8"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Tab') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              moveToNextField(index, 'city');
+                            } else {
+                              handleKeyDown(e, index, 'city');
+                            }
+                          }}
+                          tabIndex={0}
+                        />
+                      </div>
                     </td>
                     <td className="p-3">
                       <Input

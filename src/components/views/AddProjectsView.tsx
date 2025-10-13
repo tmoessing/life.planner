@@ -27,6 +27,7 @@ interface ProjectFormData {
   description: string;
   status: 'not-started' | 'in-progress' | 'completed' | 'on-hold';
   priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  type?: string;
   roleId?: string;
   visionId?: string;
   startDate?: string;
@@ -38,6 +39,7 @@ const defaultProject: ProjectFormData = {
   description: '',
   status: 'not-started',
   priority: 'Q1',
+  type: undefined,
   roleId: undefined,
   visionId: undefined,
   startDate: undefined,
@@ -60,6 +62,7 @@ export function AddProjectsView() {
   const [defaultOptions, setDefaultOptions] = useState({
     status: 'none' as 'none' | 'not-started' | 'in-progress' | 'completed' | 'on-hold',
     priority: 'none' as 'none' | 'Q1' | 'Q2' | 'Q3' | 'Q4',
+    type: 'none' as string,
     roleId: 'none' as string,
     visionId: 'none' as string,
     startDate: '',
@@ -345,6 +348,33 @@ export function AddProjectsView() {
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
+                      <span>Type</span>
+                      <Select
+                        value={defaultOptions.type || 'none'}
+                        onValueChange={(value) => handleDefaultOptionChange('type', value)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Set default" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {projectSettings.projectTypes.map((type) => (
+                            <SelectItem key={type.name} value={type.name}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: type.color }}
+                                />
+                                {type.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </th>
+                  <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
+                    <div className="flex flex-col gap-1">
                       <span>Role</span>
                       <Select
                         value={defaultOptions.roleId}
@@ -502,6 +532,43 @@ export function AddProjectsView() {
                                   style={{ backgroundColor: projectSettings.getPriorityColor(priority) }}
                                 />
                                 {priority}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="p-3">
+                      <Select
+                        value={project.type || 'none'}
+                        onValueChange={(value) => updateProjectForm(index, 'type', value === 'none' ? undefined : value)}
+                        data-field="type"
+                      >
+                        <SelectTrigger 
+                          className="w-full h-8"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Tab') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              moveToNextField(index, 'type');
+                            } else {
+                              handleKeyDown(e, index, 'type');
+                            }
+                          }}
+                          tabIndex={0}
+                        >
+                          <SelectValue placeholder="Type..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Type</SelectItem>
+                          {projectSettings.projectTypes.map((type) => (
+                            <SelectItem key={type.name} value={type.name}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: type.color }}
+                                />
+                                {type.name}
                               </div>
                             </SelectItem>
                           ))}

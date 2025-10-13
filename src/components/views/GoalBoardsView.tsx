@@ -41,13 +41,13 @@ export function GoalBoardsView() {
   const getBoardOptions = () => {
     switch (selectedBoardType) {
       case 'Goal Type':
-        return settings.goalTypes.map(type => ({
+        return goalSettings.goalTypes.map(type => ({
           id: type.name,
           label: type.name,
           color: type.color
         }));
       case 'Category':
-        return settings.goalCategories.map(category => ({
+        return goalSettings.goalCategories.map(category => ({
           id: category.name,
           label: category.name,
           color: category.color
@@ -388,7 +388,7 @@ export function GoalBoardsView() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
               {boardOptions.map((board) => {
                 const goalsForBoard = getGoalsForBoard(board.id);
-                const statusColor = goalSettings.getStatusColor(board.id);
+                const boardColor = getBoardColor(board.id);
                 
                 return (
                   <div key={board.id} className="bg-card p-3 sm:p-4 rounded-lg border">
@@ -396,7 +396,7 @@ export function GoalBoardsView() {
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: statusColor }}
+                          style={{ backgroundColor: boardColor.color }}
                         ></div>
                         <span className="text-xs sm:text-sm font-medium">{board.label}</span>
                       </div>

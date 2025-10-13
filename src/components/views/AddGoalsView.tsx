@@ -385,7 +385,7 @@ export function AddGoalsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          {settings.goalTypes?.map((goalType) => (
+                          {goalSettings.goalTypes?.map((goalType) => (
                             <SelectItem key={goalType.name} value={goalType.name}>
                               <div className="flex items-center gap-2">
                                 <div 
@@ -553,7 +553,7 @@ export function AddGoalsView() {
                           <SelectValue placeholder="Select Category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {settings.goalTypes?.map((goalType) => (
+                          {goalSettings.goalTypes?.map((goalType) => (
                             <SelectItem key={goalType.name} value={goalType.name}>
                               <div className="flex items-center gap-2">
                                 <div 

@@ -198,7 +198,7 @@ export const exportToExcel = (data: {
       ...data.bucketlist.map(item => [
         item.title || '',
         item.description || '',
-        item.type || '',
+        item.bucketlistType || '',
         item.priority || '',
         item.status || '',
         item.createdAt || '',
