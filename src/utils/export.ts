@@ -1,4 +1,6 @@
 import { format } from 'date-fns';
+import { googleSheetsService } from '@/services/googleSheetsService';
+import { syncService } from '@/services/syncService';
 
 // Export data to CSV format (can be opened in Excel)
 export const exportToCSV = (data: any[], filename: string) => {
@@ -282,4 +284,147 @@ export const exportToExcel = (data: {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Export data to Google Sheets
+export const exportToGoogleSheets = async (data: {
+  stories: any[];
+  sprints: any[];
+  goals: any[];
+  projects: any[];
+  visions: any[];
+  bucketlist: any[];
+  roles: any[];
+  labels: any[];
+  importantDates: any[];
+  traditions: any[];
+  settings: any;
+}): Promise<{ success: boolean; sheetUrl?: string; error?: string }> => {
+  try {
+    // Check if authenticated
+    if (!googleSheetsService.isAuthenticated()) {
+      return { success: false, error: 'Not authenticated with Google Sheets' };
+    }
+
+    // Prepare data for Google Sheets
+    const sheetData = {
+      stories: data.stories,
+      goals: data.goals,
+      projects: data.projects,
+      visions: data.visions,
+      bucketlist: data.bucketlist,
+      importantDates: data.importantDates,
+      traditions: data.traditions,
+      sprints: data.sprints,
+      settings: data.settings
+    };
+
+    // Save to Google Sheets
+    await googleSheetsService.saveAllData(sheetData);
+
+    // Get sheet URL
+    const sheetId = googleSheetsService.getSheetId();
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`;
+
+    return { success: true, sheetUrl };
+  } catch (error) {
+    console.error('Export to Google Sheets failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+};
+
+// Export to a new Google Sheet
+export const exportToNewGoogleSheet = async (data: {
+  stories: any[];
+  sprints: any[];
+  goals: any[];
+  projects: any[];
+  visions: any[];
+  bucketlist: any[];
+  roles: any[];
+  labels: any[];
+  importantDates: any[];
+  traditions: any[];
+  settings: any;
+}): Promise<{ success: boolean; sheetUrl?: string; error?: string }> => {
+  try {
+    // Check if authenticated
+    if (!googleSheetsService.isAuthenticated()) {
+      return { success: false, error: 'Not authenticated with Google Sheets' };
+    }
+
+    // Create a new spreadsheet
+    const response = await (gapi.client as any).sheets.spreadsheets.create({
+      resource: {
+        properties: {
+          title: `Life Planner Export - ${format(new Date(), 'yyyy-MM-dd HH:mm')}`
+        }
+      }
+    });
+
+    const newSheetId = response.result.spreadsheetId;
+    if (!newSheetId) {
+      return { success: false, error: 'Failed to create new spreadsheet' };
+    }
+
+    // Set the new sheet ID
+    googleSheetsService.setSheetId(newSheetId);
+
+    // Initialize sheet structure
+    await googleSheetsService.initializeSheet();
+
+    // Prepare data for Google Sheets
+    const sheetData = {
+      stories: data.stories,
+      goals: data.goals,
+      projects: data.projects,
+      visions: data.visions,
+      bucketlist: data.bucketlist,
+      importantDates: data.importantDates,
+      traditions: data.traditions,
+      sprints: data.sprints,
+      settings: data.settings
+    };
+
+    // Save to Google Sheets
+    await googleSheetsService.saveAllData(sheetData);
+
+    // Get sheet URL
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${newSheetId}`;
+
+    return { success: true, sheetUrl };
+  } catch (error) {
+    console.error('Export to new Google Sheet failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+};
+
+// Sync current data to Google Sheets
+export const syncToGoogleSheets = async (): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const result = await syncService.triggerSync();
+    return { success: result.success, error: result.errors.join(', ') };
+  } catch (error) {
+    console.error('Sync to Google Sheets failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+};
+
+// Get Google Sheets status
+export const getGoogleSheetsStatus = () => {
+  return {
+    isAuthenticated: googleSheetsService.isAuthenticated(),
+    isOnline: syncService.isOnline(),
+    syncStatus: syncService.getSyncStatus(),
+    connectionState: syncService.getConnectionState()
+  };
 };

@@ -15,6 +15,7 @@ import { BucketlistTypesSettings } from '@/components/settings/BucketlistTypesSe
 import { ProjectStatusSettings } from '@/components/settings/ProjectStatusSettings';
 import { WeightSettings } from '@/components/settings/WeightSettings';
 import { GoalCategoriesSettings } from '@/components/settings/GoalCategoriesSettings';
+import { GoogleSheetsSettings } from '@/components/settings/GoogleSheetsSettings';
 import { 
   deleteAllDataAtom, 
   storiesAtom, 
@@ -128,7 +129,7 @@ export function SettingsView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 
                 <Button
                   variant={selectedCategory === 'stories' ? 'default' : 'outline'}
@@ -193,6 +194,7 @@ export function SettingsView() {
                   <Heart className="h-5 w-5" />
                   <span>Traditions</span>
                 </Button>
+                
               </div>
             </CardContent>
           </Card>
@@ -331,6 +333,7 @@ export function SettingsView() {
               <TraditionsSettings />
             </div>
           )}
+
         </TabsContent>
 
         <TabsContent value="data" className="space-y-6">
@@ -455,6 +458,21 @@ export function SettingsView() {
               Generate Test Data
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5" />
+            Google Sheets Integration
+          </CardTitle>
+          <CardDescription>
+            Connect your life planner to Google Sheets for cloud storage and synchronization.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GoogleSheetsSettings />
         </CardContent>
       </Card>
 

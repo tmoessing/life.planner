@@ -136,19 +136,20 @@ export function useSettingsMigration() {
       { name: 'Learning', color: '#10B981' }
     ];
     
-    // Check if project types need updating (either missing or different)
+    // Always force update project types to ensure they match the new defaults
     const currentProjectTypes = settings.projectTypes || [];
     const needsProjectTypeUpdate = !settings.projectTypes || 
       currentProjectTypes.length !== newProjectTypes.length ||
       !currentProjectTypes.every((type, index) => 
         type.name === newProjectTypes[index]?.name && 
         type.color === newProjectTypes[index]?.color
-      );
+      ) ||
+      currentProjectTypes.some(type => type.name === 'Work' || type.name === 'Personal' || type.name === 'Health') ||
+      currentProjectTypes.length !== 3;
     
-    if (needsProjectTypeUpdate) {
-      settingsUpdates.projectTypes = newProjectTypes;
-      needsUpdate = true;
-    }
+    // Always update project types to ensure they are correct
+    settingsUpdates.projectTypes = newProjectTypes;
+    needsUpdate = true;
     
     if (!settings.traditionTypes) {
       settingsUpdates.traditionTypes = [

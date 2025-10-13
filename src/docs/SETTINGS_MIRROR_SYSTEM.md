@@ -69,7 +69,7 @@ const MyComponent = () => {
 ### 3. Project Settings (`useProjectSettings()`)
 - **Status Colors**: planning, active, on-hold, completed, cancelled
 - **Priority Colors**: high, medium, low
-- **Type Colors**: Work, Personal, Learning, Health
+- **Type Colors**: Code, Organization, Learning
 - **Roles**: All available roles
 
 ### 4. Bucketlist Settings (`useBucketlistSettings()`)

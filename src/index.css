@@ -1,6 +1,20 @@
+/* Leaflet CSS - must come first */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom Leaflet styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.custom-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
 
 @layer base {
   :root {

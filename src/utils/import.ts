@@ -1,4 +1,6 @@
 import { format } from 'date-fns';
+import { googleSheetsService } from '@/services/googleSheetsService';
+import { syncService } from '@/services/syncService';
 
 export type ImportMode = 'merge' | 'overwrite';
 
@@ -443,4 +445,97 @@ export const mergeData = (existingData: any, importedData: any, options: ImportO
 
 
   return result;
+};
+
+// Import data from Google Sheets
+export const importFromGoogleSheets = async (options: ImportOptions = defaultImportOptions): Promise<{
+  success: boolean;
+  data?: any;
+  error?: string;
+}> => {
+  try {
+    // Check if authenticated
+    if (!googleSheetsService.isAuthenticated()) {
+      return { success: false, error: 'Not authenticated with Google Sheets' };
+    }
+
+    // Load data from Google Sheets
+    const sheetData = await googleSheetsService.loadAllData();
+
+    // Filter data based on import options
+    const filteredData: any = {};
+
+    if (options.importStories) {
+      filteredData.stories = sheetData.stories || [];
+    }
+    if (options.importGoals) {
+      filteredData.goals = sheetData.goals || [];
+    }
+    if (options.importProjects) {
+      filteredData.projects = sheetData.projects || [];
+    }
+    if (options.importVisions) {
+      filteredData.visions = sheetData.visions || [];
+    }
+    if (options.importBucketlist) {
+      filteredData.bucketlist = sheetData.bucketlist || [];
+    }
+    if (options.importImportantDates) {
+      filteredData.importantDates = sheetData.importantDates || [];
+    }
+    if (options.importTraditions) {
+      filteredData.traditions = sheetData.traditions || [];
+    }
+    if (options.importSprints) {
+      filteredData.sprints = sheetData.sprints || [];
+    }
+    if (options.importSettings) {
+      filteredData.settings = sheetData.settings || {};
+    }
+
+    return { success: true, data: filteredData };
+  } catch (error) {
+    console.error('Import from Google Sheets failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+};
+
+// Sync data from Google Sheets (two-way sync)
+export const syncFromGoogleSheets = async (): Promise<{
+  success: boolean;
+  conflicts?: any[];
+  error?: string;
+}> => {
+  try {
+    const result = await syncService.triggerSync();
+    return { 
+      success: result.success, 
+      conflicts: result.conflicts,
+      error: result.errors.join(', ') 
+    };
+  } catch (error) {
+    console.error('Sync from Google Sheets failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+};
+
+// Check if Google Sheets is available for import
+export const isGoogleSheetsAvailable = (): boolean => {
+  return googleSheetsService.isAuthenticated();
+};
+
+// Get Google Sheets import status
+export const getGoogleSheetsImportStatus = () => {
+  return {
+    isAuthenticated: googleSheetsService.isAuthenticated(),
+    isOnline: syncService.isOnline(),
+    syncStatus: syncService.getSyncStatus(),
+    connectionState: syncService.getConnectionState()
+  };
 };

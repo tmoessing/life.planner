@@ -26,6 +26,22 @@ interface BucketlistModalProps {
   bucketlistItem?: BucketlistItem | null;
 }
 
+interface BucketlistFormData {
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: string;
+  roleId: string;
+  visionId: string;
+  dueDate: string;
+  bucketlistType: string;
+  country: string;
+  state: string;
+  city: string;
+  experienceCategory: string;
+}
+
 export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: BucketlistModalProps) {
   // const [bucketlistItems] = useAtom(bucketlistAtom);
   const [, addBucketlistItem] = useAtom(addBucketlistItemAtom);
@@ -37,18 +53,18 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
   // Use settings mirror system for bucketlist settings
   const bucketlistSettings = useBucketlistSettings();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BucketlistFormData>({
     title: '',
     description: '',
-    category: (bucketlistSettings.bucketlistCategories || [])[0]?.name || 'Adventure',
-    priority: 'medium' as 'low' | 'medium' | 'high',
-    status: (bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors)[0] : 'not-started') as string,
-    roleId: 'none',
-    visionId: 'none',
+    category: '',
+    priority: '',
+    status: 'in-progress',
+    roleId: '',
+    visionId: '',
     dueDate: '',
-    bucketlistType: 'location' as 'location' | 'experience',
+    bucketlistType: '',
     country: 'United States',
-    state: 'none',
+    state: 'Please Select',
     city: '',
     experienceCategory: ''
   });
@@ -81,15 +97,15 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
         setFormData({
           title: '',
           description: '',
-          category: (bucketlistSettings.bucketlistCategories || [])[0]?.name || 'Adventure',
-          priority: 'medium',
-          status: (bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors)[0] : 'not-started'),
-          roleId: 'none',
-          visionId: 'none',
+          category: '',
+          priority: '',
+          status: 'in-progress',
+          roleId: '',
+          visionId: '',
           dueDate: '',
-          bucketlistType: 'location',
+          bucketlistType: '',
           country: 'United States',
-          state: 'none',
+          state: 'Please Select',
           city: '',
           experienceCategory: ''
         });
@@ -99,7 +115,15 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim() || !formData.bucketlistType) return;
+    
+    // Validate location fields if bucketlist type is location
+    if (formData.bucketlistType === 'location') {
+      if (!formData.country || !formData.state || !formData.city) {
+        alert('Country, State, and City are required for location items');
+        return;
+      }
+    }
 
     setIsSubmitting(true);
     
@@ -108,12 +132,12 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
-        priority: formData.priority as 'high' | 'medium' | 'low',
-        status: formData.status as 'in-progress' | 'completed' | 'not-started' | 'on-hold',
-        roleId: formData.roleId === 'none' ? undefined : formData.roleId,
-        visionId: formData.visionId === 'none' ? undefined : formData.visionId,
+        priority: (formData.priority || 'medium') as 'high' | 'medium' | 'low',
+        status: (formData.status || 'in-progress') as 'in-progress' | 'completed',
+        roleId: formData.roleId === '' || formData.roleId === 'none' ? undefined : formData.roleId,
+        visionId: formData.visionId === '' || formData.visionId === 'none' ? undefined : formData.visionId,
         dueDate: formData.dueDate || undefined,
-        bucketlistType: formData.bucketlistType,
+        bucketlistType: (formData.bucketlistType || 'location') as 'location' | 'experience',
         country: formData.bucketlistType === 'location' ? formData.country : undefined,
         state: formData.bucketlistType === 'location' ? (formData.state === 'none' ? '' : formData.state) : undefined,
         city: formData.bucketlistType === 'location' ? formData.city : undefined,
@@ -138,9 +162,14 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       
+      // Auto-select Travel category when location bucketlist type is selected
+      if (field === 'bucketlistType' && value === 'location') {
+        newData.category = 'Travel';
+      }
+      
       // Clear state when country changes from US to something else
       if (field === 'country' && value !== 'United States') {
-        newData.state = 'none';
+        newData.state = 'Please Select';
         newData.city = '';
       }
       
@@ -200,14 +229,14 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
 
           <div className="space-y-2">
             <label htmlFor="bucketlistType" className="text-sm font-medium">
-              Bucketlist Type
+              Bucketlist Type *
             </label>
             <Select
               value={formData.bucketlistType}
               onValueChange={(value) => handleInputChange('bucketlistType', value)}
             >
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select bucketlist type..." />
               </SelectTrigger>
               <SelectContent>
                 {settings.bucketlistTypes?.map((type) => (
@@ -235,7 +264,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 onValueChange={(value) => handleInputChange('category', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   {(bucketlistSettings.bucketlistCategories || []).map((category) => (
@@ -262,7 +291,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 onValueChange={(value) => handleInputChange('priority', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   {[
@@ -295,7 +324,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 onValueChange={(value) => handleInputChange('status', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   {(bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors) : ['not-started', 'in-progress', 'completed', 'on-hold']).map((status) => (
@@ -379,19 +408,16 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="country" className="text-sm font-medium">
-                    Country
+                    Country <span className="text-red-500">*</span>
                   </label>
                   <SearchableSelect
                     value={formData.country}
                     onValueChange={(value) => handleInputChange('country', value)}
                     placeholder="Type to search countries..."
-                    options={[
-                      { value: '', label: 'None' },
-                      ...getAllCountries().map((country) => ({
-                        value: country,
-                        label: country
-                      }))
-                    ]}
+                    options={getAllCountries().map((country) => ({
+                      value: country,
+                      label: country
+                    }))}
                     className="w-full min-h-[44px]"
                   />
                 </div>
@@ -399,14 +425,13 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 {formData.country === 'United States' && (
                 <div className="space-y-2">
                   <label htmlFor="state" className="text-sm font-medium">
-                    State
+                    State <span className="text-red-500">*</span>
                   </label>
                   <SearchableSelect
                     value={formData.state === 'none' ? '' : formData.state}
                     onValueChange={(value) => handleInputChange('state', value || 'none')}
                     placeholder="Type to search states..."
                     options={[
-                      { value: '', label: 'None' },
                       ...(bucketlistSettings.usStates?.map((state) => ({
                         value: state,
                         label: state
@@ -420,19 +445,16 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 
                 <div className="space-y-2">
                   <label htmlFor="city" className="text-sm font-medium">
-                    City
+                    City <span className="text-red-500">*</span>
                   </label>
                   <SearchableSelect
                     value={formData.city}
                     onValueChange={(value) => handleInputChange('city', value)}
                     placeholder="Type to search cities..."
-                    options={[
-                      { value: '', label: 'None' },
-                      ...getCitiesForState(formData.state === 'none' ? '' : formData.state).map((city) => ({
-                        value: city,
-                        label: city
-                      }))
-                    ]}
+                    options={getCitiesForState(formData.state === 'none' ? '' : formData.state).map((city) => ({
+                      value: city,
+                      label: city
+                    }))}
                     className="w-full min-h-[44px]"
                   />
                 </div>
@@ -465,7 +487,8 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !formData.title.trim()}
+              disabled={isSubmitting || !formData.title.trim() || !formData.bucketlistType || 
+                (formData.bucketlistType === 'location' && (!formData.country || !formData.state || !formData.city))}
               className="gap-2"
             >
               <Save className="h-4 w-4" />

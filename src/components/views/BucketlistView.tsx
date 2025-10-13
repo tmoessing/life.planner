@@ -20,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Calendar, User, Target } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
+import { BucketlistMapView } from './BucketlistMapView';
 import type { BucketlistItem, Priority } from '@/types';
 
 export function BucketlistView() {
@@ -37,7 +38,8 @@ export function BucketlistView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingItem, setEditingItem] = useState<BucketlistItem | null>(null);
-  const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'in-progress' | 'on-hold'>('all');
+  const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'in-progress' | 'on-hold'>('in-progress');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   
   // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -50,7 +52,7 @@ export function BucketlistView() {
     description: '',
     type: '',
     priority: '' as 'low' | 'medium' | 'high' | '',
-    status: '' as 'not-started' | 'in-progress' | 'completed' | 'on-hold' | '',
+    status: 'in-progress' as 'in-progress' | 'completed',
     bucketlistType: '',
     category: '',
     dueDate: '',
@@ -70,7 +72,7 @@ export function BucketlistView() {
       description: '',
       type: '',
       priority: '',
-      status: '',
+      status: 'in-progress',
       bucketlistType: '',
       category: '',
       dueDate: '',
@@ -92,7 +94,7 @@ export function BucketlistView() {
       description: item.description || '',
       type: '',
       priority: (item.priority === 'Q1' || item.priority === 'Q2' || item.priority === 'Q3' || item.priority === 'Q4') ? '' : (item.priority || ''),
-      status: item.status || '',
+      status: (item.status === 'completed' ? 'completed' : 'in-progress') as 'in-progress' | 'completed',
       bucketlistType: item.bucketlistType || '',
       category: item.category || '',
       dueDate: item.dueDate || '',
@@ -135,7 +137,7 @@ export function BucketlistView() {
       title: formData.title,
       description: formData.description,
       priority: formData.priority || 'medium' as Priority,
-      status: formData.status || 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'on-hold'
+      status: formData.status || 'in-progress' as 'in-progress' | 'completed'
     });
   };
 
@@ -145,7 +147,7 @@ export function BucketlistView() {
       description: '',
       type: '',
       priority: '',
-      status: '',
+      status: 'in-progress',
       bucketlistType: '',
       category: '',
       dueDate: '',
@@ -340,7 +342,7 @@ export function BucketlistView() {
                 <div className="flex items-center gap-1 sm:gap-1.5 justify-center">
                   <Circle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">In Progress</span>
-                  <span className="xs:hidden">Active</span>
+                  <span className="xs:hidden">In Progress</span>
                 </div>
               </button>
               <button
@@ -354,7 +356,7 @@ export function BucketlistView() {
                 <div className="flex items-center gap-1 sm:gap-1.5 justify-center">
                   <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Completed</span>
-                  <span className="xs:hidden">Done</span>
+                  <span className="xs:hidden">Completed</span>
                 </div>
               </button>
               <button
@@ -440,7 +442,7 @@ export function BucketlistView() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Bucketlist Type</label>
+              <label className="text-sm font-medium">Bucketlist Type *</label>
               <Select
                 value={formData.bucketlistType}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, bucketlistType: value as 'location' | 'experience' }))}
@@ -518,14 +520,14 @@ export function BucketlistView() {
                 <label className="text-sm font-medium">Status</label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as 'not-started' | 'in-progress' | 'completed' | 'on-hold' }))}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as 'in-progress' | 'completed' }))}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select status..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>
-                    {['not-started', 'in-progress', 'completed', 'on-hold'].map((status) => (
+                    {['in-progress', 'completed'].map((status) => (
                       <SelectItem key={status} value={status}>
                         <div className="flex items-center gap-2">
                           <div 
@@ -670,7 +672,7 @@ export function BucketlistView() {
                     description: formData.description.trim(),
                     category: formData.category || undefined,
                     priority: formData.priority || 'medium' as Priority,
-                    status: formData.status || 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'on-hold',
+                    status: formData.status || 'in-progress' as 'in-progress' | 'completed',
                     roleId: formData.roleId || undefined,
                     visionId: formData.visionId || undefined,
                     dueDate: formData.dueDate || undefined,
@@ -723,28 +725,48 @@ export function BucketlistView() {
             return (
             <div key={type} className="space-y-4">
               {/* Section Header */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
-                    style={{ 
-                      backgroundColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === type)?.color || '#6B7280' 
-                    }}
-                  />
-                  <h3 className="text-base sm:text-lg font-semibold capitalize">
-                    {type === 'location' ? 'Locations' : 'Experiences'}
-                  </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
+                      style={{ 
+                        backgroundColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === type)?.color || '#6B7280' 
+                      }}
+                    />
+                    <h3 className="text-base sm:text-lg font-semibold capitalize">
+                      {type === 'location' ? 'Locations' : 'Experiences'}
+                    </h3>
+                  </div>
+                  <Badge variant="outline" className="text-xs sm:text-sm">
+                    {items.length} {items.length === 1 ? 'item' : 'items'}
+                  </Badge>
                 </div>
-                <Badge variant="outline" className="text-xs sm:text-sm">
-                  {items.length} {items.length === 1 ? 'item' : 'items'}
-                </Badge>
+                
+                {/* View Toggle - Only for location items */}
+                {type === 'location' && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
+                      className="text-xs"
+                    >
+                      {viewMode === 'list' ? 'Map View' : 'List View'}
+                    </Button>
+                  </div>
+                )}
               </div>
               
               {/* Items in this group */}
               <div className="space-y-4">
                 {type === 'location' ? (
-                  // For location items, show sub-groups by location
-                  Object.entries(getLocationSubGroups(items)).map(([locationKey, locationItems]) => (
+                  viewMode === 'map' ? (
+                    // Map View for location items
+                    <BucketlistMapView items={items} />
+                  ) : (
+                    // List View for location items - show sub-groups by location
+                    Object.entries(getLocationSubGroups(items)).map(([locationKey, locationItems]) => (
                     <div key={locationKey} className="space-y-3">
                       {/* Location sub-header */}
                       <div className="flex items-center gap-2 ml-2 sm:ml-4">
@@ -877,8 +899,8 @@ export function BucketlistView() {
                               variant="outline"
                               className="text-xs"
                               style={{
-                                borderColor: settings.statusColors?.[item.status] || '#6B7280',
-                                color: settings.statusColors?.[item.status] || '#6B7280'
+                                borderColor: bucketlistSettings.getStatusColor(item.status),
+                                color: bucketlistSettings.getStatusColor(item.status)
                               }}
                             >
                               <span className="hidden xs:inline">{item.status}</span>
@@ -922,6 +944,7 @@ export function BucketlistView() {
                       </div>
                     </div>
                   ))
+                  )
                 ) : (
                   // For experience items, show directly without sub-groups
                   items.map((item) => (
@@ -1033,8 +1056,8 @@ export function BucketlistView() {
                             <Badge 
                               variant="outline"
                               style={{
-                                borderColor: settings.statusColors?.[item.status] || '#6B7280',
-                                color: settings.statusColors?.[item.status] || '#6B7280'
+                                borderColor: bucketlistSettings.getStatusColor(item.status),
+                                color: bucketlistSettings.getStatusColor(item.status)
                               }}
                             >
                               {item.status}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Eye, Target, BookOpen, FolderOpen, MoreHorizontal } from 'lucide-react';
 import type { ViewType } from '@/constants';
 
 interface NavigationItem {
@@ -11,12 +11,14 @@ interface NavigationItem {
 
 interface NavigationGroup {
   label: string;
+  icon: React.ComponentType<{ className?: string }>;
   items: NavigationItem[];
 }
 
 const navigationGroups: NavigationGroup[] = [
   {
     label: 'Visions',
+    icon: Eye,
     items: [
       { id: 'bucketlist', label: 'Bucketlist', description: 'Life experiences and dreams' },
       { id: 'traditions', label: 'Traditions', description: 'Build meaningful traditions in your life' },
@@ -25,6 +27,7 @@ const navigationGroups: NavigationGroup[] = [
   },
   {
     label: 'Goals',
+    icon: Target,
     items: [
       { id: 'goals', label: 'Goals', description: 'Goals and objectives view' },
       { id: 'goals-kanban', label: 'Kanban Board', description: 'Goal Kanban boards' },
@@ -33,6 +36,7 @@ const navigationGroups: NavigationGroup[] = [
   },
   {
     label: 'Stories',
+    icon: BookOpen,
     items: [
       { id: 'sprint', label: 'Sprint View', description: 'Current sprint management' },
       { id: 'sprint-planning', label: 'Sprint Planning', description: 'Plan upcoming sprints' },
@@ -41,6 +45,7 @@ const navigationGroups: NavigationGroup[] = [
   },
   {
     label: 'Projects',
+    icon: FolderOpen,
     items: [
       { id: 'projects', label: 'Projects', description: 'Project management' },
       { id: 'projects-kanban', label: 'Kanban Board', description: 'Project Kanban boards' },
@@ -49,6 +54,7 @@ const navigationGroups: NavigationGroup[] = [
   },
   {
     label: 'Other',
+    icon: MoreHorizontal,
     items: [
       { id: 'planner', label: 'Planner', description: 'Life planning and organization' },
       { id: 'important-dates', label: 'Important Dates', description: 'Track important dates and events' }
@@ -172,7 +178,7 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
 
   return (
     <div className="relative overflow-visible">
-      <div className="flex flex-wrap items-center gap-1 sm:gap-1 overflow-visible">
+      <div className="flex flex-wrap items-center gap-1 sm:gap-2 overflow-visible">
         {navigationGroups.map((group) => (
           <div
             key={group.label}
@@ -183,12 +189,13 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
             <Button
               variant={currentGroup.label === group.label ? "default" : "ghost"}
               size="sm"
-              className="gap-1 text-xs sm:text-sm h-8 px-2 sm:h-auto sm:px-3 touch-target"
+              className="flex flex-col items-center gap-0.5 text-xs h-auto px-2 sm:px-3 touch-target min-w-0 py-2"
               onClick={() => handleTouchStart(group.label)}
               onTouchStart={() => handleTouchStart(group.label)}
             >
-              <span className="text-xs sm:text-sm">{group.label}</span>
-              <ChevronDown className="h-3 w-3 flex-shrink-0" />
+              <group.icon className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs leading-tight font-normal">{group.label}</span>
+              <ChevronDown className="h-2 w-2 flex-shrink-0" />
             </Button>
             
             {hoveredGroup === group.label && (

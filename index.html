@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/lsb.png" />
+    <link rel="icon" type="image/png" href="/assets/lsb.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Life Planner</title>
     
@@ -21,23 +21,61 @@
     <meta name="theme-color" content="#3b82f6" />
     
     <!-- Preload critical resources -->
-    <link rel="preload" href="/lsb.png" as="image" type="image/png" />
+    <link rel="preload" href="/assets/lsb.png" as="image" type="image/png" />
     
     <!-- Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/lsb.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/lsb.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/lsb.png" />
+    <link rel="apple-touch-icon" href="/assets/lsb.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/lsb.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/lsb.png" />
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/lsb.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/lsb.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/lsb.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/lsb.png" />
     
     <!-- DNS Prefetch for external resources -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="//apis.google.com" />
+    <link rel="dns-prefetch" href="//accounts.google.com" />
+    
+    <!-- Content Security Policy for Google OAuth -->
+    <script>
+      // Set CSP based on environment
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        // Development CSP - more permissive
+        const meta = document.createElement('meta');
+        meta.httpEquiv = 'Content-Security-Policy';
+        meta.content = `
+          default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
+          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com blob: data:;
+          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+          font-src 'self' https://fonts.gstatic.com;
+          img-src 'self' data: https:;
+          connect-src 'self' ws://localhost:* wss://localhost:* https://apis.google.com https://accounts.google.com https://sheets.googleapis.com https://content-sheets.googleapis.com;
+          frame-src 'self' https://accounts.google.com https://content-sheets.googleapis.com;
+          child-src 'self' https://accounts.google.com https://content-sheets.googleapis.com;
+        `;
+        document.head.appendChild(meta);
+      } else {
+        // Production CSP - more restrictive
+        const meta = document.createElement('meta');
+        meta.httpEquiv = 'Content-Security-Policy';
+        meta.content = `
+          default-src 'self';
+          script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+          font-src 'self' https://fonts.gstatic.com;
+          img-src 'self' data: https:;
+          connect-src 'self' https://apis.google.com https://accounts.google.com https://sheets.googleapis.com;
+          frame-src 'self' https://accounts.google.com;
+          child-src 'self' https://accounts.google.com;
+        `;
+        document.head.appendChild(meta);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -29,12 +29,12 @@ interface BucketlistFormData {
   title: string;
   description: string;
   category: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'not-started' | 'in-progress' | 'completed' | 'on-hold';
+  priority: 'low' | 'medium' | 'high' | '';
+  status: 'in-progress' | 'completed' | '';
   roleId?: string;
   visionId?: string;
   dueDate?: string;
-  bucketlistType: 'location' | 'experience';
+  bucketlistType: 'location' | 'experience' | '';
   country?: string;
   state?: string;
   city?: string;
@@ -44,15 +44,15 @@ interface BucketlistFormData {
 const defaultBucketlistItem: BucketlistFormData = {
   title: '',
   description: '',
-  category: 'Adventure', // Will be overridden by settings
-  priority: 'low',
-  status: 'not-started',
+  category: '', // Will be overridden by settings
+  priority: '',
+  status: 'in-progress',
   roleId: undefined,
   visionId: undefined,
   dueDate: undefined,
-  bucketlistType: 'location',
+  bucketlistType: '',
   country: 'United States',
-  state: undefined,
+  state: 'Please Select',
   city: undefined,
   experienceCategory: undefined
 };
@@ -70,7 +70,7 @@ export function AddBucketlistView() {
   
   const [bucketlistForms, setBucketlistForms] = useState<BucketlistFormData[]>([{ 
     ...defaultBucketlistItem,
-    category: bucketlistSettings.bucketlistCategories?.[0]?.name || 'Adventure'
+    category: bucketlistSettings.bucketlistCategories?.[0]?.name || ''
   }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
@@ -80,13 +80,13 @@ export function AddBucketlistView() {
   const [defaultOptions, setDefaultOptions] = useState({
     category: bucketlistSettings.bucketlistCategories?.[0]?.name || 'none',
     priority: 'none',
-    status: 'none',
+    status: 'in-progress',
     roleId: 'none',
     visionId: 'none',
     dueDate: '',
     bucketlistType: 'none',
     country: 'none',
-    state: '',
+    state: 'Please Select',
     city: '',
     experienceCategory: ''
   });
@@ -95,7 +95,7 @@ export function AddBucketlistView() {
     // Create new bucketlist item with default options applied
     const newBucketlistItem = { 
       ...defaultBucketlistItem,
-      category: bucketlistSettings.bucketlistCategories?.[0]?.name || 'Adventure'
+      category: bucketlistSettings.bucketlistCategories?.[0]?.name || ''
     };
     
     // Apply default options if they're not 'none' (or empty for text/date fields)
@@ -129,9 +129,19 @@ export function AddBucketlistView() {
   };
 
   const updateBucketlistForm = (index: number, field: keyof BucketlistFormData, value: any) => {
-    setBucketlistForms(prev => prev.map((form, i) => 
-      i === index ? { ...form, [field]: value } : form
-    ));
+    setBucketlistForms(prev => prev.map((form, i) => {
+      if (i === index) {
+        const updatedForm = { ...form, [field]: value };
+        
+        // Auto-select Travel category when location bucketlist type is selected
+        if (field === 'bucketlistType' && value === 'location') {
+          updatedForm.category = 'Travel';
+        }
+        
+        return updatedForm;
+      }
+      return form;
+    }));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, fieldName: string) => {
@@ -241,19 +251,28 @@ export function AddBucketlistView() {
     setIsSubmitting(true);
     
     try {
-      const validBucketlistItems = bucketlistForms.filter(item => item.title.trim() !== '');
+      const validBucketlistItems = bucketlistForms.filter(item => {
+        if (item.title.trim() === '' || item.bucketlistType === '') return false;
+        
+        // Validate location fields if bucketlist type is location
+        if (item.bucketlistType === 'location') {
+          return item.country && item.state && item.city;
+        }
+        
+        return true;
+      });
       
       for (const bucketlistData of validBucketlistItems) {
         const newBucketlistItem: Omit<BucketlistItem, 'id' | 'createdAt' | 'updatedAt'> = {
           title: bucketlistData.title.trim(),
           description: bucketlistData.description.trim(),
           category: bucketlistData.category,
-          priority: bucketlistData.priority,
-          status: bucketlistData.status,
+          priority: bucketlistData.priority || 'medium',
+          status: bucketlistData.status || 'in-progress',
           roleId: bucketlistData.roleId,
           visionId: bucketlistData.visionId,
           dueDate: bucketlistData.dueDate,
-          bucketlistType: bucketlistData.bucketlistType,
+          bucketlistType: bucketlistData.bucketlistType as 'location' | 'experience',
           country: bucketlistData.country,
           state: bucketlistData.state,
           city: bucketlistData.city,
@@ -372,7 +391,7 @@ export function AddBucketlistView() {
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
-                      <span>Type</span>
+                      <span>Type *</span>
                       <Select
                         value={defaultOptions.bucketlistType}
                         onValueChange={(value) => handleDefaultOptionChange('bucketlistType', value)}
@@ -523,7 +542,7 @@ export function AddBucketlistView() {
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
-                      <span>Country</span>
+                      <span>Country <span className="text-red-500">*</span></span>
                       <Input
                         placeholder="Set default country..."
                         className="h-8 text-xs"
@@ -534,7 +553,7 @@ export function AddBucketlistView() {
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
-                      <span>State</span>
+                      <span>State <span className="text-red-500">*</span></span>
                       <Input
                         placeholder="Set default state..."
                         className="h-8 text-xs"
@@ -545,7 +564,7 @@ export function AddBucketlistView() {
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
-                      <span>City</span>
+                      <span>City <span className="text-red-500">*</span></span>
                       <Input
                         placeholder="Set default city..."
                         className="h-8 text-xs"
@@ -611,7 +630,7 @@ export function AddBucketlistView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
                           {bucketlistSettings.bucketlistTypes?.map((type) => (
@@ -647,7 +666,7 @@ export function AddBucketlistView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
                           {bucketlistSettings.bucketlistCategories?.map((category) => (
@@ -677,7 +696,7 @@ export function AddBucketlistView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
                           {[
@@ -717,10 +736,10 @@ export function AddBucketlistView() {
                           }}
                           tabIndex={0}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {['not-started', 'in-progress', 'completed', 'on-hold'].map((status) => (
+                          {['in-progress', 'completed'].map((status) => (
                             <SelectItem key={status} value={status}>
                               <div className="flex items-center gap-2">
                                 <div 
@@ -849,7 +868,6 @@ export function AddBucketlistView() {
                             onValueChange={(value) => updateBucketlistForm(index, 'state', value)}
                             placeholder="Type to search states..."
                             options={[
-                              { value: '', label: 'None' },
                               ...(bucketlistSettings.usStates?.map((state) => ({
                                 value: state,
                                 label: state
@@ -881,13 +899,10 @@ export function AddBucketlistView() {
                           value={item.city || ''}
                           onValueChange={(value) => updateBucketlistForm(index, 'city', value)}
                           placeholder="Type to search cities..."
-                          options={[
-                            { value: '', label: 'None' },
-                            ...getCitiesForState(item.state || '').map((city) => ({
-                              value: city,
-                              label: city
-                            }))
-                          ]}
+                          options={getCitiesForState(item.state || '').map((city) => ({
+                            value: city,
+                            label: city
+                          }))}
                           className="w-full h-8"
                           onKeyDown={(e) => {
                             if (e.key === 'Tab') {

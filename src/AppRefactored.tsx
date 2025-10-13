@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Provider, useAtom } from 'jotai';
 import { AppProvider } from '@/contexts/AppContext';
+import { GoogleAuthProvider } from '@/components/GoogleAuthProvider';
 import { Header } from '@/components/Header';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -85,7 +86,9 @@ function App() {
   return (
     <Provider>
       <AppProvider>
-        <AppContent />
+        <GoogleAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <AppContent />
+        </GoogleAuthProvider>
       </AppProvider>
     </Provider>
   );

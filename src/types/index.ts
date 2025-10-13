@@ -228,6 +228,9 @@ export type Settings = {
     actual: string;
   }; // chart colors for burndown/burnup charts
   
+  // Google Sheets Integration
+  googleSheets?: GoogleSheetsConfig;
+  
   // UI Customization
   ui: UICustomization;
   
@@ -561,6 +564,35 @@ export type RoadmapColumn = {
   storyId: string;
   storyTitle: string;
   cells: RoadmapCell[];
+};
+
+// Google Sheets Integration Types
+export type GoogleSheetsConfig = {
+  sheetUrl: string;
+  sheetId: string;
+  isConnected: boolean;
+  lastSync?: string;
+  autoSync: boolean;
+  syncInterval: number; // in seconds
+  clientId?: string;
+};
+
+export type SyncStatus = {
+  isSyncing: boolean;
+  lastSync?: Date;
+  error?: string;
+  pendingChanges: number;
+  isOnline: boolean;
+};
+
+export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
+
+export type SyncConflict = {
+  entityType: string;
+  entityId: string;
+  localVersion: any;
+  remoteVersion: any;
+  conflictType: 'update' | 'delete' | 'create';
 };
 
 // Re-export types from story.ts
