@@ -292,7 +292,7 @@ export const generateTestData = () => {
     category: getRandomItem(['Adventure', 'Travel', 'Learning', 'Experience', 'Achievement', 'Personal']),
     priority: getRandomItem(['Q1', 'Q2', 'Q3', 'Q4', 'high', 'medium', 'low']),
     bucketlistType: getRandomItem(['location', 'experience']),
-    status: getRandomItem(['in-progress', 'completed', 'not-started', 'on-hold']),
+    status: getRandomItem(['in-progress', 'completed']),
     roleId: Math.random() > 0.5 ? 'disciple' : undefined,
     visionId: Math.random() > 0.4 ? 'vision-1' : undefined,
     dueDate: Math.random() > 0.6 ? getRandomDate(now, futureDate) : undefined,

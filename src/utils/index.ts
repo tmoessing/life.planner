@@ -164,6 +164,15 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'Learning', color: '#10B981' }
   ],
   
+  // Project sizes for project settings mirror
+  projectSizes: [
+    { name: 'XS', color: '#10B981' }, // Green - Very small projects
+    { name: 'S', color: '#3B82F6' },  // Blue - Small projects
+    { name: 'M', color: '#F59E0B' },  // Yellow - Medium projects
+    { name: 'L', color: '#EF4444' },  // Red - Large projects
+    { name: 'XL', color: '#8B5CF6' }  // Purple - Extra large projects
+  ],
+  
   // Tradition types for tradition settings mirror
   traditionTypes: [
     { name: 'Spiritual', color: '#8B5CF6' },
@@ -223,13 +232,6 @@ export const getDefaultSettings = (): Settings => ({
     'progress': '#F97316',  // Orange
     'review': '#8B5CF6',    // Purple
     'done': '#10B981'       // Green
-  },
-  projectStatusColors: {
-    'icebox': '#6B7280',
-    'backlog': '#3B82F6',
-    'to-do': '#F59E0B',
-    'in-progress': '#F97316',
-    'done': '#10B981'
   },
   roadmapScheduledColor: '#8B5CF6', // Purple for scheduled items
   sizeColors: {

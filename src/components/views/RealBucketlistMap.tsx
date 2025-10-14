@@ -85,8 +85,8 @@ const getCoordinates = (item: BucketlistItem): [number, number] => {
   if (country.includes('argentina')) return [-38.4161, -63.6167]; // Buenos Aires
   if (country.includes('south africa')) return [-30.5595, 22.9375]; // Cape Town
   
-  // Default to a random location if country not recognized
-  return [20 + Math.random() * 40, -100 + Math.random() * 200];
+  // Default to center of world if location not recognized (better than random)
+  return [0, 0];
 };
 
 // Component to fit map bounds to show all markers

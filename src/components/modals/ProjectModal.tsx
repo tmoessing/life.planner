@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useAtom } from 'jotai';
 import { addProjectAtom, updateProjectAtom, storiesAtom } from '@/stores/appStore';
+import { projectStatusesAtom } from '@/stores/statusStore';
 import { useProjectSettings } from '@/utils/settingsMirror';
 import type { Project } from '@/types';
 
@@ -21,13 +22,15 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
   const [, addProject] = useAtom(addProjectAtom);
   const [, updateProject] = useAtom(updateProjectAtom);
   const [stories] = useAtom(storiesAtom);
+  const [projectStatuses] = useAtom(projectStatusesAtom);
   const projectSettings = useProjectSettings();
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    status: 'Icebox' as Project['status'],
+    status: (projectStatuses[0]?.name || 'Icebox') as Project['status'],
     type: '',
+    size: '',
     startDate: '',
     endDate: '',
     storyIds: [] as string[]
@@ -42,6 +45,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         description: project.description,
         status: project.status,
         type: project.type || '',
+        size: project.size || '',
         startDate: project.startDate || '',
         endDate: project.endDate || '',
         storyIds: project.storyIds
@@ -51,15 +55,16 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
       setFormData({
         name: '',
         description: '',
-        status: 'Icebox',
+        status: (projectStatuses[0]?.name || 'Icebox') as Project['status'],
         type: '',
+        size: '',
         startDate: '',
         endDate: '',
         storyIds: []
       });
       setSelectedStories([]);
     }
-  }, [mode, project, isOpen]);
+  }, [mode, project, isOpen, projectStatuses]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,51 +146,17 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Icebox">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: projectSettings.getStatusColor('Icebox') }}
-                    />
-                    Icebox
-                  </div>
-                </SelectItem>
-                <SelectItem value="Backlog">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: projectSettings.getStatusColor('Backlog') }}
-                    />
-                    Backlog
-                  </div>
-                </SelectItem>
-                <SelectItem value="To do">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: projectSettings.getStatusColor('To do') }}
-                    />
-                    To do
-                  </div>
-                </SelectItem>
-                <SelectItem value="In Progress">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: projectSettings.getStatusColor('In Progress') }}
-                    />
-                    In Progress
-                  </div>
-                </SelectItem>
-                <SelectItem value="Done">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: projectSettings.getStatusColor('Done') }}
-                    />
-                    Done
-                  </div>
-                </SelectItem>
+                {projectStatuses.map((status) => (
+                  <SelectItem key={status.id} value={status.name}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: status.color }}
+                      />
+                      {status.name}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -203,7 +174,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
                 <SelectValue placeholder="Select project type" />
               </SelectTrigger>
               <SelectContent>
-                {projectSettings.projectTypes.map((type) => (
+                {(projectSettings.projectTypes || []).map((type) => (
                   <SelectItem key={type.name} value={type.name}>
                     <div className="flex items-center gap-2">
                       <div 
@@ -211,6 +182,34 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
                         style={{ backgroundColor: type.color }}
                       />
                       {type.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Project Size */}
+          <div className="space-y-2">
+            <Label htmlFor="size">Project Size</Label>
+            <Select
+              value={formData.size}
+              onValueChange={(value) => 
+                setFormData(prev => ({ ...prev, size: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select project size" />
+              </SelectTrigger>
+              <SelectContent>
+                {(projectSettings.projectSizes || []).map((size) => (
+                  <SelectItem key={size.name} value={size.name}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: size.color }}
+                      />
+                      {size.name}
                     </div>
                   </SelectItem>
                 ))}

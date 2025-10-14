@@ -81,8 +81,8 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
           category: bucketlistItem.category || (bucketlistSettings.bucketlistCategories || [])[0]?.name || 'Adventure',
           priority: (bucketlistItem.priority === 'Q1' || bucketlistItem.priority === 'Q2' || bucketlistItem.priority === 'Q3' || bucketlistItem.priority === 'Q4') 
             ? 'high' : bucketlistItem.priority === 'high' ? 'high' : bucketlistItem.priority === 'medium' ? 'medium' : 'low',
-          status: (bucketlistItem.status === 'in-progress' || bucketlistItem.status === 'completed' || bucketlistItem.status === 'not-started' || bucketlistItem.status === 'on-hold') 
-            ? bucketlistItem.status : 'not-started',
+          status: (bucketlistItem.status === 'in-progress' || bucketlistItem.status === 'completed') 
+            ? bucketlistItem.status : 'in-progress',
           roleId: bucketlistItem.roleId || 'none',
           visionId: bucketlistItem.visionId || 'none',
           dueDate: bucketlistItem.dueDate || '',
@@ -119,8 +119,13 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
     
     // Validate location fields if bucketlist type is location
     if (formData.bucketlistType === 'location') {
-      if (!formData.country || !formData.state || !formData.city) {
-        alert('Country, State, and City are required for location items');
+      if (!formData.country || !formData.state) {
+        alert('Country and State are required for location items');
+        return;
+      }
+      // City is only required if country is not United States
+      if (formData.country !== 'United States' && !formData.city) {
+        alert('City is required for non-US locations');
         return;
       }
     }
@@ -327,7 +332,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {(bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors) : ['not-started', 'in-progress', 'completed', 'on-hold']).map((status) => (
+                  {(bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors) : ['in-progress', 'completed']).map((status) => (
                     <SelectItem key={status} value={status}>
                       <div className="flex items-center gap-2">
                         <div 
@@ -445,7 +450,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 
                 <div className="space-y-2">
                   <label htmlFor="city" className="text-sm font-medium">
-                    City <span className="text-red-500">*</span>
+                    City {formData.country !== 'United States' && <span className="text-red-500">*</span>}
                   </label>
                   <SearchableSelect
                     value={formData.city}
@@ -456,6 +461,8 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                       label: city
                     }))}
                     className="w-full min-h-[44px]"
+                    allowCustom={true}
+                    customValueLabel="Add custom city"
                   />
                 </div>
               </div>

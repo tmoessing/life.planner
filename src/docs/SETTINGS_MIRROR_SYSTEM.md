@@ -67,13 +67,13 @@ const MyComponent = () => {
 - **Roles**: All available roles
 
 ### 3. Project Settings (`useProjectSettings()`)
-- **Status Colors**: planning, active, on-hold, completed, cancelled
+- **Status Colors**: icebox, backlog, to-do, in-progress, done
 - **Priority Colors**: high, medium, low
 - **Type Colors**: Code, Organization, Learning
 - **Roles**: All available roles
 
 ### 4. Bucketlist Settings (`useBucketlistSettings()`)
-- **Status Colors**: not-started, in-progress, completed, postponed, abandoned
+- **Status Colors**: in-progress, completed
 - **Priority Colors**: high, medium, low
 - **Type Colors**: Location, Experience
 - **Roles**: All available roles

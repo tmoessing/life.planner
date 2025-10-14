@@ -6,6 +6,7 @@ import {
   rolesAtom, 
   visionsAtom 
 } from '@/stores/appStore';
+import { projectStatusesAtom } from '@/stores/statusStore';
 import { useProjectSettings } from '@/utils/settingsMirror';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,10 @@ import type { Project } from '@/types';
 interface ProjectFormData {
   name: string;
   description: string;
-  status: 'not-started' | 'in-progress' | 'completed' | 'on-hold';
+  status: 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done';
   priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
   type?: string;
+  size?: string;
   roleId?: string;
   visionId?: string;
   startDate?: string;
@@ -37,9 +39,10 @@ interface ProjectFormData {
 const defaultProject: ProjectFormData = {
   name: '',
   description: '',
-  status: 'not-started',
+  status: 'Icebox',
   priority: 'Q1',
   type: undefined,
+  size: undefined,
   roleId: undefined,
   visionId: undefined,
   startDate: undefined,
@@ -51,6 +54,7 @@ export function AddProjectsView() {
   const [, addProject] = useAtom(addProjectAtom);
   const [roles] = useAtom(rolesAtom);
   const [visions] = useAtom(visionsAtom);
+  const [projectStatuses] = useAtom(projectStatusesAtom);
   const projectSettings = useProjectSettings();
   
   const [projectForms, setProjectForms] = useState<ProjectFormData[]>([{ ...defaultProject }]);
@@ -60,9 +64,10 @@ export function AddProjectsView() {
   
   // Default options for bulk editing
   const [defaultOptions, setDefaultOptions] = useState({
-    status: 'none' as 'none' | 'not-started' | 'in-progress' | 'completed' | 'on-hold',
+    status: 'none' as 'none' | 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done',
     priority: 'none' as 'none' | 'Q1' | 'Q2' | 'Q3' | 'Q4',
     type: 'none' as string,
+    size: 'none' as string,
     roleId: 'none' as string,
     visionId: 'none' as string,
     startDate: '',
@@ -209,10 +214,10 @@ export function AddProjectsView() {
         const newProject: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> = {
           name: projectData.name.trim(),
           description: projectData.description.trim(),
-          status: projectData.status === 'not-started' ? 'Icebox' : 
-                  projectData.status === 'in-progress' ? 'In Progress' :
-                  projectData.status === 'completed' ? 'Done' : 'Backlog',
+          status: projectData.status,
           priority: projectData.priority,
+          type: projectData.type,
+          size: projectData.size,
           roleId: projectData.roleId,
           visionId: projectData.visionId,
           startDate: projectData.startDate || '',
@@ -318,10 +323,17 @@ export function AddProjectsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="not-started">Not Started</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="on-hold">On Hold</SelectItem>
+                          {projectStatuses.map((status) => (
+                            <SelectItem key={status.id} value={status.id}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: status.color }}
+                                />
+                                {status.name}
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -366,6 +378,33 @@ export function AddProjectsView() {
                                   style={{ backgroundColor: type.color }}
                                 />
                                 {type.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </th>
+                  <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
+                    <div className="flex flex-col gap-1">
+                      <span>Size</span>
+                      <Select
+                        value={defaultOptions.size || 'none'}
+                        onValueChange={(value) => handleDefaultOptionChange('size', value)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Set default" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {projectSettings.projectSizes.map((size) => (
+                            <SelectItem key={size.name} value={size.name}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: size.color }}
+                                />
+                                {size.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -488,14 +527,14 @@ export function AddProjectsView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Icebox', 'Backlog', 'To do', 'In Progress', 'Done'].map((status) => (
-                            <SelectItem key={status} value={status}>
+                          {projectStatuses.map((status) => (
+                            <SelectItem key={status.id} value={status.name}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: projectSettings.getStatusColor(status) }}
+                                  style={{ backgroundColor: status.color }}
                                 />
-                                {status}
+                                {status.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -569,6 +608,43 @@ export function AddProjectsView() {
                                   style={{ backgroundColor: type.color }}
                                 />
                                 {type.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="p-3">
+                      <Select
+                        value={project.size || 'none'}
+                        onValueChange={(value) => updateProjectForm(index, 'size', value === 'none' ? undefined : value)}
+                        data-field="size"
+                      >
+                        <SelectTrigger 
+                          className="w-full h-8"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Tab') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              moveToNextField(index, 'size');
+                            } else {
+                              handleKeyDown(e, index, 'size');
+                            }
+                          }}
+                          tabIndex={0}
+                        >
+                          <SelectValue placeholder="Size..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Size</SelectItem>
+                          {projectSettings.projectSizes.map((size) => (
+                            <SelectItem key={size.name} value={size.name}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: size.color }}
+                                />
+                                {size.name}
                               </div>
                             </SelectItem>
                           ))}

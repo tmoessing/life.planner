@@ -52,7 +52,7 @@ export type BucketlistItem = {
   category?: string;
   priority: Priority;
   bucketlistType: 'location' | 'experience';
-  status?: 'in-progress' | 'completed' | 'not-started' | 'on-hold';
+  status?: 'in-progress' | 'completed';
   roleId?: string;
   visionId?: string;
   dueDate?: string;
@@ -92,6 +92,7 @@ export type Project = {
   status: 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done';
   priority: Priority;
   type?: string; // project type from settings
+  size?: string; // project size (XS, S, M, L, XL)
   roleId?: string;
   visionId?: string;
   order: number;
@@ -212,6 +213,7 @@ export type Settings = {
   usStates: string[]; // list of US states
   experienceCategories: string[]; // list of experience categories
   projectTypes: StoryTypeConfig[]; // project types with colors
+  projectSizes: StoryTypeConfig[]; // project sizes with colors (XS, S, M, L, XL)
   traditionTypes: StoryTypeConfig[]; // tradition types with colors
   traditionalCategories: StoryTypeConfig[]; // traditional categories with colors
   importantDateTypes: StoryTypeConfig[]; // important date types with colors
@@ -220,7 +222,6 @@ export type Settings = {
   weightBaseColor: string; // base color for weight gradient
   roleToTypeMap: Record<string, StoryType>; // Disciple -> Spiritual, Friend -> Social, etc.
   statusColors: Record<string, string>; // status colors (icebox, backlog, todo, progress, review, done)
-  projectStatusColors: Record<string, string>; // project status colors (icebox, backlog, todo, progress, done)
   roadmapScheduledColor: string; // color for scheduled items in roadmap
   sizeColors: Record<string, string>; // size colors for story sizes
   chartColors: {

@@ -28,9 +28,9 @@ export default defineConfig(({ command }) => ({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tooltip'],
           dnd: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
-          utils: ['jotai', 'lucide-react', 'date-fns']
+          utils: ['jotai', 'lucide-react', 'date-fns', 'clsx', 'tailwind-merge']
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',

@@ -35,19 +35,16 @@ export const goalStatusesAtom = atom<Array<{id: string, name: string, color: str
 });
 
 export const projectStatusesAtom = atom<Array<{id: string, name: string, color: string, description: string}>>([
-  { id: 'planning', name: 'Planning', color: '#3B82F6', description: 'Project in planning phase' },
-  { id: 'active', name: 'Active', color: '#10B981', description: 'Project in progress' },
-  { id: 'on-hold', name: 'On Hold', color: '#F59E0B', description: 'Project temporarily paused' },
-  { id: 'completed', name: 'Completed', color: '#22C55E', description: 'Project finished' },
-  { id: 'cancelled', name: 'Cancelled', color: '#EF4444', description: 'Project cancelled' }
+  { id: 'icebox', name: 'Icebox', color: '#6B7280', description: 'Ideas for future consideration' },
+  { id: 'backlog', name: 'Backlog', color: '#3B82F6', description: 'Ready to be worked on' },
+  { id: 'todo', name: 'To Do', color: '#F59E0B', description: 'Ready to start' },
+  { id: 'progress', name: 'In Progress', color: '#10B981', description: 'Currently being worked on' },
+  { id: 'done', name: 'Done', color: '#22C55E', description: 'Completed' }
 ]);
 
 export const bucketlistStatusesAtom = atom<Array<{id: string, name: string, color: string, description: string}>>([
-  { id: 'not-started', name: 'Not Started', color: '#6B7280', description: 'Item has not been started' },
   { id: 'in-progress', name: 'In Progress', color: '#3B82F6', description: 'Item is currently being worked on' },
-  { id: 'completed', name: 'Completed', color: '#10B981', description: 'Item has been completed' },
-  { id: 'postponed', name: 'Postponed', color: '#F59E0B', description: 'Item has been postponed' },
-  { id: 'abandoned', name: 'Abandoned', color: '#EF4444', description: 'Item was abandoned' }
+  { id: 'completed', name: 'Completed', color: '#10B981', description: 'Item has been completed' }
 ]);
 
 export const updateStoryStatusesAtom = atom(

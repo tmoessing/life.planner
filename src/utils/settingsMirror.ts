@@ -197,11 +197,8 @@ export const useBucketlistSettings = () => {
   return {
     // Status colors for bucketlist
     statusColors: {
-      'not-started': settings.statusColors?.icebox || '#6B7280',
       'in-progress': settings.statusColors?.progress || '#3B82F6',
-      'completed': settings.statusColors?.done || '#10B981', 
-      'postponed': settings.statusColors?.review || '#F59E0B',
-      'abandoned': '#EF4444'
+      'completed': settings.statusColors?.done || '#10B981'
     },
     
     // Priority colors for bucketlist
@@ -262,11 +259,8 @@ export const useBucketlistSettings = () => {
     // Get color for specific attributes
     getStatusColor: (status: string) => {
       const statusMap: Record<string, string> = {
-        'not-started': settings.statusColors?.icebox || '#6B7280',
         'in-progress': settings.statusColors?.progress || '#3B82F6',
-        'completed': settings.statusColors?.done || '#10B981',
-        'postponed': settings.statusColors?.review || '#F59E0B',
-        'abandoned': '#EF4444'
+        'completed': settings.statusColors?.done || '#10B981'
       };
       return statusMap[status] || '#6B7280';
     },
@@ -327,13 +321,13 @@ export const useProjectSettings = () => {
   const [settings] = useAtom(settingsAtom);
   
   return {
-    // Status colors for projects - using dedicated project status colors
+    // Status colors for projects - using story status colors
     statusColors: {
-      'icebox': settings.projectStatusColors?.icebox || '#6B7280',
-      'backlog': settings.projectStatusColors?.backlog || '#3B82F6',
-      'to-do': settings.projectStatusColors?.todo || '#F59E0B',
-      'in-progress': settings.projectStatusColors?.progress || '#F97316',
-      'done': settings.projectStatusColors?.done || '#10B981'
+      'icebox': settings.statusColors?.icebox || '#6B7280',
+      'backlog': settings.statusColors?.backlog || '#3B82F6',
+      'to-do': settings.statusColors?.todo || '#F59E0B',
+      'in-progress': settings.statusColors?.progress || '#F97316',
+      'done': settings.statusColors?.done || '#10B981'
     },
     
     // Priority colors for projects
@@ -344,13 +338,22 @@ export const useProjectSettings = () => {
     },
     
     // Project types from settings
-    projectTypes: settings.projectTypes,
+    projectTypes: settings.projectTypes || [],
+    
+    // Project sizes from settings
+    projectSizes: settings.projectSizes || [],
     
     // Type colors from settings
-    typeColors: settings.projectTypes?.reduce((acc, type) => {
+    typeColors: (settings.projectTypes || []).reduce((acc, type) => {
       acc[type.name] = type.color;
       return acc;
-    }, {} as Record<string, string>) || {},
+    }, {} as Record<string, string>),
+    
+    // Size colors from settings
+    sizeColors: (settings.projectSizes || []).reduce((acc, size) => {
+      acc[size.name] = size.color;
+      return acc;
+    }, {} as Record<string, string>),
     
     // Roles from settings
     roles: settings.roles,
@@ -359,17 +362,17 @@ export const useProjectSettings = () => {
     getStatusColor: (status: string) => {
       const statusMap: Record<string, string> = {
         // Handle lowercase keys used by ProjectKanbanView
-        'icebox': settings.projectStatusColors?.icebox || '#6B7280',
-        'backlog': settings.projectStatusColors?.backlog || '#3B82F6',
-        'to-do': settings.projectStatusColors?.todo || '#F59E0B',
-        'in-progress': settings.projectStatusColors?.progress || '#F97316',
-        'done': settings.projectStatusColors?.done || '#10B981',
+        'icebox': settings.statusColors?.icebox || '#6B7280',
+        'backlog': settings.statusColors?.backlog || '#3B82F6',
+        'to-do': settings.statusColors?.todo || '#F59E0B',
+        'in-progress': settings.statusColors?.progress || '#F97316',
+        'done': settings.statusColors?.done || '#10B981',
         // Handle actual project status values
-        'Icebox': settings.projectStatusColors?.icebox || '#6B7280',
-        'Backlog': settings.projectStatusColors?.backlog || '#3B82F6',
-        'To do': settings.projectStatusColors?.todo || '#F59E0B',
-        'In Progress': settings.projectStatusColors?.progress || '#F97316',
-        'Done': settings.projectStatusColors?.done || '#10B981'
+        'Icebox': settings.statusColors?.icebox || '#6B7280',
+        'Backlog': settings.statusColors?.backlog || '#3B82F6',
+        'To do': settings.statusColors?.todo || '#F59E0B',
+        'In Progress': settings.statusColors?.progress || '#F97316',
+        'Done': settings.statusColors?.done || '#10B981'
       };
       return statusMap[status] || '#6B7280';
     },
@@ -382,8 +385,12 @@ export const useProjectSettings = () => {
       return priorityMap[priority] || '#6B7280';
     },
     getTypeColor: (type: string) => {
-      const projectType = settings.projectTypes.find(t => t.name === type);
+      const projectType = (settings.projectTypes || []).find(t => t.name === type);
       return projectType?.color || '#6B7280';
+    },
+    getSizeColor: (size: string) => {
+      const projectSize = (settings.projectSizes || []).find(s => s.name === size);
+      return projectSize?.color || '#6B7280';
     }
   };
 };

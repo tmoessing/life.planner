@@ -203,6 +203,17 @@ export const exportToExcel = (data: {
         item.bucketlistType || '',
         item.priority || '',
         item.status || '',
+        item.completed ? 'true' : 'false',
+        item.completedAt || '',
+        item.category || '',
+        item.roleId || '',
+        item.visionId || '',
+        item.dueDate || '',
+        item.order || '',
+        item.country || '',
+        item.state || '',
+        item.city || '',
+        item.experienceCategory || '',
         item.createdAt || '',
         item.updatedAt || ''
       ])

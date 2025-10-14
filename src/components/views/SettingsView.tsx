@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible } from '@/components/ui/collapsible';
 import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, Tag, Target, FolderOpen, Sparkles, ListChecks, CheckSquare, BookOpen, Trophy, Eye, FileText, Zap, Star, Calendar, Heart, Gift } from 'lucide-react';
 import { ImportModal } from '@/components/modals/ImportModal';
 import { RolesSettings } from '@/components/settings/RolesSettings';
@@ -12,7 +13,7 @@ import { TypesSettings } from '@/components/settings/TypesSettings';
 import { StatusSettings } from '@/components/settings/StatusSettings';
 import { BucketlistCategoriesSettings } from '@/components/settings/BucketlistCategoriesSettings';
 import { BucketlistTypesSettings } from '@/components/settings/BucketlistTypesSettings';
-import { ProjectStatusSettings } from '@/components/settings/ProjectStatusSettings';
+import { ProjectSizesSettings } from '@/components/settings/ProjectSizesSettings';
 import { WeightSettings } from '@/components/settings/WeightSettings';
 import { GoalCategoriesSettings } from '@/components/settings/GoalCategoriesSettings';
 import { GoogleSheetsSettings } from '@/components/settings/GoogleSheetsSettings';
@@ -277,7 +278,14 @@ export function SettingsView() {
               {/* Status Settings */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                 <StatusSettings category="projects" />
-                <ProjectStatusSettings />
+                <div className="hidden lg:block"></div>
+                <div className="hidden lg:block"></div>
+              </div>
+
+              {/* Project Sizes Settings */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                <ProjectSizesSettings />
+                <div className="hidden lg:block"></div>
                 <div className="hidden lg:block"></div>
               </div>
             </div>
@@ -336,175 +344,145 @@ export function SettingsView() {
 
         </TabsContent>
 
-        <TabsContent value="data" className="space-y-6">
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" />
-            Data Export
-          </CardTitle>
-          <CardDescription>
-            Export all your data to a CSV file that can be opened in Excel or other spreadsheet applications.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium">Export All Data</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Download all your data in a single CSV file that can be opened in Excel or other spreadsheet applications.
-              </p>
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-2">Data included:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Stories ({stories.length} items)</li>
-                  <li>Goals ({goals.length} items)</li>
-                  <li>Projects ({projects.length} items)</li>
-                  <li>Visions ({visions.length} items)</li>
-                  <li>Bucketlist ({bucketlist.length} items)</li>
-                  <li>Important Dates ({importantDates.length} items)</li>
-                  <li>Traditions ({traditions.length} items)</li>
-                  <li>Sprints ({sprints.length} items)</li>
-                  <li>Roles ({roles.length} items)</li>
-                </ul>
+        <TabsContent value="data" className="space-y-3 sm:space-y-4">
+          <Collapsible
+            title="Data Export"
+            description="Export all your data to a CSV file that can be opened in Excel or other spreadsheet applications."
+            icon={<Download className="h-5 w-5" />}
+            defaultOpen={false}
+          >
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <h3 className="font-medium text-sm sm:text-base">Export All Data</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3">
+                  Download all your data in a single CSV file that can be opened in Excel or other spreadsheet applications.
+                </p>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  <p className="font-medium mb-2">Data included:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    <div>Stories ({stories.length} items)</div>
+                    <div>Goals ({goals.length} items)</div>
+                    <div>Projects ({projects.length} items)</div>
+                    <div>Visions ({visions.length} items)</div>
+                    <div>Bucketlist ({bucketlist.length} items)</div>
+                    <div>Important Dates ({importantDates.length} items)</div>
+                    <div>Traditions ({traditions.length} items)</div>
+                    <div>Sprints ({sprints.length} items)</div>
+                    <div>Roles ({roles.length} items)</div>
+                  </div>
+                </div>
               </div>
+              <Button 
+                onClick={handleExportData}
+                className="gap-2 w-full sm:w-auto"
+                size="sm"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Export to Excel/CSV
+              </Button>
             </div>
-            <Button 
-              onClick={handleExportData}
-              className="gap-2"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              Export to Excel/CSV
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Data Import
-          </CardTitle>
-          <CardDescription>
-            Import data from a CSV file. You can choose to merge with existing data or overwrite it completely.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium">Import Data</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Upload a CSV file to import your data. You can choose which data types to import and whether to merge or overwrite existing data.
-              </p>
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-2">Import options:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li><strong>Merge:</strong> Add new items without replacing existing ones</li>
-                  <li><strong>Overwrite:</strong> Replace all existing data with imported data</li>
-                  <li>Select specific data types to import</li>
-                  <li>Preview data before importing</li>
-                </ul>
+          <Collapsible
+            title="Data Import"
+            description="Import data from a CSV file. You can choose to merge with existing data or overwrite it completely."
+            icon={<Upload className="h-5 w-5" />}
+          >
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <h3 className="font-medium text-sm sm:text-base">Import Data</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3">
+                  Upload a CSV file to import your data. You can choose which data types to import and whether to merge or overwrite existing data.
+                </p>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  <p className="font-medium mb-2">Import options:</p>
+                  <div className="space-y-1">
+                    <div><strong>Merge:</strong> Add new items without replacing existing ones</div>
+                    <div><strong>Overwrite:</strong> Replace all existing data with imported data</div>
+                    <div>Select specific data types to import</div>
+                    <div>Preview data before importing</div>
+                  </div>
+                </div>
               </div>
+              <Button 
+                onClick={() => setShowImportModal(true)}
+                className="gap-2 w-full sm:w-auto"
+                size="sm"
+              >
+                <Upload className="h-4 w-4" />
+                Import from CSV
+              </Button>
             </div>
-            <Button 
-              onClick={() => setShowImportModal(true)}
-              className="gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Import from CSV
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Test Data
-          </CardTitle>
-          <CardDescription>
-            Generate pseudo data for testing and demonstration purposes. This will add sample data to your existing data.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium">Generate Test Data</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Create realistic sample data to test the application features and see how it works with populated data.
-              </p>
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-2">Test data includes:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>25 Stories with various statuses and priorities</li>
-                  <li>15 Goals across different categories</li>
-                  <li>8 Projects with realistic timelines</li>
-                  <li>6 Visions for different life areas</li>
-                  <li>20 Bucketlist items (locations and experiences)</li>
-                  <li>12 Important dates and events</li>
-                  <li>10 Traditions and recurring activities</li>
-                  <li>8 Sprints for project management</li>
-                </ul>
+          <Collapsible
+            title="Test Data"
+            description="Generate pseudo data for testing and demonstration purposes. This will add sample data to your existing data."
+            icon={<Zap className="h-5 w-5" />}
+          >
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <h3 className="font-medium text-sm sm:text-base">Generate Test Data</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3">
+                  Create realistic sample data to test the application features and see how it works with populated data.
+                </p>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  <p className="font-medium mb-2">Test data includes:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    <div>25 Stories with various statuses and priorities</div>
+                    <div>15 Goals across different categories</div>
+                    <div>8 Projects with realistic timelines</div>
+                    <div>6 Visions for different life areas</div>
+                    <div>20 Bucketlist items (locations and experiences)</div>
+                    <div>12 Important dates and events</div>
+                    <div>10 Traditions and recurring activities</div>
+                    <div>8 Sprints for project management</div>
+                  </div>
+                </div>
               </div>
+              <Button 
+                onClick={handleGenerateTestData}
+                className="gap-2 w-full sm:w-auto"
+                size="sm"
+              >
+                <Zap className="h-4 w-4" />
+                Generate Test Data
+              </Button>
             </div>
-            <Button 
-              onClick={handleGenerateTestData}
-              className="gap-2"
-            >
-              <Zap className="h-4 w-4" />
-              Generate Test Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5" />
-            Google Sheets Integration
-          </CardTitle>
-          <CardDescription>
-            Connect your life planner to Google Sheets for cloud storage and synchronization.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <GoogleSheetsSettings />
-        </CardContent>
-      </Card>
+          <Collapsible
+            title="Google Sheets Integration"
+            description="Connect your life planner to Google Sheets for cloud storage and synchronization."
+            icon={<FileSpreadsheet className="h-5 w-5" />}
+          >
+            <GoogleSheetsSettings />
+          </Collapsible>
 
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
-            Danger Zone
-          </CardTitle>
-          <CardDescription>
-            These actions are irreversible. Please proceed with caution.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium">Delete All Data</h3>
-              <p className="text-sm text-muted-foreground">
-                Permanently delete all stories, goals, projects, visions, and other data. This action cannot be undone.
-              </p>
+          <Collapsible
+            title="Danger Zone"
+            description="These actions are irreversible. Please proceed with caution."
+            icon={<AlertTriangle className="h-5 w-5" />}
+            className="border-destructive"
+          >
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <h3 className="font-medium text-sm sm:text-base">Delete All Data</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Permanently delete all stories, goals, projects, visions, and other data. This action cannot be undone.
+                </p>
+              </div>
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteAll}
+                className="gap-2 w-full sm:w-auto"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete All Data
+              </Button>
             </div>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteAll}
-              className="gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete All Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </Collapsible>
 
       {showDeleteModal && (
         <DeleteAllModal 

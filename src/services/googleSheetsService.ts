@@ -181,9 +181,16 @@ class GoogleSheetsService {
       
       // Sign in if not already signed in
       console.log('Signing in user...');
-      const user = await authInstance.signIn();
+      let user;
+      try {
+        user = await authInstance.signIn();
+      } catch (error) {
+        console.error('Sign in failed, trying alternative method:', error);
+        // Try alternative sign-in method
+        user = await authInstance.signIn({ prompt: 'select_account' });
+      }
       
-      if (user.isSignedIn()) {
+      if (user && user.isSignedIn()) {
         console.log('User signed in successfully');
         this.config.isAuthenticated = true;
         this.config.accessToken = user.getAuthResponse().access_token;

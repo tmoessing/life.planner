@@ -49,16 +49,6 @@ const migrateSettings = (settings: any): Settings => {
            ];
          }
          
-         // If projectStatusColors is missing, add default project status colors
-         if (!settings.projectStatusColors) {
-           settings.projectStatusColors = {
-             'icebox': '#6B7280',
-             'backlog': '#3B82F6',
-             'todo': '#F59E0B',
-             'progress': '#F97316',
-             'done': '#10B981'
-           };
-         }
   
   return settings as Settings;
 };
@@ -195,6 +185,13 @@ const getDefaultSettings = (): Settings => {
     { name: 'Organization', color: '#8B5CF6' },
     { name: 'Learning', color: '#10B981' }
   ],
+  projectSizes: [
+    { name: 'XS', color: '#10B981' }, // Green - Very small projects
+    { name: 'S', color: '#3B82F6' },  // Blue - Small projects
+    { name: 'M', color: '#F59E0B' },  // Yellow - Medium projects
+    { name: 'L', color: '#EF4444' },  // Red - Large projects
+    { name: 'XL', color: '#8B5CF6' }  // Purple - Extra large projects
+  ],
   traditionTypes: [
     { name: 'Spiritual', color: '#8B5CF6' },
     { name: 'Physical', color: '#10B981' },
@@ -248,13 +245,6 @@ const getDefaultSettings = (): Settings => {
     'todo': '#F59E0B',
     'progress': '#F97316',
     'review': '#8B5CF6',
-    'done': '#10B981'
-  },
-  projectStatusColors: {
-    'icebox': '#6B7280',
-    'backlog': '#3B82F6',
-    'to-do': '#F59E0B',
-    'in-progress': '#F97316',
     'done': '#10B981'
   },
   roadmapScheduledColor: '#8B5CF6',

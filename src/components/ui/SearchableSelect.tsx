@@ -11,6 +11,8 @@ interface SearchableSelectProps {
   disabled?: boolean;
   onKeyDown?: (e: React.KeyboardEvent) => void;
   tabIndex?: number;
+  allowCustom?: boolean;
+  customValueLabel?: string;
 }
 
 export function SearchableSelect({
@@ -21,7 +23,9 @@ export function SearchableSelect({
   className,
   disabled = false,
   onKeyDown,
-  tabIndex = 0
+  tabIndex = 0,
+  allowCustom = false,
+  customValueLabel = "Add custom value"
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,9 +38,22 @@ export function SearchableSelect({
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Check if current value is a custom value (not in options)
+  const isCustomValue = value && !options.find(option => option.value === value);
+  
+  // Add custom option if allowCustom is true and search term doesn't match any existing option
+  const showCustomOption = allowCustom && 
+    searchTerm && 
+    !filteredOptions.some(option => option.label.toLowerCase() === searchTerm.toLowerCase());
+  
+  const allOptions = showCustomOption 
+    ? [...filteredOptions, { value: searchTerm, label: `${customValueLabel}: "${searchTerm}"` }]
+    : filteredOptions;
+
 
   // Get the selected option label
   const selectedOption = options.find(option => option.value === value);
+  const displayValue = isCustomValue ? value : (selectedOption?.label || '');
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +87,7 @@ export function SearchableSelect({
           setIsOpen(true);
         } else {
           setHighlightedIndex(prev => 
-          prev < filteredOptions.length - 1 ? prev + 1 : 0
+          prev < allOptions.length - 1 ? prev + 1 : 0
         );
         }
         break;
@@ -78,14 +95,14 @@ export function SearchableSelect({
         e.preventDefault();
         if (isOpen) {
           setHighlightedIndex(prev => 
-            prev > 0 ? prev - 1 : filteredOptions.length - 1
+            prev > 0 ? prev - 1 : allOptions.length - 1
           );
         }
         break;
       case 'Enter':
         e.preventDefault();
         if (isOpen && highlightedIndex >= 0) {
-          handleOptionSelect(filteredOptions[highlightedIndex].value);
+          handleOptionSelect(allOptions[highlightedIndex].value);
         } else if (!isOpen) {
           setIsOpen(true);
         }
@@ -136,7 +153,7 @@ export function SearchableSelect({
         <input
           ref={inputRef}
           type="text"
-          value={isOpen ? searchTerm : (selectedOption?.label || '')}
+          value={isOpen ? searchTerm : displayValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
@@ -149,8 +166,8 @@ export function SearchableSelect({
 
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((option, index) => (
+          {allOptions.length > 0 ? (
+            allOptions.map((option, index) => (
               <div
                 key={option.value}
                 className={cn(

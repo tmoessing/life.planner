@@ -16,7 +16,7 @@ const urlsToCache = [
 
 // Static assets that can be cached
 const staticAssets = [
-  `${basePath}/lsb.png`
+  `${basePath}/assets/lsb-optimized.png`
 ];
 
 // Cache strategies

@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
+import { getCitiesForState } from '@/utils/cityData';
 import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Calendar, User, Target } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
@@ -168,6 +170,7 @@ export function BucketlistView() {
   const handleToggleComplete = (itemId: string, completed: boolean) => {
     updateBucketlistItem(itemId, { 
       completed,
+      status: completed ? 'completed' : 'in-progress',
       completedAt: completed ? new Date().toISOString() : undefined
     });
   };
@@ -223,7 +226,6 @@ export function BucketlistView() {
     if (filter === 'completed') return item.completed || item.status === 'completed';
     if (filter === 'pending') return !item.completed && item.status !== 'completed';
     if (filter === 'in-progress') return item.status === 'in-progress';
-    if (filter === 'on-hold') return item.status === 'on-hold';
     return true; // 'all'
   });
 
@@ -641,11 +643,17 @@ export function BucketlistView() {
                   
                   <div>
                     <label className="text-sm font-medium">City</label>
-                    <Input
+                    <SearchableSelect
                       value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      placeholder="City"
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
+                      placeholder="Type to search cities..."
+                      options={getCitiesForState(formData.state || '').map((city) => ({
+                        value: city,
+                        label: city
+                      }))}
                       className="mt-1"
+                      allowCustom={true}
+                      customValueLabel="Add custom city"
                     />
                   </div>
                 </div>
@@ -894,7 +902,7 @@ export function BucketlistView() {
                           )}
 
 
-                          {item.status && item.status !== 'not-started' && (
+                          {item.status && true && (
                             <Badge 
                               variant="outline"
                               className="text-xs"
@@ -1052,7 +1060,7 @@ export function BucketlistView() {
                             </Badge>
                           )}
 
-                          {item.status && item.status !== 'not-started' && (
+                          {item.status && true && (
                             <Badge 
                               variant="outline"
                               style={{

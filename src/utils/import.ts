@@ -96,7 +96,7 @@ export const parseCSVData = (csvContent: string) => {
           sectionHeaders = ['Title', 'Description', 'Type', 'Priority', 'Order', 'Created At', 'Updated At'];
           break;
         case 'bucketlist':
-          sectionHeaders = ['Title', 'Description', 'Type', 'Priority', 'Status', 'Created At', 'Updated At'];
+          sectionHeaders = ['Title', 'Description', 'Type', 'Priority', 'Status', 'Completed', 'Completed At', 'Category', 'Role Id', 'Vision Id', 'Due Date', 'Order', 'Country', 'State', 'City', 'Experience Category', 'Created At', 'Updated At'];
           break;
         case 'sprints':
           sectionHeaders = ['Id', 'Iso Week', 'Year', 'Start Date', 'End Date', 'Created At', 'Updated At'];
@@ -293,14 +293,23 @@ const parseBucketlistData = (row: any) => {
     id: generateId(),
     title: row['Title'] || '',
     description: row['Description'] || '',
-    completed: false,
+    completed: row['Completed'] === 'true' || row['Completed'] === true,
+    completedAt: row['Completed At'] || undefined,
+    category: row['Category'] || undefined,
     bucketlistType,
     priority: row['Priority'] || 'Q2',
-    status: row['Status'] === 'pending' ? 'not-started' : 
-            row['Status'] === 'completed' ? 'completed' : 
-            row['Status'] === 'in-progress' ? 'in-progress' : 'not-started',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    status: row['Status'] === 'completed' ? 'completed' : 
+            row['Status'] === 'in-progress' ? 'in-progress' : 'in-progress',
+    roleId: row['Role Id'] || undefined,
+    visionId: row['Vision Id'] || undefined,
+    dueDate: row['Due Date'] || undefined,
+    order: parseInt(row['Order']) || 0,
+    country: row['Country'] || undefined,
+    state: row['State'] || undefined,
+    city: row['City'] || undefined,
+    experienceCategory: row['Experience Category'] || undefined,
+    createdAt: row['Created At'] || new Date().toISOString(),
+    updatedAt: row['Updated At'] || new Date().toISOString()
   };
 };
 

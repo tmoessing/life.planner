@@ -138,6 +138,14 @@ export function AddBucketlistView() {
           updatedForm.category = 'Travel';
         }
         
+        // Auto-advance to next field if current field is completed
+        setTimeout(() => {
+          if (shouldAutoAdvance(field, value, updatedForm)) {
+            console.log(`Auto-advancing from ${field} to next field for row ${index}`);
+            moveToNextField(index, field);
+          }
+        }, 100); // Small delay to ensure state is updated
+        
         return updatedForm;
       }
       return form;
@@ -165,7 +173,7 @@ export function AddBucketlistView() {
   };
 
   const moveToNextField = (currentRow: number, currentField: string) => {
-    const fieldOrder = ['title', 'description', 'bucketlistType', 'category', 'priority', 'status', 'role', 'vision', 'dueDate', 'country', 'state', 'city', 'experienceCategory'];
+    const fieldOrder = ['title', 'description', 'bucketlistType', 'category', 'priority', 'status', 'roleId', 'visionId', 'dueDate', 'country', 'state', 'city', 'experienceCategory'];
     const currentIndex = fieldOrder.indexOf(currentField);
     
     if (currentIndex < fieldOrder.length - 1) {
@@ -197,6 +205,47 @@ export function AddBucketlistView() {
     }
   };
 
+  // Helper function to determine if a field should auto-advance
+  const shouldAutoAdvance = (field: string, value: string, formData: BucketlistFormData) => {
+    const result = (() => {
+      switch (field) {
+        case 'title':
+          return value.trim().length > 0;
+        case 'description':
+          // Don't auto-advance description field as users might want to type multiple lines
+          return false;
+        case 'bucketlistType':
+          return value !== '';
+        case 'category':
+          return value !== '';
+        case 'priority':
+          return value !== '';
+        case 'status':
+          return value !== '';
+        case 'roleId':
+          return value !== 'none' && value !== '';
+        case 'visionId':
+          return value !== 'none' && value !== '';
+        case 'dueDate':
+          return value !== '';
+        case 'country':
+          return value !== '';
+        case 'state':
+          return value !== '';
+        case 'city':
+          // For city, only auto-advance if country is not United States or if city is provided
+          return formData.country !== 'United States' ? value !== '' : true;
+        case 'experienceCategory':
+          return value.trim().length > 0;
+        default:
+          return false;
+      }
+    })();
+    
+    console.log(`shouldAutoAdvance(${field}, "${value}", ${JSON.stringify(formData)}) = ${result}`);
+    return result;
+  };
+
   const getFieldRef = (rowIndex: number, fieldName: string) => {
     const key = `${rowIndex}-${fieldName}`;
     return (ref: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null) => {
@@ -220,7 +269,7 @@ export function AddBucketlistView() {
           e.stopPropagation();
           
           // Find which field we're on and move to the next one
-          const fieldOrder = ['title', 'description', 'bucketlistType', 'category', 'priority', 'status', 'role', 'vision', 'dueDate', 'country', 'state', 'city', 'experienceCategory'];
+          const fieldOrder = ['title', 'description', 'bucketlistType', 'category', 'priority', 'status', 'roleId', 'visionId', 'dueDate', 'country', 'state', 'city', 'experienceCategory'];
           
           // Try to determine which field we're on based on the active element
           let currentField = 'bucketlistType'; // default fallback
@@ -228,8 +277,8 @@ export function AddBucketlistView() {
           else if (activeElement.closest('[data-field="category"]')) currentField = 'category';
           else if (activeElement.closest('[data-field="priority"]')) currentField = 'priority';
           else if (activeElement.closest('[data-field="status"]')) currentField = 'status';
-          else if (activeElement.closest('[data-field="role"]')) currentField = 'role';
-          else if (activeElement.closest('[data-field="vision"]')) currentField = 'vision';
+          else if (activeElement.closest('[data-field="role"]')) currentField = 'roleId';
+          else if (activeElement.closest('[data-field="vision"]')) currentField = 'visionId';
           else if (activeElement.closest('[data-field="country"]')) currentField = 'country';
           
           // Find the row index
@@ -256,7 +305,10 @@ export function AddBucketlistView() {
         
         // Validate location fields if bucketlist type is location
         if (item.bucketlistType === 'location') {
-          return item.country && item.state && item.city;
+          if (!item.country || !item.state) return false;
+          // City is only required if country is not United States
+          if (item.country !== 'United States' && !item.city) return false;
+          return true;
         }
         
         return true;
@@ -470,10 +522,8 @@ export function AddBucketlistView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="not-started">Not Started</SelectItem>
                           <SelectItem value="in-progress">In Progress</SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="on-hold">On Hold</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -564,7 +614,7 @@ export function AddBucketlistView() {
                   </th>
                   <th className="p-3 text-xs font-medium text-muted-foreground min-w-[100px]">
                     <div className="flex flex-col gap-1">
-                      <span>City <span className="text-red-500">*</span></span>
+                      <span>City {defaultOptions.country !== 'United States' && <span className="text-red-500">*</span>}</span>
                       <Input
                         placeholder="Set default city..."
                         className="h-8 text-xs"
@@ -904,6 +954,8 @@ export function AddBucketlistView() {
                             label: city
                           }))}
                           className="w-full h-8"
+                          allowCustom={true}
+                          customValueLabel="Add custom city"
                           onKeyDown={(e) => {
                             if (e.key === 'Tab') {
                               e.preventDefault();

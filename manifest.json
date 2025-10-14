@@ -10,13 +10,13 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/lsb.png",
+      "src": "/assets/lsb-optimized.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/lsb.png",
+      "src": "/assets/lsb-optimized.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
