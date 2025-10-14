@@ -19,9 +19,12 @@ export function ImportantDatesView() {
   const [editingDate, setEditingDate] = useState<ImportantDate | null>(null);
 
   // Auto-sort dates by date (ascending)
-  const sortedDates = [...importantDates].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sortedDates = [...importantDates].sort((a, b) => {
+    // Handle date strings in YYYY-MM-DD format (local dates)
+    const dateA = a.date.includes('T') ? new Date(a.date) : new Date(a.date + 'T00:00:00');
+    const dateB = b.date.includes('T') ? new Date(b.date) : new Date(b.date + 'T00:00:00');
+    return dateA.getTime() - dateB.getTime();
+  });
 
   const handleAddDate = () => {
     setModalMode('add');
@@ -45,7 +48,8 @@ export function ImportantDatesView() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Handle date strings in YYYY-MM-DD format (local dates)
+    const date = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -55,7 +59,8 @@ export function ImportantDatesView() {
   };
 
   const formatDateMobile = (dateString: string) => {
-    const date = new Date(dateString);
+    // Handle date strings in YYYY-MM-DD format (local dates)
+    const date = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -65,7 +70,8 @@ export function ImportantDatesView() {
 
   const getDaysUntil = (dateString: string) => {
     const today = new Date();
-    const targetDate = new Date(dateString);
+    // Handle date strings in YYYY-MM-DD format (local dates)
+    const targetDate = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
     const diffTime = targetDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -78,7 +84,8 @@ export function ImportantDatesView() {
 
   const getDateStatus = (dateString: string) => {
     const today = new Date();
-    const targetDate = new Date(dateString);
+    // Handle date strings in YYYY-MM-DD format (local dates)
+    const targetDate = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
     const diffTime = targetDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -90,7 +97,8 @@ export function ImportantDatesView() {
 
   const addToGoogleCalendar = (title: string, date: string) => {
     // Format date for Google Calendar (YYYYMMDD for all-day events)
-    const eventDate = new Date(date);
+    // Handle date strings in YYYY-MM-DD format (local dates)
+    const eventDate = date.includes('T') ? new Date(date) : new Date(date + 'T00:00:00');
     const dateString = eventDate.toISOString().split('T')[0].replace(/-/g, '');
     
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateString}/${dateString}`;

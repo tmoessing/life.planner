@@ -3,11 +3,24 @@ import { Header } from '@/components/Header';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { VIEW_COMPONENTS, ViewType } from '@/constants/views';
+import { useSettingsMigration } from '@/hooks/useSettingsMigration';
+import { SettingsDebug } from '@/components/debug/SettingsDebug';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<ViewType>('today');
   const [isLoading, setIsLoading] = useState(true);
   const [, setIsInitialized] = useState(false);
+
+  // Run settings migration to ensure project types are correct
+  useSettingsMigration();
+
+  // Make setCurrentView available globally for views to use
+  useEffect(() => {
+    (window as any).navigateToView = setCurrentView;
+    return () => {
+      delete (window as any).navigateToView;
+    };
+  }, []);
 
   // Check if app is actually loading
   useEffect(() => {
@@ -30,6 +43,7 @@ function AppContent() {
       setIsInitialized(true);
     }
   }, []);
+
 
   // Force loading state to false if it gets stuck
   useEffect(() => {

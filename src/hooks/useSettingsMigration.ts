@@ -29,6 +29,15 @@ export function useSettingsMigration() {
   const [roles, setRoles] = useAtom(rolesAtom);
 
   useEffect(() => {
+    // Clear any old project types from localStorage that might be interfering
+    const oldKeys = ['life-scrum-project-types', 'project-types', 'projectTypes'];
+    oldKeys.forEach(key => {
+      if (localStorage.getItem(key)) {
+        console.log('Settings Migration: Removing old localStorage key:', key);
+        localStorage.removeItem(key);
+      }
+    });
+    
     const settingsUpdates: Partial<typeof settings> = {};
     let needsUpdate = false;
     
@@ -138,18 +147,44 @@ export function useSettingsMigration() {
     
     // Always force update project types to ensure they match the new defaults
     const currentProjectTypes = settings.projectTypes || [];
+    const hasOldProjectTypes = currentProjectTypes.some(type => 
+      type.name === 'Work' || type.name === 'Personal' || type.name === 'Health' || 
+      type.name === 'work' || type.name === 'personal' || type.name === 'health'
+    );
+    
     const needsProjectTypeUpdate = !settings.projectTypes || 
       currentProjectTypes.length !== newProjectTypes.length ||
       !currentProjectTypes.every((type, index) => 
         type.name === newProjectTypes[index]?.name && 
         type.color === newProjectTypes[index]?.color
       ) ||
-      currentProjectTypes.some(type => type.name === 'Work' || type.name === 'Personal' || type.name === 'Health') ||
+      hasOldProjectTypes ||
       currentProjectTypes.length !== 3;
     
     // Always update project types to ensure they are correct
+    if (needsProjectTypeUpdate) {
+      console.log('Settings Migration: Updating project types from', currentProjectTypes, 'to', newProjectTypes);
+      settingsUpdates.projectTypes = newProjectTypes;
+      needsUpdate = true;
+    }
+    
+    // Force update project types regardless of current state to ensure they're correct
+    console.log('Settings Migration: Force updating project types to', newProjectTypes);
     settingsUpdates.projectTypes = newProjectTypes;
     needsUpdate = true;
+    
+    // Also check if there are any old project types in the current settings and log them
+    if (settings.projectTypes && settings.projectTypes.length > 0) {
+      console.log('Settings Migration: Current project types in settings:', settings.projectTypes);
+      const hasOldTypes = settings.projectTypes.some(type => 
+        type.name === 'Work' || type.name === 'Personal' || type.name === 'Health' || 
+        type.name === 'work' || type.name === 'personal' || type.name === 'health' ||
+        type.name === 'Learning' // This might be the issue - Learning is in both old and new
+      );
+      if (hasOldTypes) {
+        console.log('Settings Migration: Found old project types, forcing update');
+      }
+    }
     
     if (!settings.traditionTypes) {
       settingsUpdates.traditionTypes = [

@@ -11,6 +11,7 @@ const viewComponents: Record<ViewType, ComponentType> = {
   'goals': lazy(() => import('@/components/views/GoalsView').then(m => ({ default: m.GoalsView }))),
   'goals-kanban': lazy(() => import('@/components/views/GoalsKanbanBoardsView').then(m => ({ default: m.GoalsKanbanBoardsView }))),
   'bucketlist': lazy(() => import('@/components/views/BucketlistView').then(m => ({ default: m.BucketlistView }))),
+  'bucketlist-boards': lazy(() => import('@/components/views/BucketlistBoardsView').then(m => ({ default: m.BucketlistBoardsView }))),
   'planner': lazy(() => import('@/components/views/PlannerView').then(m => ({ default: m.PlannerView }))),
   'sprint-planning': lazy(() => import('@/components/views/SprintPlanningView').then(m => ({ default: m.SprintPlanningView }))),
   'add-stories': lazy(() => import('@/components/views/AddStoriesView').then(m => ({ default: m.AddStoriesView }))),

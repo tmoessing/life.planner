@@ -19,7 +19,7 @@ export interface ImportOptions {
 }
 
 export const defaultImportOptions: ImportOptions = {
-  mode: 'merge',
+  mode: 'overwrite',
   importStories: true,
   importGoals: true,
   importProjects: true,

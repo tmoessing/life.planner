@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { BucketlistItem } from '@/types';
+import { getCoordinates, getItemsInSameLocation, calculateOffsetCoordinates } from '@/utils/coordinateMapping';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default markers in react-leaflet
@@ -53,41 +54,6 @@ interface RealBucketlistMapProps {
 }
 
 
-// Get coordinates for each location
-const getCoordinates = (item: BucketlistItem): [number, number] => {
-  const country = item.country?.toLowerCase() || '';
-  const state = item.state?.toLowerCase() || '';
-  const city = item.city?.toLowerCase() || '';
-  
-  // More accurate coordinate mapping
-  if (country.includes('united states') || country.includes('usa')) {
-    if (state.includes('california')) return [34.0522, -118.2437]; // Los Angeles
-    if (state.includes('new york')) return [40.7128, -74.0060]; // New York City
-    if (state.includes('florida')) return [25.7617, -80.1918]; // Miami
-    if (state.includes('texas')) return [29.7604, -95.3698]; // Houston
-    if (state.includes('washington')) return [47.6062, -122.3321]; // Seattle
-    if (state.includes('illinois')) return [41.8781, -87.6298]; // Chicago
-    return [39.8283, -98.5795]; // Center of US
-  }
-  
-  if (country.includes('canada')) return [56.1304, -106.3468]; // Center of Canada
-  if (country.includes('mexico')) return [23.6345, -102.5528]; // Center of Mexico
-  if (country.includes('united kingdom') || country.includes('england')) return [51.5074, -0.1278]; // London
-  if (country.includes('france')) return [46.2276, 2.2137]; // Paris
-  if (country.includes('germany')) return [51.1657, 10.4515]; // Berlin
-  if (country.includes('italy')) return [41.8719, 12.5674]; // Rome
-  if (country.includes('spain')) return [40.4637, -3.7492]; // Madrid
-  if (country.includes('japan')) return [36.2048, 138.2529]; // Tokyo
-  if (country.includes('china')) return [35.8617, 104.1954]; // Beijing
-  if (country.includes('india')) return [20.5937, 78.9629]; // New Delhi
-  if (country.includes('australia')) return [-25.2744, 133.7751]; // Sydney
-  if (country.includes('brazil')) return [-14.2350, -51.9253]; // Brasília
-  if (country.includes('argentina')) return [-38.4161, -63.6167]; // Buenos Aires
-  if (country.includes('south africa')) return [-30.5595, 22.9375]; // Cape Town
-  
-  // Default to center of world if location not recognized (better than random)
-  return [0, 0];
-};
 
 // Component to fit map bounds to show all markers
 function FitBounds({ items }: { items: BucketlistItem[] }) {
@@ -134,32 +100,74 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
       {/* Location Markers */}
       {items.map((item) => {
         const coords = getCoordinates(item);
+        
+        // Group items by location to handle multiple items in same city
+        const itemsInSameLocation = getItemsInSameLocation(items, item);
+        const itemIndex = itemsInSameLocation.findIndex(otherItem => otherItem.id === item.id);
+        const totalInLocation = itemsInSameLocation.length;
+        
+        // Add small offset for multiple items in same location
+        const adjustedCoords = calculateOffsetCoordinates(coords, itemIndex, totalInLocation, 0.01);
+        
         return (
           <Marker
             key={item.id}
-            position={coords}
+            position={adjustedCoords}
             icon={createCustomIcon(item.completed)}
             eventHandlers={{
               click: () => setSelectedItem(selectedItem?.id === item.id ? null : item),
             }}
           >
             <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                {item.description && (
-                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                )}
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-3 h-3 rounded-full ${item.completed ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <span className="text-sm font-medium">
-                    {item.completed ? 'Completed' : 'In Progress'}
-                  </span>
-                </div>
+              <div className="p-2 max-w-sm">
+                {/* Location header */}
                 {(item.city || item.state || item.country) && (
-                  <p className="text-xs text-gray-500">
-                    📍 {[item.city, item.state, item.country].filter(Boolean).join(', ')}
-                  </p>
+                  <div className="mb-3 pb-2 border-b">
+                    <h2 className="font-bold text-lg text-gray-800">
+                      📍 {[item.city, item.state, item.country].filter(Boolean).join(', ')}
+                    </h2>
+                    {totalInLocation > 1 && (
+                      <p className="text-sm text-gray-600">
+                        {totalInLocation} {totalInLocation === 1 ? 'item' : 'items'} in this location
+                      </p>
+                    )}
+                  </div>
                 )}
+                
+                {/* All items in this location */}
+                <div className="space-y-3">
+                  {itemsInSameLocation.map((locationItem, idx) => (
+                    <div key={locationItem.id} className={`p-2 rounded-lg border ${
+                      locationItem.completed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
+                          locationItem.completed ? 'bg-green-500' : 'bg-yellow-500'
+                        }`}></div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm mb-1 truncate">{locationItem.title}</h3>
+                          {locationItem.description && (
+                            <p className="text-xs text-gray-600 mb-1 line-clamp-2">{locationItem.description}</p>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              locationItem.completed 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {locationItem.completed ? 'Completed' : 'In Progress'}
+                            </span>
+                            {locationItem.priority && (
+                              <span className="text-xs text-gray-500">
+                                {locationItem.priority}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </Popup>
           </Marker>

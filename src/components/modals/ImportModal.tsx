@@ -18,7 +18,7 @@ interface ImportModalProps {
 export function ImportModal({ open, onOpenChange }: ImportModalProps) {
   const [, importData] = useAtom(importDataWithOptionsAtom);
   const [importOptions, setImportOptions] = useState<ImportOptions>(defaultImportOptions);
-  const [importMode, setImportMode] = useState<'merge' | 'overwrite'>('merge');
+  const [importMode, setImportMode] = useState<'merge' | 'overwrite'>('overwrite');
   const [fileContent, setFileContent] = useState<string>('');
   const [parsedData, setParsedData] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);

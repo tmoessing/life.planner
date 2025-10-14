@@ -219,6 +219,7 @@ export type Settings = {
   importantDateTypes: StoryTypeConfig[]; // important date types with colors
   priorityColors: Record<Priority, string>; // priority colors (Q1, Q2, Q3, Q4 for stories)
   bucketlistPriorityColors: Record<string, string>; // bucketlist priority colors (low, medium, high)
+  projectPriorityColors: Record<string, string>; // project priority colors (low, medium, high)
   weightBaseColor: string; // base color for weight gradient
   roleToTypeMap: Record<string, StoryType>; // Disciple -> Spiritual, Friend -> Social, etc.
   statusColors: Record<string, string>; // status colors (icebox, backlog, todo, progress, review, done)
@@ -525,7 +526,7 @@ export type AppState = {
 };
 
 // View types
-export type ViewType = "today" | "sprint" | "story-boards" | "importance" | "goals" | "goals-kanban" | "bucketlist" | "planner" | "sprint-planning" | "add-stories" | "add-goals" | "add-projects" | "add-bucketlist" | "projects" | "projects-kanban" | "project-product-management" | "important-dates" | "traditions" | "goal-boards" | "settings";
+export type ViewType = "today" | "sprint" | "story-boards" | "importance" | "goals" | "goals-kanban" | "bucketlist" | "bucketlist-boards" | "planner" | "sprint-planning" | "add-stories" | "add-goals" | "add-projects" | "add-bucketlist" | "projects" | "projects-kanban" | "project-product-management" | "important-dates" | "traditions" | "goal-boards" | "settings";
 
 // Filter keyword types
 export type FilterKey = "sprint" | "type" | "role" | "priority" | "label" | "weight" | "size" | "due" | "dueSoon";

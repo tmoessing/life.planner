@@ -5,6 +5,7 @@ import { ImportanceView } from '@/components/views/ImportanceView';
 import { GoalsView } from '@/components/views/GoalsView';
 import { GoalsKanbanBoardsView } from '@/components/views/GoalsKanbanBoardsView';
 import { BucketlistView } from '@/components/views/BucketlistView';
+import { BucketlistBoardsView } from '@/components/views/BucketlistBoardsView';
 import { PlannerView } from '@/components/views/PlannerView';
 import { SprintPlanningView } from '@/components/views/SprintPlanningView';
 import { AddStoriesView } from '@/components/views/AddStoriesView';
@@ -27,6 +28,7 @@ export const VIEW_TYPES = [
   'goals',
   'goals-kanban',
   'bucketlist',
+  'bucketlist-boards',
   'planner',
   'sprint-planning',
   'add-stories',
@@ -52,6 +54,7 @@ export const VIEW_COMPONENTS = {
   'goals': GoalsView,
   'goals-kanban': GoalsKanbanBoardsView,
   'bucketlist': BucketlistView,
+  'bucketlist-boards': BucketlistBoardsView,
   'planner': PlannerView,
   'sprint-planning': SprintPlanningView,
   'add-stories': AddStoriesView,

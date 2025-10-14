@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
-import { settingsAtom } from '@/stores/appStore';
+import { settingsAtom } from '@/stores/settingsStore';
 import { useStorySettings, useGoalSettings, useProjectSettings } from '@/utils/settingsMirror';
 
 

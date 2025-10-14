@@ -1,45 +1,11 @@
 import { useState, useEffect } from 'react';
 import type { BucketlistItem } from '@/types';
+import { getCoordinates, getLocationKey, getItemsInSameLocation, calculateOffsetCoordinates } from '@/utils/coordinateMapping';
 
 interface SimpleBucketlistMapProps {
   items: BucketlistItem[];
 }
 
-// Get coordinates for each location
-const getCoordinates = (item: BucketlistItem): [number, number] => {
-  const country = item.country?.toLowerCase() || '';
-  const state = item.state?.toLowerCase() || '';
-  const city = item.city?.toLowerCase() || '';
-  
-  // More accurate coordinate mapping
-  if (country.includes('united states') || country.includes('usa')) {
-    if (state.includes('california')) return [34.0522, -118.2437]; // Los Angeles
-    if (state.includes('new york')) return [40.7128, -74.0060]; // New York City
-    if (state.includes('florida')) return [25.7617, -80.1918]; // Miami
-    if (state.includes('texas')) return [29.7604, -95.3698]; // Houston
-    if (state.includes('washington')) return [47.6062, -122.3321]; // Seattle
-    if (state.includes('illinois')) return [41.8781, -87.6298]; // Chicago
-    return [39.8283, -98.5795]; // Center of US
-  }
-  
-  if (country.includes('canada')) return [56.1304, -106.3468]; // Center of Canada
-  if (country.includes('mexico')) return [23.6345, -102.5528]; // Center of Mexico
-  if (country.includes('united kingdom') || country.includes('england')) return [51.5074, -0.1278]; // London
-  if (country.includes('france')) return [48.8566, 2.3522]; // Paris
-  if (country.includes('germany')) return [51.1657, 10.4515]; // Berlin
-  if (country.includes('italy')) return [41.8719, 12.5674]; // Rome
-  if (country.includes('spain')) return [40.4637, -3.7492]; // Madrid
-  if (country.includes('japan')) return [35.6762, 139.6503]; // Tokyo
-  if (country.includes('china')) return [35.8617, 104.1954]; // Beijing
-  if (country.includes('india')) return [20.5937, 78.9629]; // New Delhi
-  if (country.includes('australia')) return [-25.2744, 133.7751]; // Sydney
-  if (country.includes('brazil')) return [-14.2350, -51.9253]; // Brasília
-  if (country.includes('argentina')) return [-38.4161, -63.6167]; // Buenos Aires
-  if (country.includes('south africa')) return [-30.5595, 22.9375]; // Cape Town
-  
-  // Default to center of world if location not recognized (better than random)
-  return [0, 0];
-};
 
 export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
   const [selectedItem, setSelectedItem] = useState<BucketlistItem | null>(null);
@@ -177,9 +143,18 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
         <div className="absolute inset-0">
           {displayItems.map((item, index) => {
             const coords = getCoordinates(item);
+            
+            // Group items by location to handle multiple items in same city
+            const itemsInSameLocation = getItemsInSameLocation(displayItems, item);
+            const itemIndex = itemsInSameLocation.findIndex(otherItem => otherItem.id === item.id);
+            const totalInLocation = itemsInSameLocation.length;
+            
+            // Add small offset for multiple items in same location
+            const adjustedCoords = calculateOffsetCoordinates(coords, itemIndex, totalInLocation, 0.1);
+            
             // Convert coordinates to percentage positions for display
-            const x = ((coords[1] + 180) / 360) * 100; // longitude to x percentage
-            const y = ((90 - coords[0]) / 180) * 100; // latitude to y percentage
+            const x = ((adjustedCoords[1] + 180) / 360) * 100; // longitude to x percentage
+            const y = ((90 - adjustedCoords[0]) / 180) * 100; // latitude to y percentage
             
             return (
               <button
@@ -193,11 +168,18 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
                   zIndex: selectedItem?.id === item.id ? 20 : 10,
                 }}
                 onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
-                title={`${item.title} - ${item.completed ? 'Completed' : 'In Progress'}`}
+                title={`${item.title} - ${item.completed ? 'Completed' : 'In Progress'}${totalInLocation > 1 ? ` (${itemIndex + 1}/${totalInLocation} in ${item.city || 'this location'})` : ''}`}
               >
                 <div className="w-full h-full flex items-center justify-center text-white text-sm font-bold">
                   {item.completed ? '✓' : '●'}
                 </div>
+                
+                {/* Show count badge for multiple items in same location */}
+                {totalInLocation > 1 && (
+                  <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {totalInLocation}
+                  </div>
+                )}
                 
                 {/* Pulse animation for selected item */}
                 {selectedItem?.id === item.id && (
@@ -231,34 +213,69 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
         </div>
       </div>
       
-      {/* Selected Item Details */}
-      {selectedItem && (
-        <div className="bg-white rounded-lg border p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-lg">{selectedItem.title}</h3>
-            <button
-              onClick={() => setSelectedItem(null)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              ✕
-            </button>
+      {/* Selected Location Details */}
+      {selectedItem && (() => {
+        // Find all items in the same location
+        const itemsInSameLocation = getItemsInSameLocation(displayItems, selectedItem);
+        
+        return (
+          <div className="bg-white rounded-lg border p-4 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="font-semibold text-lg">
+                  📍 {[selectedItem.city, selectedItem.state, selectedItem.country].filter(Boolean).join(', ')}
+                </h3>
+                {itemsInSameLocation.length > 1 && (
+                  <p className="text-sm text-muted-foreground">
+                    {itemsInSameLocation.length} {itemsInSameLocation.length === 1 ? 'item' : 'items'} in this location
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* All items in this location */}
+            <div className="space-y-3">
+              {itemsInSameLocation.map((item) => (
+                <div key={item.id} className={`p-3 rounded-lg border ${
+                  item.completed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
+                      item.completed ? 'bg-green-500' : 'bg-yellow-500'
+                    }`}></div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                      {item.description && (
+                        <p className="text-xs text-muted-foreground mb-2">{item.description}</p>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          item.completed 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {item.completed ? 'Completed' : 'In Progress'}
+                        </span>
+                        {item.priority && (
+                          <span className="text-xs text-muted-foreground">
+                            {item.priority}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          {selectedItem.description && (
-            <p className="text-sm text-muted-foreground mb-3">{selectedItem.description}</p>
-          )}
-          <div className="flex items-center gap-2 mb-3">
-            <div className={`w-3 h-3 rounded-full ${selectedItem.completed ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-            <span className="text-sm font-medium">
-              {selectedItem.completed ? 'Completed' : 'In Progress'}
-            </span>
-          </div>
-          {(selectedItem.city || selectedItem.state || selectedItem.country) && (
-            <p className="text-xs text-muted-foreground">
-              📍 {[selectedItem.city, selectedItem.state, selectedItem.country].filter(Boolean).join(', ')}
-            </p>
-          )}
-        </div>
-      )}
+        );
+      })()}
       
       {/* Map Legend */}
       <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">

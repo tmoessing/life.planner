@@ -7,7 +7,8 @@ import {
   deleteBucketlistItemAtom,
   settingsAtom,
   rolesAtom,
-  visionsAtom
+  visionsAtom,
+  currentViewAtom
 } from '@/stores/appStore';
 import { useBucketlistSettings } from '@/utils/settingsMirror';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { getCitiesForState } from '@/utils/cityData';
-import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Calendar, User, Target } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Calendar, User, Target, Grid3X3 } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistMapView } from './BucketlistMapView';
@@ -33,6 +34,7 @@ export function BucketlistView() {
   const [settings] = useAtom(settingsAtom);
   const [roles] = useAtom(rolesAtom);
   const [visions] = useAtom(visionsAtom);
+  // Remove the Jotai atom usage since the main app uses local state
 
   // Use settings mirror system for bucketlist settings
   const bucketlistSettings = useBucketlistSettings();
@@ -316,6 +318,25 @@ export function BucketlistView() {
           </div>
           
           <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                console.log('Navigating to bucketlist-boards');
+                // Use global navigation function
+                if ((window as any).navigateToView) {
+                  (window as any).navigateToView('bucketlist-boards');
+                  console.log('Navigation called');
+                } else {
+                  console.error('Navigation function not available');
+                }
+              }}
+              variant="outline"
+              className="gap-2 w-full sm:w-auto"
+              size="sm"
+            >
+              <Grid3X3 className="h-4 w-4" />
+              <span className="hidden xs:inline">Boards View</span>
+              <span className="xs:hidden">Boards</span>
+            </Button>
             <Button
               onClick={handleAddItem}
               className="gap-2 w-full sm:w-auto"
@@ -1060,17 +1081,6 @@ export function BucketlistView() {
                             </Badge>
                           )}
 
-                          {item.status && true && (
-                            <Badge 
-                              variant="outline"
-                              style={{
-                                borderColor: bucketlistSettings.getStatusColor(item.status),
-                                color: bucketlistSettings.getStatusColor(item.status)
-                              }}
-                            >
-                              {item.status}
-                            </Badge>
-                          )}
 
                           {item.completed && item.completedAt && (
                             <Badge variant="outline" className="text-green-600 border-green-200">

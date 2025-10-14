@@ -14,6 +14,7 @@ import { StatusSettings } from '@/components/settings/StatusSettings';
 import { BucketlistCategoriesSettings } from '@/components/settings/BucketlistCategoriesSettings';
 import { BucketlistTypesSettings } from '@/components/settings/BucketlistTypesSettings';
 import { ProjectSizesSettings } from '@/components/settings/ProjectSizesSettings';
+import { ProjectPrioritySettings } from '@/components/settings/ProjectPrioritySettings';
 import { WeightSettings } from '@/components/settings/WeightSettings';
 import { GoalCategoriesSettings } from '@/components/settings/GoalCategoriesSettings';
 import { GoogleSheetsSettings } from '@/components/settings/GoogleSheetsSettings';
@@ -119,7 +120,7 @@ export function SettingsView() {
 
         <TabsContent value="configuration" className="space-y-6">
           {/* Visual Category Selector */}
-          <Card>
+          <Card className="sticky top-4 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
@@ -130,70 +131,69 @@ export function SettingsView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 
                 <Button
                   variant={selectedCategory === 'stories' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('stories')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <BookOpen className="h-5 w-5" />
-                  <span>Stories</span>
+                  <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Stories</span>
                 </Button>
                 
                 <Button
                   variant={selectedCategory === 'goals' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('goals')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <Trophy className="h-5 w-5" />
-                  <span>Goals</span>
+                  <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Goals</span>
                 </Button>
                 
                 <Button
                   variant={selectedCategory === 'projects' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('projects')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <FolderOpen className="h-5 w-5" />
-                  <span>Projects</span>
+                  <FolderOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Projects</span>
                 </Button>
                 
                 <Button
                   variant={selectedCategory === 'bucketlist' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('bucketlist')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <ListChecks className="h-5 w-5" />
-                  <span>Bucketlist</span>
+                  <ListChecks className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Bucketlist</span>
                 </Button>
                 
                 <Button
                   variant={selectedCategory === 'visions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('visions')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <Eye className="h-5 w-5" />
-                  <span>Visions</span>
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Visions</span>
                 </Button>
                 
                 <Button
                   variant={selectedCategory === 'roles' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('roles')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <Users className="h-5 w-5" />
-                  <span>Roles</span>
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Roles</span>
                 </Button>
-                
                 
                 <Button
                   variant={selectedCategory === 'traditions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('traditions')}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
-                  <Heart className="h-5 w-5" />
-                  <span>Traditions</span>
+                  <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Traditions</span>
                 </Button>
                 
               </div>
@@ -285,7 +285,7 @@ export function SettingsView() {
               {/* Project Sizes Settings */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                 <ProjectSizesSettings />
-                <div className="hidden lg:block"></div>
+                <ProjectPrioritySettings />
                 <div className="hidden lg:block"></div>
               </div>
             </div>

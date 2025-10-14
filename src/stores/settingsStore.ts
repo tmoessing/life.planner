@@ -37,6 +37,15 @@ const migrateSettings = (settings: any): Settings => {
     };
   }
   
+  // If projectPriorityColors is missing, add it
+  if (!settings.projectPriorityColors) {
+    settings.projectPriorityColors = {
+      'high': '#EF4444',
+      'medium': '#F59E0B',
+      'low': '#6B7280'
+    };
+  }
+  
          // If bucketlistCategories is missing, add default categories
          if (!settings.bucketlistCategories || settings.bucketlistCategories.length === 0) {
            settings.bucketlistCategories = [
@@ -49,6 +58,29 @@ const migrateSettings = (settings: any): Settings => {
            ];
          }
          
+  // If projectTypes is missing, add default project types
+  if (!settings.projectTypes || settings.projectTypes.length === 0) {
+    settings.projectTypes = [
+      { name: 'Code', color: '#3B82F6' },
+      { name: 'Organization', color: '#8B5CF6' },
+      { name: 'Creative', color: '#10B981' },
+      { name: 'Work', color: '#EF4444' },
+      { name: 'Personal', color: '#F59E0B' },
+      { name: 'Learning', color: '#8B5CF6' },
+      { name: 'Health', color: '#22C55E' }
+    ];
+  }
+  
+  // If projectSizes is missing, add default project sizes
+  if (!settings.projectSizes || settings.projectSizes.length === 0) {
+    settings.projectSizes = [
+      { name: 'XS', color: '#10B981' },
+      { name: 'S', color: '#3B82F6' },
+      { name: 'M', color: '#F59E0B' },
+      { name: 'L', color: '#EF4444' },
+      { name: 'XL', color: '#8B5CF6' }
+    ];
+  }
   
   return settings as Settings;
 };
@@ -183,7 +215,11 @@ const getDefaultSettings = (): Settings => {
   projectTypes: [
     { name: 'Code', color: '#3B82F6' },
     { name: 'Organization', color: '#8B5CF6' },
-    { name: 'Learning', color: '#10B981' }
+    { name: 'Creative', color: '#10B981' },
+    { name: 'Work', color: '#EF4444' },
+    { name: 'Personal', color: '#F59E0B' },
+    { name: 'Learning', color: '#8B5CF6' },
+    { name: 'Health', color: '#22C55E' }
   ],
   projectSizes: [
     { name: 'XS', color: '#10B981' }, // Green - Very small projects
@@ -225,6 +261,11 @@ const getDefaultSettings = (): Settings => {
     'low': '#6B7280'
   },
   bucketlistPriorityColors: {
+    'high': '#EF4444',
+    'medium': '#F59E0B',
+    'low': '#6B7280'
+  },
+  projectPriorityColors: {
     'high': '#EF4444',
     'medium': '#F59E0B',
     'low': '#6B7280'

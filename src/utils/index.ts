@@ -215,6 +215,11 @@ export const getDefaultSettings = (): Settings => ({
     'medium': '#F59E0B', // Yellow for Medium Priority
     'low': '#6B7280'  // Gray for Low Priority
   },
+  projectPriorityColors: {
+    'high': '#EF4444', // Red for High Priority
+    'medium': '#F59E0B', // Yellow for Medium Priority
+    'low': '#6B7280'  // Gray for Low Priority
+  },
   weightBaseColor: '#3B82F6', // Base color for weight gradient
   roleToTypeMap: {
     'disciple': 'Spiritual',

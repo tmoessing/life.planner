@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3 } from 'lucide-react';
+import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit } from 'lucide-react';
 import type { Project } from '@/types';
 import { useAtom } from 'jotai';
 import { storiesAtom, settingsAtom, currentViewAtom, selectedProjectIdAtom } from '@/stores/appStore';
@@ -19,7 +19,7 @@ interface ProjectCardProps {
   onOpenStoryManager?: (project: Project) => void;
 }
 
-export function ProjectCard({ project, isSelected = false, onClick, onEdit }: ProjectCardProps) {
+export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOpenKanban, onOpenStoryManager }: ProjectCardProps) {
   const [stories] = useAtom(storiesAtom);
   const [settings] = useAtom(settingsAtom);
   const [, setCurrentView] = useAtom(currentViewAtom);
@@ -130,8 +130,9 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit }: Pr
               e.stopPropagation();
               onEdit?.(project);
             }}
+            title="Edit Project"
           >
-            <MoreHorizontal className="h-3 w-3" />
+            <Edit className="h-3 w-3" />
           </Button>
         </div>
 
@@ -224,17 +225,6 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit }: Pr
               <BarChart3 className="h-3 w-3" />
             </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 sm:h-5 sm:w-5 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit?.(project);
-            }}
-          >
-            <MoreHorizontal className="h-2.5 w-2.5" />
-          </Button>
         </div>
       </CardContent>
     </Card>

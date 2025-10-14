@@ -320,6 +320,11 @@ export const useBucketlistSettings = () => {
 export const useProjectSettings = () => {
   const [settings] = useAtom(settingsAtom);
   
+  // Debug: Log settings to see what's being returned
+  console.log('useProjectSettings Debug:');
+  console.log('- settings:', settings);
+  console.log('- settings.projectTypes:', settings.projectTypes);
+  
   return {
     // Status colors for projects - using story status colors
     statusColors: {
@@ -332,9 +337,9 @@ export const useProjectSettings = () => {
     
     // Priority colors for projects
     priorityColors: {
-      'high': settings.bucketlistPriorityColors?.high || '#EF4444',
-      'medium': settings.bucketlistPriorityColors?.medium || '#F97316',
-      'low': settings.bucketlistPriorityColors?.low || '#6B7280'
+      'high': settings.projectPriorityColors?.high || '#EF4444',
+      'medium': settings.projectPriorityColors?.medium || '#F59E0B',
+      'low': settings.projectPriorityColors?.low || '#6B7280'
     },
     
     // Project types from settings

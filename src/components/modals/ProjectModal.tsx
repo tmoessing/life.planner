@@ -9,7 +9,7 @@ import { useAtom } from 'jotai';
 import { addProjectAtom, updateProjectAtom, storiesAtom } from '@/stores/appStore';
 import { projectStatusesAtom } from '@/stores/statusStore';
 import { useProjectSettings } from '@/utils/settingsMirror';
-import type { Project } from '@/types';
+import type { Project, Priority } from '@/types';
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -25,10 +25,17 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
   const [projectStatuses] = useAtom(projectStatusesAtom);
   const projectSettings = useProjectSettings();
 
+  // Debug: Log what we're getting from projectSettings
+  console.log('ProjectModal Debug:');
+  console.log('- projectSettings:', projectSettings);
+  console.log('- projectTypes:', projectSettings.projectTypes);
+  console.log('- projectTypes length:', projectSettings.projectTypes?.length);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     status: (projectStatuses[0]?.name || 'Icebox') as Project['status'],
+    priority: 'medium' as Priority,
     type: '',
     size: '',
     startDate: '',
@@ -44,6 +51,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         name: project.name,
         description: project.description,
         status: project.status,
+        priority: project.priority,
         type: project.type || '',
         size: project.size || '',
         startDate: project.startDate || '',
@@ -56,6 +64,7 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
         name: '',
         description: '',
         status: (projectStatuses[0]?.name || 'Icebox') as Project['status'],
+        priority: 'medium' as Priority,
         type: '',
         size: '',
         startDate: '',
@@ -157,6 +166,50 @@ export function ProjectModal({ isOpen, onClose, project, mode }: ProjectModalPro
                     </div>
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Priority */}
+          <div className="space-y-2">
+            <Label htmlFor="priority">Priority</Label>
+            <Select
+              value={formData.priority}
+              onValueChange={(value: Priority) => 
+                setFormData(prev => ({ ...prev, priority: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="high">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.priorityColors?.high || '#EF4444' }}
+                    />
+                    High
+                  </div>
+                </SelectItem>
+                <SelectItem value="medium">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.priorityColors?.medium || '#F59E0B' }}
+                    />
+                    Medium
+                  </div>
+                </SelectItem>
+                <SelectItem value="low">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: projectSettings.priorityColors?.low || '#6B7280' }}
+                    />
+                    Low
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

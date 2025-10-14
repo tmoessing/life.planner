@@ -27,7 +27,7 @@ interface ProjectFormData {
   name: string;
   description: string;
   status: 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done';
-  priority: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  priority: 'high' | 'medium' | 'low';
   type?: string;
   size?: string;
   roleId?: string;
@@ -40,7 +40,7 @@ const defaultProject: ProjectFormData = {
   name: '',
   description: '',
   status: 'Icebox',
-  priority: 'Q1',
+  priority: 'medium',
   type: undefined,
   size: undefined,
   roleId: undefined,
@@ -65,7 +65,7 @@ export function AddProjectsView() {
   // Default options for bulk editing
   const [defaultOptions, setDefaultOptions] = useState({
     status: 'none' as 'none' | 'Icebox' | 'Backlog' | 'To do' | 'In Progress' | 'Done',
-    priority: 'none' as 'none' | 'Q1' | 'Q2' | 'Q3' | 'Q4',
+    priority: 'none' as 'none' | 'high' | 'medium' | 'low',
     type: 'none' as string,
     size: 'none' as string,
     roleId: 'none' as string,
@@ -350,10 +350,9 @@ export function AddProjectsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="Q1">Q1</SelectItem>
-                          <SelectItem value="Q2">Q2</SelectItem>
-                          <SelectItem value="Q3">Q3</SelectItem>
-                          <SelectItem value="Q4">Q4</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -563,14 +562,14 @@ export function AddProjectsView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Q1', 'Q2', 'Q3', 'Q4'].map((priority) => (
+                          {['high', 'medium', 'low'].map((priority) => (
                             <SelectItem key={priority} value={priority}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: projectSettings.getPriorityColor(priority) }}
+                                  style={{ backgroundColor: projectSettings.priorityColors?.[priority as 'high' | 'medium' | 'low'] || '#6B7280' }}
                                 />
-                                {priority}
+                                {priority.charAt(0).toUpperCase() + priority.slice(1)}
                               </div>
                             </SelectItem>
                           ))}

@@ -119,7 +119,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
     
     // Validate location fields if bucketlist type is location
     if (formData.bucketlistType === 'location') {
-      if (!formData.country || !formData.state) {
+      if (!formData.country || !formData.state || formData.state === 'Please Select' || formData.state === 'none') {
         alert('Country and State are required for location items');
         return;
       }
@@ -413,7 +413,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="country" className="text-sm font-medium">
-                    Country <span className="text-red-500">*</span>
+                    Country <span className="text-black">*</span>
                   </label>
                   <SearchableSelect
                     value={formData.country}
@@ -430,7 +430,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 {formData.country === 'United States' && (
                 <div className="space-y-2">
                   <label htmlFor="state" className="text-sm font-medium">
-                    State <span className="text-red-500">*</span>
+                    State <span className="text-black">*</span>
                   </label>
                   <SearchableSelect
                     value={formData.state === 'none' ? '' : formData.state}
@@ -450,7 +450,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                 
                 <div className="space-y-2">
                   <label htmlFor="city" className="text-sm font-medium">
-                    City {formData.country !== 'United States' && <span className="text-red-500">*</span>}
+                    City {formData.country !== 'United States' && <span className="text-black">*</span>}
                   </label>
                   <SearchableSelect
                     value={formData.city}
@@ -495,7 +495,8 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
             <Button
               type="submit"
               disabled={isSubmitting || !formData.title.trim() || !formData.bucketlistType || 
-                (formData.bucketlistType === 'location' && (!formData.country || !formData.state || !formData.city))}
+                (formData.bucketlistType === 'location' && (!formData.country || !formData.state || formData.state === 'Please Select' || formData.state === 'none' || 
+                (formData.country !== 'United States' && !formData.city)))}
               className="gap-2"
             >
               <Save className="h-4 w-4" />

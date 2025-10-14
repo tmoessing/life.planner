@@ -4,6 +4,7 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, u
 import { CSS } from '@dnd-kit/utilities';
 import { StoryCard } from '@/components/boards/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
+import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -514,12 +515,14 @@ function ProjectStoriesSection({
   stories, 
   selectedStories, 
   onStoryToggle,
-  onEditStory
+  onEditStory,
+  onAddStory
 }: { 
   stories: Story[]; 
   selectedStories: string[]; 
   onStoryToggle: (storyId: string, event: React.MouseEvent) => void;
   onEditStory: (story: Story) => void;
+  onAddStory: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: 'project-stories',
@@ -543,8 +546,16 @@ function ProjectStoriesSection({
         style={{ minHeight: '400px' }}
       >
         {stories.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-4">
             <p>No stories in this project</p>
+            <Button
+              onClick={onAddStory}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Story
+            </Button>
           </div>
         ) : (
           stories.map((story) => (
@@ -635,6 +646,7 @@ export function ProjectProductManagementView() {
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [isAddStoryModalOpen, setIsAddStoryModalOpen] = useState(false);
 
   // Auto-select first project when projects load or change
   useEffect(() => {
@@ -826,6 +838,14 @@ export function ProjectProductManagementView() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsAddStoryModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Story
+          </Button>
           {selectedStories.length > 0 && (
             <>
             <Button
@@ -894,6 +914,7 @@ export function ProjectProductManagementView() {
                 selectedStories={selectedStories}
                 onStoryToggle={handleStoryToggle}
                 onEditStory={handleEditStory}
+                onAddStory={() => setIsAddStoryModalOpen(true)}
               />
 
               {/* Available Stories */}
@@ -924,6 +945,13 @@ export function ProjectProductManagementView() {
           story={editingStory}
         />
       )}
+
+      {/* Add Story Modal */}
+      <AddStoryModal
+        open={isAddStoryModalOpen}
+        onOpenChange={setIsAddStoryModalOpen}
+        initialData={selectedProject ? { projectId: selectedProject.id } : undefined}
+      />
     </div>
   );
 }
