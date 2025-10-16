@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
-import { Plus, Target, Calendar, Grid, Edit, Weight, Users, Star, List, PieChart, Filter, X } from 'lucide-react';
+import { Plus, Target, Calendar, Grid, Edit, Weight, Users, Star, List, PieChart, Filter, X, Clock } from 'lucide-react';
 import type { Priority, StoryType, Story } from '@/types';
 
 type BoardType = 'Priority' | 'Role' | 'Type' | 'Vision' | 'Weight' | 'Size' | 'Status' | 'Project' | 'Task Categories' | 'Location';
@@ -426,6 +426,12 @@ export function StoryBoardsView() {
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               <Star className="h-3 w-3" />
           {visions.find(v => v.id === story.visionId)?.title}
+        </div>
+      )}
+      {story.createdAt && (
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+          Created: {new Date(story.createdAt).toLocaleDateString()}
         </div>
       )}
         </div>

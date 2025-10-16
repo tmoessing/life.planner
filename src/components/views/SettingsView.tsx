@@ -17,6 +17,7 @@ import { ProjectSizesSettings } from '@/components/settings/ProjectSizesSettings
 import { ProjectPrioritySettings } from '@/components/settings/ProjectPrioritySettings';
 import { WeightSettings } from '@/components/settings/WeightSettings';
 import { GoalCategoriesSettings } from '@/components/settings/GoalCategoriesSettings';
+import { ImportantDateSettings } from '@/components/settings/ImportantDateSettings';
 import { GoogleSheetsSettings } from '@/components/settings/GoogleSheetsSettings';
 import { 
   deleteAllDataAtom, 
@@ -34,7 +35,7 @@ import {
 import { exportToExcel } from '@/utils/export';
 import { generateTestData } from '@/utils/testDataGenerator';
 
-type SettingsCategory = 'stories' | 'goals' | 'projects' | 'bucketlist' | 'visions' | 'roles' | 'traditions';
+type SettingsCategory = 'stories' | 'goals' | 'projects' | 'bucketlist' | 'visions' | 'roles' | 'traditions' | 'important-dates';
 
 export function SettingsView() {
   const [, deleteAllData] = useAtom(deleteAllDataAtom);
@@ -196,6 +197,15 @@ export function SettingsView() {
                   <span className="hidden xs:inline">Traditions</span>
                 </Button>
                 
+                <Button
+                  variant={selectedCategory === 'important-dates' ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory('important-dates')}
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                >
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Important Dates</span>
+                </Button>
+                
               </div>
             </CardContent>
           </Card>
@@ -339,6 +349,12 @@ export function SettingsView() {
           {selectedCategory === 'traditions' && (
             <div className="space-y-6">
               <TraditionsSettings />
+            </div>
+          )}
+
+          {selectedCategory === 'important-dates' && (
+            <div className="space-y-6">
+              <ImportantDateSettings />
             </div>
           )}
 

@@ -248,6 +248,16 @@ export function StoryCard({
           </div>
         </div>
 
+        {/* Created Date */}
+        {story.createdAt && (
+          <div className="flex items-center space-x-1">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              Created: {new Date(story.createdAt).toLocaleDateString()}
+            </span>
+          </div>
+        )}
+
         {/* Goal and Project */}
         {(story.goalId || story.projectId) && (
           <div className="space-y-1 mb-2">

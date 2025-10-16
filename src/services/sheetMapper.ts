@@ -35,7 +35,7 @@ export const SHEET_SCHEMAS = {
     'state', 'city', 'experienceCategory', 'createdAt', 'updatedAt'
   ],
   ImportantDates: [
-    'id', 'title', 'date', 'createdAt', 'updatedAt'
+    'id', 'title', 'date', 'endDate', 'isRequired', 'category', 'createdAt', 'updatedAt'
   ],
   Traditions: [
     'id', 'title', 'description', 'traditionType', 'traditionalCategory', 'createdAt', 'updatedAt'
@@ -99,6 +99,19 @@ export const validateProject = (project: any): project is Project => {
   );
 };
 
+export const validateImportantDate = (importantDate: any): importantDate is ImportantDate => {
+  return (
+    typeof importantDate.id === 'string' &&
+    typeof importantDate.title === 'string' &&
+    typeof importantDate.date === 'string' &&
+    (importantDate.endDate === undefined || typeof importantDate.endDate === 'string') &&
+    (importantDate.isRequired === undefined || typeof importantDate.isRequired === 'boolean') &&
+    (importantDate.category === undefined || typeof importantDate.category === 'string') &&
+    typeof importantDate.createdAt === 'string' &&
+    typeof importantDate.updatedAt === 'string'
+  );
+};
+
 export const validateVision = (vision: any): vision is Vision => {
   return (
     typeof vision.id === 'string' &&
@@ -120,15 +133,6 @@ export const validateBucketlistItem = (item: any): item is BucketlistItem => {
   );
 };
 
-export const validateImportantDate = (date: any): date is ImportantDate => {
-  return (
-    typeof date.id === 'string' &&
-    typeof date.title === 'string' &&
-    typeof date.date === 'string' &&
-    typeof date.createdAt === 'string' &&
-    typeof date.updatedAt === 'string'
-  );
-};
 
 export const validateTradition = (tradition: any): tradition is Tradition => {
   return (

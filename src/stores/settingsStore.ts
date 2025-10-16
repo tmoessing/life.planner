@@ -245,11 +245,9 @@ const getDefaultSettings = (): Settings => {
     { name: 'Anniversary', color: '#06B6D4' }
   ],
   importantDateTypes: [
-    { name: 'Birthday', color: '#F59E0B' },
-    { name: 'Anniversary', color: '#EC4899' },
-    { name: 'Holiday', color: '#EF4444' },
-    { name: 'Reminder', color: '#3B82F6' },
-    { name: 'Event', color: '#10B981' }
+    { name: 'School', color: '#3B82F6' },  // Blue
+    { name: 'Work', color: '#EF4444' },    // Red
+    { name: 'Other', color: '#6B7280' }    // Gray
   ],
   priorityColors: {
     'Q1': '#EF4444',

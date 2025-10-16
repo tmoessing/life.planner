@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Calendar, User, Star, Weight } from 'lucide-react';
+import { MoreHorizontal, Calendar, User, Star, Weight, Clock } from 'lucide-react';
 import type { Story, Priority } from '@/types';
 import { useAtom } from 'jotai';
 import { rolesAtom, visionsAtom } from '@/stores/appStore';
@@ -229,6 +229,14 @@ export function StoryCard({ story, isSelected = false, onClick, onEdit }: StoryC
           <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="h-2.5 w-2.5" />
             <span>{new Date(story.dueDate).toLocaleDateString()}</span>
+          </div>
+        )}
+
+        {/* Created Date - Hidden on mobile to save space */}
+        {story.createdAt && (
+          <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-2.5 w-2.5" />
+            <span>Created: {new Date(story.createdAt).toLocaleDateString()}</span>
           </div>
         )}
 

@@ -70,7 +70,10 @@ export type BucketlistItem = {
 export type ImportantDate = {
   id: string;
   title: string;
-  date: string; // ISO date string
+  date: string; // ISO date string (start date)
+  endDate?: string; // Optional ISO date string for ranges
+  isRequired?: boolean; // true = required, false/undefined = optional
+  category?: string; // Category name (e.g., "School", "Work", "Other")
   createdAt: string;
   updatedAt: string;
 };

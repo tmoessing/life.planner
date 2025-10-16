@@ -447,7 +447,14 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                 <label className="text-sm font-medium">Vision</label>
                 <Select
                   value={formData.visionId || 'none'}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, visionId: value === 'none' ? undefined : value }))}
+                  onValueChange={(value) => {
+                    const selectedVision = visions.find(v => v.id === value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      visionId: value === 'none' ? undefined : value,
+                      type: selectedVision?.type || prev.type
+                    }));
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select vision...">
