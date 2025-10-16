@@ -11,6 +11,8 @@ import {
   currentViewAtom
 } from '@/stores/appStore';
 import { useBucketlistSettings } from '@/utils/settingsMirror';
+import { bucketlistStatusesAtom } from '@/stores/statusStore';
+import { formatLocationDisplay } from '@/utils/formatting';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { getCitiesForState } from '@/utils/cityData';
-import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Calendar, User, Target, Grid3X3 } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, Grid3X3, Trophy } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistMapView } from './BucketlistMapView';
@@ -38,6 +40,7 @@ export function BucketlistView() {
 
   // Use settings mirror system for bucketlist settings
   const bucketlistSettings = useBucketlistSettings();
+  const [bucketlistStatuses] = useAtom(bucketlistStatusesAtom);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -211,15 +214,15 @@ export function BucketlistView() {
   };
 
   const getPriorityIcon = (priority: 'low' | 'medium' | 'high') => {
-    switch (priority) {
-      case 'high':
-        return <Star className="h-3 w-3 fill-current" />;
-      case 'medium':
-        return <Star className="h-3 w-3" />;
-      case 'low':
-        return null;
-      default:
-        return null;
+    return <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />;
+  };
+
+  const getPriorityLetter = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'H';
+      case 'medium': return 'M';
+      case 'low': return 'L';
+      default: return priority.charAt(0).toUpperCase();
     }
   };
 
@@ -281,9 +284,7 @@ export function BucketlistView() {
   // For location items, create sub-groups by location (city, state)
   const getLocationKey = (item: BucketlistItem) => {
     if (item.bucketlistType !== 'location') return null;
-    const city = item.city || 'Unknown City';
-    const state = item.state || 'Unknown State';
-    return `${city}, ${state}`;
+    return formatLocationDisplay(item.city, item.state, item.country) || 'Unknown Location';
   };
 
   const getLocationSubGroups = (items: typeof filteredItems) => {
@@ -550,14 +551,14 @@ export function BucketlistView() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>
-                    {['in-progress', 'completed'].map((status) => (
-                      <SelectItem key={status} value={status}>
+                    {bucketlistStatuses.map((status) => (
+                      <SelectItem key={status.id} value={status.id}>
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: settings.statusColors?.[status as keyof typeof settings.statusColors] || '#6B7280' }}
+                            style={{ backgroundColor: status.color }}
                           />
-                          {status}
+                          {status.name}
                         </div>
                       </SelectItem>
                     ))}
@@ -837,14 +838,6 @@ export function BucketlistView() {
                         )}
                         
                         {/* Additional details based on item type */}
-                        {item.bucketlistType === 'location' && (item.country || item.state || item.city) && (
-                          <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="truncate">
-                              {[item.city, item.state, item.country].filter(Boolean).join(', ')}
-                            </span>
-                          </div>
-                        )}
                         
                         {item.bucketlistType === 'experience' && item.experienceCategory && (
                           <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
@@ -890,8 +883,8 @@ export function BucketlistView() {
                           >
                             <div className="flex items-center gap-1">
                               {getPriorityIcon(convertPriority(item.priority))}
-                              <span className="hidden xs:inline">{item.priority}</span>
-                              <span className="xs:hidden">{item.priority.charAt(0).toUpperCase()}</span>
+                              <span className="hidden xs:inline">{getPriorityLetter(item.priority)}</span>
+                              <span className="xs:hidden">{getPriorityLetter(item.priority)}</span>
                             </div>
                           </Badge>
                           
@@ -905,37 +898,30 @@ export function BucketlistView() {
                               }}
                             >
                               <div className="flex items-center gap-1">
-                                <div 
-                                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
-                                  style={{ backgroundColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }}
-                                />
-                                <span className="hidden xs:inline">{item.bucketlistType === 'location' ? 'Location' : 'Experience'}</span>
-                                <span className="xs:hidden">{item.bucketlistType === 'location' ? 'L' : 'E'}</span>
+                                {item.bucketlistType === 'location' ? (
+                                  <Map className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }} />
+                                ) : (
+                                  <Star className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }} />
+                                )}
                               </div>
                             </Badge>
                           )}
                           
                           {item.category && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs"
+                              style={{
+                                borderColor: bucketlistSettings.getCategoryColor(item.category),
+                                color: bucketlistSettings.getCategoryColor(item.category)
+                              }}
+                            >
                               <span className="hidden xs:inline">{item.category}</span>
                               <span className="xs:hidden">{item.category.charAt(0).toUpperCase()}</span>
                             </Badge>
                           )}
 
 
-                          {item.status && true && (
-                            <Badge 
-                              variant="outline"
-                              className="text-xs"
-                              style={{
-                                borderColor: bucketlistSettings.getStatusColor(item.status),
-                                color: bucketlistSettings.getStatusColor(item.status)
-                              }}
-                            >
-                              <span className="hidden xs:inline">{item.status}</span>
-                              <span className="xs:hidden">{item.status.charAt(0).toUpperCase()}</span>
-                            </Badge>
-                          )}
 
                           {item.completed && item.completedAt && (
                             <Badge variant="outline" className="text-green-600 border-green-200 text-xs">
@@ -1053,7 +1039,7 @@ export function BucketlistView() {
                           >
                             <div className="flex items-center gap-1">
                               {getPriorityIcon(convertPriority(item.priority))}
-                              {item.priority}
+                              {getPriorityLetter(item.priority)}
                             </div>
                           </Badge>
                           
@@ -1066,17 +1052,23 @@ export function BucketlistView() {
                               }}
                             >
                               <div className="flex items-center gap-1">
-                                <div 
-                                  className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }}
-                                />
-                                {item.bucketlistType === 'location' ? 'Location' : 'Experience'}
+                                {item.bucketlistType === 'location' ? (
+                                  <Map className="h-4 w-4" style={{ color: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }} />
+                                ) : (
+                                  <Star className="h-4 w-4" style={{ color: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }} />
+                                )}
                               </div>
                             </Badge>
                           )}
                           
                           {item.category && (
-                            <Badge variant="outline">
+                            <Badge 
+                              variant="outline"
+                              style={{
+                                borderColor: bucketlistSettings.getCategoryColor(item.category),
+                                color: bucketlistSettings.getCategoryColor(item.category)
+                              }}
+                            >
                               {item.category}
                             </Badge>
                           )}

@@ -8,6 +8,7 @@ import {
   visionsAtom
 } from '@/stores/appStore';
 import { useBucketlistSettings } from '@/utils/settingsMirror';
+import { bucketlistStatusesAtom } from '@/stores/statusStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,6 +53,7 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
 
   // Use settings mirror system for bucketlist settings
   const bucketlistSettings = useBucketlistSettings();
+  const [bucketlistStatuses] = useAtom(bucketlistStatusesAtom);
 
   const [formData, setFormData] = useState<BucketlistFormData>({
     title: '',
@@ -119,13 +121,13 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
     
     // Validate location fields if bucketlist type is location
     if (formData.bucketlistType === 'location') {
-      if (!formData.country || !formData.state || formData.state === 'Please Select' || formData.state === 'none') {
-        alert('Country and State are required for location items');
+      if (!formData.country) {
+        alert('Country is required for location items');
         return;
       }
-      // City is only required if country is not United States
-      if (formData.country !== 'United States' && !formData.city) {
-        alert('City is required for non-US locations');
+      // State is only required for US locations
+      if (formData.country === 'United States' && (!formData.state || formData.state === 'Please Select' || formData.state === 'none')) {
+        alert('State is required for US locations');
         return;
       }
     }
@@ -332,14 +334,14 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {(bucketlistSettings.statusColors ? Object.keys(bucketlistSettings.statusColors) : ['in-progress', 'completed']).map((status) => (
-                    <SelectItem key={status} value={status}>
+                  {bucketlistStatuses.map((status) => (
+                    <SelectItem key={status.id} value={status.id}>
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: bucketlistSettings.getStatusColor(status) }}
+                          style={{ backgroundColor: status.color }}
                         />
-                        {status}
+                        {status.name}
                       </div>
                     </SelectItem>
                   ))}
@@ -495,8 +497,8 @@ export function BucketlistModal({ isOpen, onClose, mode, bucketlistItem }: Bucke
             <Button
               type="submit"
               disabled={isSubmitting || !formData.title.trim() || !formData.bucketlistType || 
-                (formData.bucketlistType === 'location' && (!formData.country || !formData.state || formData.state === 'Please Select' || formData.state === 'none' || 
-                (formData.country !== 'United States' && !formData.city)))}
+                (formData.bucketlistType === 'location' && (!formData.country || 
+                (formData.country === 'United States' && (!formData.state || formData.state === 'Please Select' || formData.state === 'none'))))}
               className="gap-2"
             >
               <Save className="h-4 w-4" />

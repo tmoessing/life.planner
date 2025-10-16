@@ -52,3 +52,22 @@ export const truncateText = (text: string, maxLength: number) => {
   
   return text.substring(0, maxLength) + '...';
 };
+
+export const formatLocationDisplay = (city?: string, state?: string, country?: string): string => {
+  const isUS = country === 'United States' || country === 'USA' || country === 'US';
+  
+  if (city) {
+    if (isUS && state) {
+      return `${city}, ${state}`;
+    } else if (country) {
+      return `${city}, ${country}`;
+    }
+    return city;
+  }
+  
+  // No city - show state (if US) or country
+  if (isUS && state) {
+    return state;
+  }
+  return country || '';
+};

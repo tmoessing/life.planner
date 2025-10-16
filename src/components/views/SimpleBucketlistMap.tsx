@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { BucketlistItem } from '@/types';
 import { getCoordinates, getLocationKey, getItemsInSameLocation, calculateOffsetCoordinates } from '@/utils/coordinateMapping';
+import { formatLocationDisplay } from '@/utils/formatting';
 
 interface SimpleBucketlistMapProps {
   items: BucketlistItem[];
@@ -223,7 +224,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="font-semibold text-lg">
-                  📍 {[selectedItem.city, selectedItem.state, selectedItem.country].filter(Boolean).join(', ')}
+                  📍 {formatLocationDisplay(selectedItem.city, selectedItem.state, selectedItem.country)}
                 </h3>
                 {itemsInSameLocation.length > 1 && (
                   <p className="text-sm text-muted-foreground">

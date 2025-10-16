@@ -9,12 +9,13 @@ import {
   visionsAtom
 } from '@/stores/appStore';
 import { useBucketlistSettings } from '@/utils/settingsMirror';
+import { formatLocationDisplay } from '@/utils/formatting';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map } from 'lucide-react';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -41,6 +42,7 @@ interface DroppableGroupProps {
   bucketlistSettings: any;
   getPriorityColor: (priority: Priority) => any;
   getPriorityIcon: (priority: 'low' | 'medium' | 'high') => any;
+  getPriorityLetter: (priority: string) => string;
   convertPriority: (priority: Priority) => 'low' | 'medium' | 'high';
   isCompact?: boolean;
 }
@@ -59,6 +61,7 @@ function DroppableGroup({
   bucketlistSettings,
   getPriorityColor,
   getPriorityIcon,
+  getPriorityLetter,
   convertPriority,
   isCompact = false
 }: DroppableGroupProps) {
@@ -135,6 +138,7 @@ function DroppableGroup({
                   bucketlistSettings={bucketlistSettings}
                   getPriorityColor={getPriorityColor}
                   getPriorityIcon={getPriorityIcon}
+                  getPriorityLetter={getPriorityLetter}
                   convertPriority={convertPriority}
                 />
               ))}
@@ -160,6 +164,7 @@ interface SortableItemProps {
   bucketlistSettings: any;
   getPriorityColor: (priority: Priority) => any;
   getPriorityIcon: (priority: 'low' | 'medium' | 'high') => any;
+  getPriorityLetter: (priority: string) => string;
   convertPriority: (priority: Priority) => 'low' | 'medium' | 'high';
 }
 
@@ -176,6 +181,7 @@ function SortableItem({
   bucketlistSettings,
   getPriorityColor,
   getPriorityIcon,
+  getPriorityLetter,
   convertPriority
 }: SortableItemProps) {
   const {
@@ -282,7 +288,7 @@ function SortableItem({
                   <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate">
-                      {[item.city, item.state, item.country].filter(Boolean).join(', ')}
+                      {formatLocationDisplay(item.city, item.state, item.country)}
                     </span>
                   </div>
                 )}
@@ -332,8 +338,8 @@ function SortableItem({
                     >
                       <div className="flex items-center gap-1">
                         {getPriorityIcon(convertPriority(item.priority))}
-                        <span className="hidden xs:inline">{item.priority}</span>
-                        <span className="xs:hidden">{item.priority.charAt(0).toUpperCase()}</span>
+                        <span className="hidden xs:inline">{getPriorityLetter(item.priority)}</span>
+                        <span className="xs:hidden">{getPriorityLetter(item.priority)}</span>
                       </div>
                     </Badge>
                   )}
@@ -349,38 +355,30 @@ function SortableItem({
                       }}
                     >
                       <div className="flex items-center gap-1">
-                        <div 
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: settings.bucketlistTypes?.find((t: any) => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }}
-                        />
-                        <span className="hidden xs:inline">{item.bucketlistType === 'location' ? 'Location' : 'Experience'}</span>
-                        <span className="xs:hidden">{item.bucketlistType === 'location' ? 'L' : 'E'}</span>
+                        {item.bucketlistType === 'location' ? (
+                          <Map className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: settings.bucketlistTypes?.find((t: any) => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }} />
+                        ) : (
+                          <Star className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: settings.bucketlistTypes?.find((t: any) => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280' }} />
+                        )}
                       </div>
                     </Badge>
                   )}
                   
                   {/* Show category badge if not grouping by category */}
                   {selectedAttribute !== 'category' && item.category && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs"
+                      style={{
+                        borderColor: bucketlistSettings.getCategoryColor(item.category),
+                        color: bucketlistSettings.getCategoryColor(item.category)
+                      }}
+                    >
                       <span className="hidden xs:inline">{item.category}</span>
                       <span className="xs:hidden">{item.category.charAt(0).toUpperCase()}</span>
                     </Badge>
                   )}
 
-                  {/* Show status badge if not grouping by status */}
-                  {selectedAttribute !== 'status' && item.status && (
-                    <Badge 
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        borderColor: bucketlistSettings.getStatusColor(item.status),
-                        color: bucketlistSettings.getStatusColor(item.status)
-                      }}
-                    >
-                      <span className="hidden xs:inline">{item.status}</span>
-                      <span className="xs:hidden">{item.status.charAt(0).toUpperCase()}</span>
-                    </Badge>
-                  )}
 
                   {item.completed && item.completedAt && (
                     <Badge variant="outline" className="text-green-600 border-green-200 text-xs">
@@ -608,15 +606,15 @@ export function BucketlistBoardsView() {
   };
 
   const getPriorityIcon = (priority: 'low' | 'medium' | 'high') => {
-    switch (priority) {
-      case 'high':
-        return <Star className="h-3 w-3 fill-current" />;
-      case 'medium':
-        return <Star className="h-3 w-3" />;
-      case 'low':
-        return null;
-      default:
-        return null;
+    return <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />;
+  };
+
+  const getPriorityLetter = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'H';
+      case 'medium': return 'M';
+      case 'low': return 'L';
+      default: return priority.charAt(0).toUpperCase();
     }
   };
 
@@ -918,6 +916,7 @@ export function BucketlistBoardsView() {
                 bucketlistSettings={bucketlistSettings}
                 getPriorityColor={getPriorityColor}
                 getPriorityIcon={getPriorityIcon}
+                getPriorityLetter={getPriorityLetter}
                 convertPriority={convertPriority}
                 isCompact={true}
               />
@@ -947,6 +946,7 @@ export function BucketlistBoardsView() {
               bucketlistSettings={bucketlistSettings}
               getPriorityColor={getPriorityColor}
               getPriorityIcon={getPriorityIcon}
+              getPriorityLetter={getPriorityLetter}
               convertPriority={convertPriority}
               isCompact={false}
             />

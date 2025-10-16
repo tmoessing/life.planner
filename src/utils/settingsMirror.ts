@@ -1,5 +1,6 @@
 import { useAtom } from 'jotai';
 import { settingsAtom } from '@/stores/settingsStore';
+import { bucketlistStatusesAtom } from '@/stores/statusStore';
 import type { Settings, Priority, StoryType } from '@/types';
 
 /**
@@ -193,13 +194,14 @@ export const useGoalSettings = () => {
 
 export const useBucketlistSettings = () => {
   const [settings] = useAtom(settingsAtom);
+  const [bucketlistStatuses] = useAtom(bucketlistStatusesAtom);
   
   return {
-    // Status colors for bucketlist
-    statusColors: {
-      'in-progress': settings.statusColors?.progress || '#3B82F6',
-      'completed': settings.statusColors?.done || '#10B981'
-    },
+    // Status colors for bucketlist - use bucketlistStatusesAtom as source of truth
+    statusColors: bucketlistStatuses.reduce((acc, status) => {
+      acc[status.id] = status.color;
+      return acc;
+    }, {} as Record<string, string>),
     
     // Priority colors for bucketlist
     priorityColors: {
@@ -258,11 +260,8 @@ export const useBucketlistSettings = () => {
     
     // Get color for specific attributes
     getStatusColor: (status: string) => {
-      const statusMap: Record<string, string> = {
-        'in-progress': settings.statusColors?.progress || '#3B82F6',
-        'completed': settings.statusColors?.done || '#10B981'
-      };
-      return statusMap[status] || '#6B7280';
+      const bucketlistStatus = bucketlistStatuses.find(s => s.id === status);
+      return bucketlistStatus?.color || '#6B7280';
     },
     getPriorityColor: (priority: string) => {
       const priorityColors = settings.bucketlistPriorityColors || {

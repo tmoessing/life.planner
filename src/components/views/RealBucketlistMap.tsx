@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { BucketlistItem } from '@/types';
 import { getCoordinates, getItemsInSameLocation, calculateOffsetCoordinates } from '@/utils/coordinateMapping';
+import { formatLocationDisplay } from '@/utils/formatting';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default markers in react-leaflet
@@ -124,7 +125,7 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
                 {(item.city || item.state || item.country) && (
                   <div className="mb-3 pb-2 border-b">
                     <h2 className="font-bold text-lg text-gray-800">
-                      📍 {[item.city, item.state, item.country].filter(Boolean).join(', ')}
+                      📍 {formatLocationDisplay(item.city, item.state, item.country)}
                     </h2>
                     {totalInLocation > 1 && (
                       <p className="text-sm text-gray-600">
@@ -290,7 +291,7 @@ export function RealBucketlistMap({ items }: RealBucketlistMapProps) {
           </div>
           {(selectedItem.city || selectedItem.state || selectedItem.country) && (
             <p className="text-xs text-muted-foreground">
-              📍 {[selectedItem.city, selectedItem.state, selectedItem.country].filter(Boolean).join(', ')}
+              📍 {formatLocationDisplay(selectedItem.city, selectedItem.state, selectedItem.country)}
             </p>
           )}
         </div>

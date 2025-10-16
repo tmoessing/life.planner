@@ -7,6 +7,7 @@ import {
   visionsAtom
 } from '@/stores/appStore';
 import { useBucketlistSettings } from '@/utils/settingsMirror';
+import { bucketlistStatusesAtom } from '@/stores/statusStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +64,7 @@ export function AddBucketlistView() {
   const [roles] = useAtom(rolesAtom);
   const [visions] = useAtom(visionsAtom);
   const bucketlistSettings = useBucketlistSettings();
+  const [bucketlistStatuses] = useAtom(bucketlistStatusesAtom);
   
   // Debug states data
   console.log('bucketlistSettings.usStates:', bucketlistSettings.usStates);
@@ -789,14 +791,14 @@ export function AddBucketlistView() {
                           <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {['in-progress', 'completed'].map((status) => (
-                            <SelectItem key={status} value={status}>
+                          {bucketlistStatuses.map((status) => (
+                            <SelectItem key={status.id} value={status.id}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: bucketlistSettings.getStatusColor(status) }}
+                                  style={{ backgroundColor: status.color }}
                                 />
-                                {status}
+                                {status.name}
                               </div>
                             </SelectItem>
                           ))}
