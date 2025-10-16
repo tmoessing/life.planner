@@ -286,7 +286,7 @@ export function ImportanceView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your Visions</CardTitle>
+          <CardTitle>Your Importances</CardTitle>
         </CardHeader>
         <CardContent>
           <DndContext
@@ -308,6 +308,30 @@ export function ImportanceView() {
                       visionTypes={visionTypes}
                     />
                   ))}
+                
+                {/* Add New Importance Button - styled like an importance item */}
+                <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <Plus className="h-4 w-4 text-gray-500" />
+                      </div>
+                      
+                      <div className="flex-1">
+                        <Button
+                          variant="ghost"
+                          onClick={handleAddVision}
+                          className="w-full justify-start p-0 h-auto text-left hover:bg-transparent"
+                        >
+                          <div className="text-gray-500 hover:text-gray-700">
+                            <h3 className="font-medium">Add New Importance</h3>
+                            <p className="text-sm text-muted-foreground mt-1">Click to add a new importance to your list</p>
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </SortableContext>
           </DndContext>

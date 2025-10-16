@@ -655,7 +655,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No Goal</SelectItem>
-                    {goals.map(goal => (
+                    {goals.filter(goal => goal.status === 'todo' || goal.status === 'in-progress').map(goal => (
                       <SelectItem key={goal.id} value={goal.id}>
                         <div className="flex items-center gap-2">
                           <div 

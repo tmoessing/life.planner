@@ -18,6 +18,7 @@ import { ProjectPrioritySettings } from '@/components/settings/ProjectPrioritySe
 import { WeightSettings } from '@/components/settings/WeightSettings';
 import { GoalCategoriesSettings } from '@/components/settings/GoalCategoriesSettings';
 import { ImportantDateSettings } from '@/components/settings/ImportantDateSettings';
+import { TaskCategoriesSettings } from '@/components/settings/TaskCategoriesSettings';
 import { GoogleSheetsSettings } from '@/components/settings/GoogleSheetsSettings';
 import { 
   deleteAllDataAtom, 
@@ -238,6 +239,13 @@ export function SettingsView() {
               {/* Weight Settings */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                 <WeightSettings />
+                <div className="hidden lg:block"></div>
+                <div className="hidden lg:block"></div>
+              </div>
+
+              {/* Task Categories Settings */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                <TaskCategoriesSettings />
                 <div className="hidden lg:block"></div>
                 <div className="hidden lg:block"></div>
               </div>

@@ -151,7 +151,9 @@ const getDefaultSettings = (): Settings => {
   taskCategories: [
     { name: 'Decisions', color: '#8B5CF6' },
     { name: 'Actions', color: '#10B981' },
-    { name: 'Involve Others', color: '#F59E0B' }
+    { name: 'Involve Others', color: '#F59E0B' },
+    { name: 'Buying', color: '#EF4444' },
+    { name: 'Travel', color: '#3B82F6' }
   ],
   visionTypes: [
     { name: 'Spiritual', color: '#8B5CF6' },

@@ -181,9 +181,11 @@ export function GoalKanbanView({
                   <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getGoalTypeColor(goal.goalType)}>
                     {getGoalTypeText(goal.goalType)}
                   </Badge>
-                  <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getPriorityColor(goal.priority)}>
-                    {getPriorityText(goal.priority)}
-                  </Badge>
+                  {goal.priority && (
+                    <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getPriorityColor(goal.priority)}>
+                      {getPriorityText(goal.priority)}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getStatusColor(goal.status)}>
                     {getStatusText(goal.status)}
                   </Badge>

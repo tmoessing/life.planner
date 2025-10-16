@@ -33,7 +33,7 @@ export type Goal = {
   category: 'target' | 'lifestyle-value'; // goal category (Target or Lifestyle/Value)
   goalType: string; // goal type (Spiritual, Physical, Intellectual, Social, Financial, Protector)
   roleId?: string; // reference to a role
-  priority: Priority; // priority tied to settings
+  priority?: Priority; // priority tied to settings
   status: 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done';
   order: number;
   storyIds?: string[]; // references to stories assigned to this goal

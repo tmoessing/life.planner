@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { addStoryAtom, addStoryToProjectAtom, rolesAtom, visionsAtom, settingsAtom, safeSprintsAtom, currentSprintAtom, projectsAtom, storyPrioritiesAtom } from '@/stores/appStore';
+import { addStoryAtom, addStoryToProjectAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, currentSprintAtom, projectsAtom, storyPrioritiesAtom } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 import type { Story, Priority, StoryType } from '@/types';
@@ -22,6 +22,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
   const [, addStoryToProject] = useAtom(addStoryToProjectAtom);
   const [roles] = useAtom(rolesAtom);
   const [visions] = useAtom(visionsAtom);
+  const [goals] = useAtom(goalsAtom);
   const [settings] = useAtom(settingsAtom);
   const [sprints] = useAtom(safeSprintsAtom);
   const [currentSprint] = useAtom(currentSprintAtom);
@@ -115,14 +116,19 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
     setFormData({
       title: '',
       description: '',
-      priority: 'Q1',
-      weight: 1,
-      size: 'M',
-      type: 'Intellectual',
+      priority: undefined,
+      weight: undefined,
+      size: undefined,
+      type: undefined,
       roleId: undefined,
       visionId: undefined,
       dueDate: undefined,
-      sprintId: undefined
+      sprintId: undefined,
+      taskCategories: [],
+      scheduledDate: undefined,
+      location: undefined,
+      goalId: undefined,
+      status: (targetColumnId || 'backlog') as "icebox" | "backlog" | "todo" | "progress" | "review" | "done",
     });
     setRepeatWeekly(false);
     setRepeatEndDate('');
@@ -671,7 +677,19 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No Goal</SelectItem>
-                    {/* TODO: Add goals when available */}
+                    {goals.filter(goal => goal.status === 'todo' || goal.status === 'in-progress').map(goal => (
+                      <SelectItem key={goal.id} value={goal.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ 
+                              backgroundColor: settings.storyTypes?.find(st => st.name === goal.goalType)?.color || '#6B7280'
+                            }}
+                          />
+                          {goal.title}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -34,7 +34,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
     category: 'target' as 'target' | 'lifestyle-value',
     goalType: '' as string,
     roleId: 'none',
-    priority: 'medium' as Priority,
+    priority: undefined as Priority | undefined,
     status: 'icebox' as 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done'
   });
 
@@ -58,7 +58,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
         category: 'target',
         goalType: 'target',
         roleId: 'none',
-        priority: 'medium',
+        priority: undefined,
         status: 'icebox'
       });
     }
@@ -231,13 +231,13 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
               </div>
               
               <div>
-                <label className="text-sm font-medium">Priority</label>
+                <label className="text-sm font-medium">Goal Priority</label>
                 <Select
-                  value={formData.priority}
+                  value={formData.priority || ""}
                   onValueChange={(value: Priority) => setFormData(prev => ({ ...prev, priority: value }))}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Priority..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">

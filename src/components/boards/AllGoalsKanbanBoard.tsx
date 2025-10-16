@@ -136,9 +136,11 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
           <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getGoalTypeColor(goal.goalType)}>
             {goal.goalType === 'target' ? 'Target' : 'Lifestyle/Value'}
           </Badge>
-          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getPriorityColor(goal.priority)}>
-            {goal.priority}
-          </Badge>
+          {goal.priority && (
+            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getPriorityColor(goal.priority)}>
+              {goal.priority}
+            </Badge>
+          )}
         </div>
 
         {goal.description && (
