@@ -13,29 +13,68 @@ import {
 import { useStorySettings } from '@/utils/settingsMirror';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
+import type { 
+  Story, 
+  Role, 
+  Vision, 
+  Goal, 
+  Project, 
+  Settings, 
+  Label, 
+  Sprint,
+  Priority
+} from '@/types';
+import type { ErrorState } from '@/hooks/useErrorHandler';
+import type { LoadingState } from '@/hooks/useLoadingState';
+
+interface StorySettings {
+  statusColors: Record<string, string>;
+  priorityColors: Record<Priority, string>;
+  typeColors: Record<string, string>;
+  sizeColors: Record<string, string>;
+  taskCategoryColors: Record<string, string>;
+  weightBaseColor: string;
+  roadmapScheduledColor: string;
+  chartColors: {
+    ideal: string;
+    actual: string;
+  };
+  labels: Label[];
+  roles: Role[];
+  visionTypes: Settings['visionTypes'];
+  storyTypes: Settings['storyTypes'];
+  storySizes: Settings['storySizes'];
+  taskCategories: Settings['taskCategories'];
+  getStatusColor: (status: string) => string;
+  getPriorityColor: (priority: Priority) => string;
+  getTypeColor: (type: string) => string;
+  getSizeColor: (size: string) => string;
+  getTaskCategoryColor: (category: string) => string;
+  getVisionTypeColor: (type: string) => string;
+}
 
 interface AppContextValue {
   // Data
-  stories: any[];
-  roles: any[];
-  visions: any[];
-  goals: any[];
-  projects: any[];
-  settings: any;
-  labels: any[];
-  sprints: any[];
+  stories: Story[];
+  roles: Role[];
+  visions: Vision[];
+  goals: Goal[];
+  projects: Project[];
+  settings: Settings;
+  labels: Label[];
+  sprints: Sprint[];
   
   // Settings mirror
-  storySettings: any;
+  storySettings: StorySettings;
   
   // Error handling
-  errorState: any;
+  errorState: ErrorState;
   handleError: (error: Error | string, context?: string) => string;
   clearError: () => void;
   
   // Loading state
-  loadingState: any;
-  startLoading: (options?: any) => void;
+  loadingState: LoadingState;
+  startLoading: (options?: { message?: string; progress?: number }) => void;
   stopLoading: () => void;
   setProgress: (progress: number) => void;
   setMessage: (message: string) => void;

@@ -223,6 +223,7 @@ export const getDefaultSettings = (): Settings => ({
     'low': '#6B7280'  // Gray for Low Priority
   },
   weightBaseColor: '#3B82F6', // Base color for weight gradient
+  assignmentWeightBaseColor: '#3B82F6', // Base color for assignment weight gradient
   roleToTypeMap: {
     'disciple': 'Spiritual',
     'individual': 'Intellectual',
@@ -364,7 +365,8 @@ export const getDefaultSettings = (): Settings => ({
       navigation: true,
       content: true,
       footer: false,
-      sidebar: false
+      sidebar: false,
+      classes: true
     },
     
     componentOrder: {

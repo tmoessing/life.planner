@@ -187,7 +187,7 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
           {/* Data Type Selection */}
           <div className="space-y-3">
             <Label>Select Data to Import</Label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="import-stories"

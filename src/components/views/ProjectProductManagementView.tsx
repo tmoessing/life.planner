@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverEvent, useDroppable, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { Button } from '@/components/ui/button';
@@ -38,160 +38,14 @@ function AvailableStoryCard({
   onClick: (e: React.MouseEvent) => void;
   onEdit: (story: Story) => void;
 }) {
-  const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
-  const [visions] = useAtom(visionsAtom);
-  const [settings] = useAtom(settingsAtom);
-  const storySettings = useStorySettings();
-
-  const role = roles.find(r => r.id === story.roleId);
-  const vision = visions.find(v => v.id === story.visionId);
-  const storyLabels = labels.filter(l => story.labels.includes(l.id));
-
-  const getPriorityColor = (priority: Priority) => {
-    
-    const priorityColor = storySettings.getPriorityColor(priority);
-    return {
-      backgroundColor: `${priorityColor}20`,
-      color: priorityColor,
-      borderColor: `${priorityColor}40`
-    };
-  };
-
-  const getWeightColor = (weight: number) => {
-    const gradientColor = getWeightGradientColor(weight, settings.weightBaseColor, 21);
-    return {
-      backgroundColor: `${gradientColor}20`,
-      color: gradientColor,
-      borderColor: `${gradientColor}40`
-    };
-  };
-
-  const getStoryTypeColor = (type: string) => {
-    const storyType = settings.storyTypes.find(st => st.name === type);
-    const typeColor = storyType?.color || '#6B7280';
-    return {
-      backgroundColor: `${typeColor}20`,
-      color: typeColor,
-      borderColor: `${typeColor}40`
-    };
-  };
-
-  const getStorySizeColor = (size: string) => {
-    const storySize = settings.storySizes?.find(ss => ss.name === size);
-    const sizeColor = storySize?.color || '#6B7280';
-    return {
-      backgroundColor: `${sizeColor}20`,
-      color: sizeColor,
-      borderColor: `${sizeColor}40`
-    };
-  };
-
   return (
-    <Card
-      className={`cursor-grab hover:shadow-md transition-shadow ${
-        isSelected ? 'ring-2 ring-blue-500 bg-blue-50 shadow-md' : ''
-      }`}
-      onClick={(e) => onClick(e)}
-      onDoubleClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onEdit(story);
-      }}
-    >
-      <CardContent className="p-1.5 sm:p-2 space-y-1">
-        {/* Title */}
-        <h4 className="font-medium text-xs line-clamp-2">{story.title}</h4>
-        
-        {/* Description */}
-        {story.description && (
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {story.description}
-          </p>
-        )}
-
-        {/* Priority, Weight, Type and Size */}
-        <div className="flex items-center gap-1 flex-wrap">
-          <Badge 
-            variant="outline" 
-            className="text-xs px-1.5 py-0.5"
-            style={getPriorityColor(story.priority)}
-          >
-            {story.priority}
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className="text-xs flex items-center gap-1 px-1.5 py-0.5"
-            style={getWeightColor(story.weight)}
-          >
-            <Weight className="h-2.5 w-2.5" />
-            {story.weight}
-          </Badge>
-          <Badge 
-            variant="secondary" 
-            className="text-xs px-1.5 py-0.5"
-            style={getStoryTypeColor(story.type)}
-          >
-            {story.type}
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className="text-xs px-1.5 py-0.5"
-            style={getStorySizeColor(story.size)}
-          >
-            {story.size}
-          </Badge>
-        </div>
-
-        {/* Labels */}
-        {storyLabels.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {storyLabels.slice(0, 2).map((label) => (
-              <Badge
-                key={label.id}
-                variant="secondary"
-                className="text-xs px-1.5 py-0.5"
-                style={{ backgroundColor: label.color + '20', color: label.color }}
-              >
-                {label.name}
-              </Badge>
-            ))}
-            {storyLabels.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                +{storyLabels.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-
-        {/* Project Assignment Status */}
-        <div className="flex items-center gap-1 text-xs">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <FolderOpen className="h-2.5 w-2.5" />
-            <span>Available</span>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-muted-foreground">
-            Drag to assign
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(story);
-            }}
-            title="Edit story"
-          >
-            <MoreHorizontal className="h-2.5 w-2.5" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <StoryCard
+      story={story}
+      isSelected={isSelected}
+      onClick={onClick}
+      onEdit={onEdit}
+      showActions={true}
+    />
   );
 }
 
@@ -209,160 +63,14 @@ function ProjectStoryCard({
   onEdit: (story: Story) => void;
   projectName: string;
 }) {
-  const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
-  const [visions] = useAtom(visionsAtom);
-  const [settings] = useAtom(settingsAtom);
-  const storySettings = useStorySettings();
-
-  const role = roles.find(r => r.id === story.roleId);
-  const vision = visions.find(v => v.id === story.visionId);
-  const storyLabels = labels.filter(l => story.labels.includes(l.id));
-
-  const getPriorityColor = (priority: Priority) => {
-    
-    const priorityColor = storySettings.getPriorityColor(priority);
-    return {
-      backgroundColor: `${priorityColor}20`,
-      color: priorityColor,
-      borderColor: `${priorityColor}40`
-    };
-  };
-
-  const getWeightColor = (weight: number) => {
-    const gradientColor = getWeightGradientColor(weight, settings.weightBaseColor, 21);
-    return {
-      backgroundColor: `${gradientColor}20`,
-      color: gradientColor,
-      borderColor: `${gradientColor}40`
-    };
-  };
-
-  const getStoryTypeColor = (type: string) => {
-    const storyType = settings.storyTypes.find(st => st.name === type);
-    const typeColor = storyType?.color || '#6B7280';
-    return {
-      backgroundColor: `${typeColor}20`,
-      color: typeColor,
-      borderColor: `${typeColor}40`
-    };
-  };
-
-  const getStorySizeColor = (size: string) => {
-    const storySize = settings.storySizes?.find(ss => ss.name === size);
-    const sizeColor = storySize?.color || '#6B7280';
-    return {
-      backgroundColor: `${sizeColor}20`,
-      color: sizeColor,
-      borderColor: `${sizeColor}40`
-    };
-  };
-
   return (
-    <Card
-      className={`cursor-grab hover:shadow-md transition-shadow ${
-        isSelected ? 'ring-2 ring-blue-500 bg-blue-50 shadow-md' : ''
-      }`}
-      onClick={(e) => onClick(e)}
-      onDoubleClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onEdit(story);
-      }}
-    >
-      <CardContent className="p-1.5 sm:p-2 space-y-1">
-        {/* Title */}
-        <h4 className="font-medium text-xs line-clamp-2">{story.title}</h4>
-        
-        {/* Description */}
-        {story.description && (
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {story.description}
-          </p>
-        )}
-
-        {/* Priority, Weight, Type and Size */}
-        <div className="flex items-center gap-1 flex-wrap">
-          <Badge 
-            variant="outline" 
-            className="text-xs px-1.5 py-0.5"
-            style={getPriorityColor(story.priority)}
-          >
-            {story.priority}
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className="text-xs flex items-center gap-1 px-1.5 py-0.5"
-            style={getWeightColor(story.weight)}
-          >
-            <Weight className="h-2.5 w-2.5" />
-            {story.weight}
-          </Badge>
-          <Badge 
-            variant="secondary" 
-            className="text-xs px-1.5 py-0.5"
-            style={getStoryTypeColor(story.type)}
-          >
-            {story.type}
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className="text-xs px-1.5 py-0.5"
-            style={getStorySizeColor(story.size)}
-          >
-            {story.size}
-          </Badge>
-        </div>
-
-        {/* Labels */}
-        {storyLabels.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {storyLabels.slice(0, 2).map((label) => (
-              <Badge
-                key={label.id}
-                variant="secondary"
-                className="text-xs px-1.5 py-0.5"
-                style={{ backgroundColor: label.color + '20', color: label.color }}
-              >
-                {label.name}
-              </Badge>
-            ))}
-            {storyLabels.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                +{storyLabels.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-
-        {/* Project Assignment Status */}
-        <div className="flex items-center gap-1 text-xs">
-          <div className="flex items-center gap-1 text-green-600">
-            <FolderOpen className="h-2.5 w-2.5" />
-            <span>Assigned to {projectName}</span>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-muted-foreground">
-            Drag to remove
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(story);
-            }}
-            title="Edit story"
-          >
-            <MoreHorizontal className="h-2.5 w-2.5" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <StoryCard
+      story={story}
+      isSelected={isSelected}
+      onClick={onClick}
+      onEdit={onEdit}
+      showActions={true}
+    />
   );
 }
 
@@ -794,7 +502,6 @@ export function ProjectProductManagementView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div>
-            <h2 className="text-lg sm:text-2xl font-bold">Project Management</h2>
             <p className="text-sm text-muted-foreground">
               Manage which stories belong to your project
             </p>

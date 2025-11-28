@@ -404,16 +404,16 @@ export function StoryBoardsViewRefactored() {
       />
 
       {/* Story Groups */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
         {Object.entries(groupedStories).map(([groupName, groupStories]) => (
           <Card 
             key={groupName} 
             className={getDragOverClasses(groupName, 'board')}
             style={getBoardColor(groupName)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
+                <CardTitle className="text-base">
                   {groupName}
                   <Badge variant="secondary" className="ml-2">
                     {groupStories.length}
@@ -429,17 +429,12 @@ export function StoryBoardsViewRefactored() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {groupStories.map((story, index) => (
                   <StoryCard
                     key={story.id}
                     story={story}
-                    roles={roles}
-                    labels={storySettings.labels}
-                    visions={visions}
-                    goals={goals}
-                    projects={projects}
-                    settings={settings}
+                    index={index}
                     onEdit={handleEditStory}
                     onDelete={handleDeleteStory}
                     onSelect={(storyId, idx, event) => handleStorySelect(storyId, idx, event)}

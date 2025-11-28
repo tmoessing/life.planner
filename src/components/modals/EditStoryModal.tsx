@@ -6,10 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { updateStoryAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, projectsAtom, labelsAtom } from '@/stores/appStore';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Trash2 } from 'lucide-react';
+import { updateStoryAtom, deleteStoryAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, projectsAtom, labelsAtom } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
-import type { Story, Priority, StoryType } from '@/types';
+import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
+import type { Story, Priority, StoryType, RecurrenceEditMode } from '@/types';
 
 interface EditStoryModalProps {
   open: boolean;
@@ -19,6 +22,7 @@ interface EditStoryModalProps {
 
 export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProps) {
   const [, updateStory] = useAtom(updateStoryAtom);
+  const [, deleteStory] = useAtom(deleteStoryAtom);
   const [roles] = useAtom(rolesAtom);
   const [visions] = useAtom(visionsAtom);
   const [goals] = useAtom(goalsAtom);
@@ -26,11 +30,22 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
   const [sprints] = useAtom(safeSprintsAtom);
   const [projects] = useAtom(projectsAtom);
   const [labels] = useAtom(labelsAtom);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Use settings mirror system for story settings
   const storySettings = useStorySettings();
 
   const [formData, setFormData] = useState<Partial<Story>>({});
+  
+  // Recurrence edit state
+  const [editMode, setEditMode] = useState<RecurrenceEditMode>('this');
+  const [hasRecurrence, setHasRecurrence] = useState(false);
+  const [recurrenceCadence, setRecurrenceCadence] = useState<'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly'>('weekly');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [recurrenceWeekOfMonth, setRecurrenceWeekOfMonth] = useState<'first' | 'second' | 'third' | 'fourth' | 'last' | 'any'>('any');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string>('');
+  const [recurrenceCount, setRecurrenceCount] = useState<number | ''>('');
+  const [recurrenceEndType, setRecurrenceEndType] = useState<'date' | 'count' | 'never'>('never');
 
   // Update form data when story changes
   useEffect(() => {
@@ -48,11 +63,31 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
         projectId: story.projectId,
         dueDate: story.dueDate,
         status: story.status,
+        sprintId: story.sprintId,
         taskCategories: story.taskCategories || [],
         scheduledDate: story.scheduledDate,
         location: story.location,
         goalId: story.goalId,
       });
+      
+      // Initialize recurrence state
+      if (story.repeat && story.repeat.cadence !== 'none') {
+        setHasRecurrence(true);
+        setRecurrenceCadence(story.repeat.cadence as 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly');
+        setRecurrenceInterval(story.repeat.interval || 1);
+        setRecurrenceWeekOfMonth(story.repeat.weekOfMonth || 'any');
+        setRecurrenceEndDate(story.repeat.endDate || '');
+        setRecurrenceCount(story.repeat.count || '');
+        setRecurrenceEndType(story.repeat.endDate ? 'date' : story.repeat.count ? 'count' : 'never');
+      } else {
+        setHasRecurrence(false);
+        setRecurrenceCadence('weekly');
+        setRecurrenceInterval(1);
+        setRecurrenceWeekOfMonth('any');
+        setRecurrenceEndDate('');
+        setRecurrenceCount('');
+        setRecurrenceEndType('never');
+      }
     }
   }, [story]);
 
@@ -63,14 +98,37 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
       return;
     }
 
+    // Require sprint selection for recurring stories
+    if (hasRecurrence && !formData.sprintId) {
+      alert('Please select a sprint for recurring stories.');
+      return;
+    }
+
     const storyData = {
       ...formData,
       title: formData.title.trim(),
-      description: formData.description?.trim() || ''
+      description: formData.description?.trim() || '',
+      // Update recurrence data if enabled
+      repeat: hasRecurrence ? {
+        cadence: recurrenceCadence,
+        interval: recurrenceInterval,
+        endDate: recurrenceEndType === 'date' ? recurrenceEndDate : undefined,
+        count: recurrenceEndType === 'count' ? (typeof recurrenceCount === 'number' ? recurrenceCount : undefined) : undefined,
+        weekOfMonth: recurrenceWeekOfMonth === 'any' ? undefined : recurrenceWeekOfMonth,
+        instances: story.repeat?.instances || {}
+      } : undefined
     };
     
+    // Handle different edit modes for recurring stories
+    if (story.repeat && story.repeat.cadence !== 'none' && editMode !== 'all') {
+      // For recurring stories, we need special handling
+      // This will be implemented when we update the story service
+      updateStory(story.id, storyData);
+    } else {
+      // Normal update for non-recurring stories or "all" mode
+      updateStory(story.id, storyData);
+    }
     
-    updateStory(story.id, storyData);
     onOpenChange(false);
   };
 
@@ -83,24 +141,36 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
     }));
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!story) return;
+    deleteStory(story.id);
+    setShowDeleteConfirm(false);
+    onOpenChange(false);
+  };
+
   const priorities: Priority[] = ['Q1', 'Q2', 'Q3', 'Q4'];
   // Use story sizes from settings instead of hardcoded array
 
   if (!story) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-full">
-        <DialogHeader>
-          <DialogTitle>Edit Story</DialogTitle>
-          <DialogDescription>
-            Update the story details.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-full">
+          <DialogHeader>
+            <DialogTitle>Edit Story</DialogTitle>
+            <DialogDescription>
+              Update the story details.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-3">
           {/* Title - First and most prominent */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label className="text-sm font-medium">Title *</label>
             <Input
               value={formData.title || ''}
@@ -113,9 +183,9 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
 
 
           {/* Main Details Grid - 2 columns for better square layout */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Left Column */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               {/* Priority */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Priority</label>
@@ -224,7 +294,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
               </div>
 
               {/* Type and Status */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Type</label>
                   <Select
@@ -263,7 +333,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
                   <Select
-                    value={formData.status || 'backlog'}
+                    value={formData.status || (formData.sprintId ? 'todo' : 'backlog')}
                     onValueChange={(value) => {
                       setFormData(prev => ({ ...prev, status: value as any }));
                     }}
@@ -289,24 +359,29 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="icebox">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.icebox || '#6B7280' }}
-                          ></div>
-                          <span>Icebox</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="backlog">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: storySettings.getStatusColor('backlog') }}
-                          ></div>
-                          <span>Backlog</span>
-                        </div>
-                      </SelectItem>
+                      {/* Only show icebox/backlog if story is not assigned to a sprint */}
+                      {!formData.sprintId && (
+                        <SelectItem value="icebox">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: settings.statusColors?.icebox || '#6B7280' }}
+                            ></div>
+                            <span>Icebox</span>
+                          </div>
+                        </SelectItem>
+                      )}
+                      {!formData.sprintId && (
+                        <SelectItem value="backlog">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: storySettings.getStatusColor('backlog') }}
+                            ></div>
+                            <span>Backlog</span>
+                          </div>
+                        </SelectItem>
+                      )}
                       <SelectItem value="todo">
                         <div className="flex items-center gap-2">
                           <div 
@@ -350,9 +425,9 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
             </div>
 
             {/* Right Column */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               {/* Weight and Size in a row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Weight</label>
                   <Select
@@ -517,13 +592,13 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
           </div>
 
           {/* Additional Details */}
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-muted-foreground">Additional Details</h3>
             </div>
             
             {/* Description */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Description</label>
               <Textarea
                 value={formData.description || ''}
@@ -534,7 +609,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
             </div>
 
             {/* Sprint and Due Date */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Sprint</label>
                 <Select
@@ -592,7 +667,7 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
             )}
 
             {/* Task Categories, Scheduled Date, Location, and Goal */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Task Categories</label>
                 <div className="space-y-2">
@@ -675,18 +750,217 @@ export function EditStoryModal({ open, onOpenChange, story }: EditStoryModalProp
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!formData.title?.trim()}>
-              Update Story
-            </Button>
+          {/* Recurrence Pattern Section */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hasRecurrence"
+                checked={hasRecurrence}
+                onCheckedChange={(checked) => setHasRecurrence(checked as boolean)}
+              />
+              <label htmlFor="hasRecurrence" className="text-sm font-medium">
+                Repeat this story
+              </label>
+            </div>
+            
+            {hasRecurrence && (
+              <div className="space-y-2 pl-4 border-l-2 border-gray-200">
+                {/* Sprint requirement warning */}
+                {!formData.sprintId && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 text-yellow-600">⚠️</div>
+                      <p className="text-sm text-yellow-800">
+                        A sprint must be selected for recurring stories to generate instances within the sprint timeframe.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {/* Edit mode selector for existing recurring stories */}
+                {story?.repeat && story.repeat.cadence !== 'none' && (
+                  <div className="bg-blue-50 p-2 rounded-lg">
+                    <p className="text-sm font-medium mb-2">Edit Recurrence</p>
+                    <Select
+                      value={editMode}
+                      onValueChange={(value: RecurrenceEditMode) => setEditMode(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="this">Only this occurrence</SelectItem>
+                        <SelectItem value="future">This and future occurrences</SelectItem>
+                        <SelectItem value="all">All occurrences</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {/* Cadence selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Repeat</label>
+                  <Select
+                    value={recurrenceCadence}
+                    onValueChange={(value: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly') => setRecurrenceCadence(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Interval */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Every</label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={recurrenceInterval}
+                      onChange={(e) => setRecurrenceInterval(parseInt(e.target.value) || 1)}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {recurrenceCadence === 'daily' ? 'day(s)' :
+                       recurrenceCadence === 'weekly' || recurrenceCadence === 'biweekly' ? 'week(s)' :
+                       recurrenceCadence === 'monthly' ? 'month(s)' :
+                       recurrenceCadence === 'yearly' ? 'year(s)' : 'time(s)'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Week of month selector (shown when cadence is monthly) */}
+                {recurrenceCadence === 'monthly' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Week of month</label>
+                    <Select
+                      value={recurrenceWeekOfMonth}
+                      onValueChange={(value: 'first' | 'second' | 'third' | 'fourth' | 'last' | 'any') => setRecurrenceWeekOfMonth(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any week" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any week</SelectItem>
+                        <SelectItem value="first">First complete week</SelectItem>
+                        <SelectItem value="second">Second complete week</SelectItem>
+                        <SelectItem value="third">Third complete week</SelectItem>
+                        <SelectItem value="fourth">Fourth complete week</SelectItem>
+                        <SelectItem value="last">Last complete week</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {/* End condition */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Ends</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="endNever"
+                        name="endType"
+                        checked={recurrenceEndType === 'never'}
+                        onChange={() => setRecurrenceEndType('never')}
+                      />
+                      <label htmlFor="endNever" className="text-sm">Never</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="endDate"
+                        name="endType"
+                        checked={recurrenceEndType === 'date'}
+                        onChange={() => setRecurrenceEndType('date')}
+                      />
+                      <label htmlFor="endDate" className="text-sm">On date</label>
+                      {recurrenceEndType === 'date' && (
+                        <Input
+                          type="date"
+                          value={recurrenceEndDate}
+                          onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                          className="ml-2"
+                        />
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="endCount"
+                        name="endType"
+                        checked={recurrenceEndType === 'count'}
+                        onChange={() => setRecurrenceEndType('count')}
+                      />
+                      <label htmlFor="endCount" className="text-sm">After</label>
+                      {recurrenceEndType === 'count' && (
+                        <Input
+                          type="number"
+                          min="1"
+                          value={recurrenceCount}
+                          onChange={(e) => setRecurrenceCount(parseInt(e.target.value) || '')}
+                          className="ml-2 w-20"
+                        />
+                      )}
+                      {recurrenceEndType === 'count' && (
+                        <span className="text-sm text-muted-foreground">occurrences</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-        </form>
-      </DialogContent>
-    </Dialog>
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2">
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleDeleteClick}
+              className="gap-2 w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={!formData.title?.trim() || (hasRecurrence && !formData.sprintId)}
+                className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+              >
+                Update Story
+              </Button>
+            </div>
+          </div>
+
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Story"
+        itemName={story?.title}
+        description="This will permanently delete the story and cannot be undone."
+      />
+    </>
   );
 }

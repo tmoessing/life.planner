@@ -2,10 +2,14 @@
 export * from './storyStore';
 export * from './goalStore';
 export * from './projectStore';
+export * from './classStore';
 export * from './uiStore';
 export * from './priorityStore';
 export * from './typeStore';
 export * from './statusStore';
+
+// Import utilities for recurring stories
+import { generateRecurrenceInstances } from '@/utils/recurrenceUtils';
 
 // Export specific atoms from settingsStore to avoid circular dependencies
 export {
@@ -46,11 +50,14 @@ import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { Sprint, Board, Column, Story } from '@/types';
 import { generateSprints, getCurrentWeek, createSprintId, filterStories } from '@/utils';
-import { DEFAULT_COLUMNS, DEFAULT_BOARD, STORAGE_KEYS } from '@/constants';
+import { DEFAULT_COLUMNS, DEFAULT_BOARD } from '@/constants/story';
+import { STORAGE_KEYS } from '@/constants/storage';
 import { storiesAtom } from './storyStore';
 import { rolesAtom, visionsAtom, bucketlistAtom, importantDatesAtom, traditionsAtom, settingsAtom } from './settingsStore';
 import { goalsAtom } from './goalStore';
 import { projectsAtom } from './projectStore';
+import { classesAtom } from './classStore';
+import { assignmentsAtom } from './assignmentStore';
 import { selectedSprintIdAtom, filterTextAtom, filterKeywordsAtom, filterDueSoonAtom } from './uiStore';
 
 // Initialize default data
@@ -147,22 +154,63 @@ export const storiesByColumnAtom = atom(
   }
 );
 
-// Sprint-specific stories by status atom
+// Sprint-specific stories by status atom (with recurring story expansion)
 export const sprintStoriesByStatusAtom = atom(
   (get) => {
     const stories = get(storiesAtom);
     const selectedSprintId = get(selectedSprintIdAtom);
+    const currentSprint = get(currentSprintAtom);
+    const sprints = get(safeSprintsAtom);
     
     const statuses = ['icebox', 'backlog', 'todo', 'progress', 'review', 'done'];
     const result: Record<string, Story[]> = {};
     
-    statuses.forEach(status => {
-      const statusStories = stories.filter(story => 
-        !story.deleted && 
-        story.sprintId === selectedSprintId &&
-        story.status === status
+    // Get the target sprint for date range
+    const targetSprint = sprints.find(s => s.id === selectedSprintId) || currentSprint;
+    if (!targetSprint) return result;
+    
+    // Get all recurring stories (regardless of which sprint they're assigned to)
+    const recurringStories = stories.filter(story => 
+      !story.deleted && 
+      story.repeat && 
+      story.repeat.cadence !== 'none'
+    );
+    
+    // Get non-recurring stories for the selected sprint
+    const nonRecurringStories = stories.filter(story => 
+      !story.deleted && 
+      story.sprintId === selectedSprintId &&
+      (!story.repeat || story.repeat.cadence === 'none')
+    );
+    
+    // Expand recurring stories into virtual instances for the target sprint
+    const expandedStories: (Story & { _isRecurringInstance?: boolean; _instanceDate?: string; _originalId?: string })[] = [];
+    
+    // Add non-recurring stories
+    expandedStories.push(...nonRecurringStories);
+    
+    // Generate instances for recurring stories within the target sprint date range
+    recurringStories.forEach(story => {
+      const instances = generateRecurrenceInstances(
+        story,
+        new Date(targetSprint.startDate),
+        new Date(targetSprint.endDate)
       );
       
+      instances.forEach(instance => {
+        expandedStories.push({
+          ...story,
+          id: `${story.id}-${instance.date}`,
+          status: instance.status,
+          _isRecurringInstance: true,
+          _instanceDate: instance.date,
+          _originalId: story.id
+        });
+      });
+    });
+    
+    statuses.forEach(status => {
+      const statusStories = expandedStories.filter(story => story.status === status);
       result[status] = statusStories;
     });
     
@@ -179,6 +227,7 @@ export const exportDataAtom = atom(
       roles: get(rolesAtom),
       visions: get(visionsAtom),
       projects: get(projectsAtom),
+      classes: get(classesAtom),
       columns: get(columnsAtom),
       boards: get(boardsAtom),
       settings: get(settingsAtom),
@@ -215,121 +264,71 @@ export const importDataAtom = atom(
       set(boardsAtom, data.boards);
     }
     if (data.projects) set(projectsAtom, data.projects);
+    if (data.classes) set(classesAtom, data.classes);
     if (data.settings) set(settingsAtom, data.settings);
   }
 );
 
+import { applyDataMerge, type MergeOptions } from '@/utils/dataMerge';
+
 // Enhanced import atom with merge/overwrite options
 export const importDataWithOptionsAtom = atom(
   null,
-  (get, set, data: any, options: any) => {
+  (get, set, data: any, options: MergeOptions) => {
     const existingData = {
       stories: get(storiesAtom),
       goals: get(goalsAtom),
       projects: get(projectsAtom),
+      classes: get(classesAtom),
+      assignments: get(assignmentsAtom),
       visions: get(visionsAtom),
       bucketlist: get(bucketlistAtom),
       importantDates: get(importantDatesAtom),
       traditions: get(traditionsAtom),
       roles: get(rolesAtom),
-      sprints: get(sprintsAtom)
+      sprints: get(sprintsAtom),
+      settings: get(settingsAtom)
     };
 
-    // Apply import based on options
-    if (options.importStories && data.stories) {
-      if (options.mode === 'overwrite') {
-        set(storiesAtom, data.stories);
-      } else {
-        // Merge: combine and deduplicate by title
-        const existingTitles = new Set(existingData.stories.map((s: any) => s.title));
-        const newStories = data.stories.filter((s: any) => !existingTitles.has(s.title));
-        set(storiesAtom, [...existingData.stories, ...newStories]);
-      }
+    // Apply merge operations
+    const mergedData = applyDataMerge(existingData, data, options);
+
+    // Update atoms with merged data
+    if (options.importStories) {
+      set(storiesAtom, mergedData.stories);
     }
-
-    if (options.importGoals && data.goals) {
-      if (options.mode === 'overwrite') {
-        set(goalsAtom, data.goals);
-      } else {
-        const existingTitles = new Set(existingData.goals.map((g: any) => g.title));
-        const newGoals = data.goals.filter((g: any) => !existingTitles.has(g.title));
-        set(goalsAtom, [...existingData.goals, ...newGoals]);
-      }
+    if (options.importGoals) {
+      set(goalsAtom, mergedData.goals);
     }
-
-    if (options.importProjects && data.projects) {
-      if (options.mode === 'overwrite') {
-        set(projectsAtom, data.projects);
-      } else {
-        const existingNames = new Set(existingData.projects.map((p: any) => p.name));
-        const newProjects = data.projects.filter((p: any) => !existingNames.has(p.name));
-        set(projectsAtom, [...existingData.projects, ...newProjects]);
-      }
+    if (options.importProjects) {
+      set(projectsAtom, mergedData.projects);
     }
-
-    if (options.importVisions && data.visions) {
-      if (options.mode === 'overwrite') {
-        set(visionsAtom, data.visions);
-      } else {
-        const existingTitles = new Set(existingData.visions.map((v: any) => v.title));
-        const newVisions = data.visions.filter((v: any) => !existingTitles.has(v.title));
-        set(visionsAtom, [...existingData.visions, ...newVisions]);
-      }
+    if (options.importVisions) {
+      set(visionsAtom, mergedData.visions);
     }
-
-    if (options.importBucketlist && data.bucketlist) {
-      if (options.mode === 'overwrite') {
-        set(bucketlistAtom, data.bucketlist);
-      } else {
-        const existingTitles = new Set(existingData.bucketlist.map((b: any) => b.title));
-        const newBucketlist = data.bucketlist.filter((b: any) => !existingTitles.has(b.title));
-        set(bucketlistAtom, [...existingData.bucketlist, ...newBucketlist]);
-      }
+    if (options.importBucketlist) {
+      set(bucketlistAtom, mergedData.bucketlist);
     }
-
-    if (options.importSprints && data.sprints) {
-      if (options.mode === 'overwrite') {
-        set(sprintsAtom, data.sprints);
-      } else {
-        const existingIds = new Set(existingData.sprints.map((s: any) => s.id));
-        const newSprints = data.sprints.filter((s: any) => !existingIds.has(s.id));
-        set(sprintsAtom, [...existingData.sprints, ...newSprints]);
-      }
+    if (options.importImportantDates) {
+      set(importantDatesAtom, mergedData.importantDates);
     }
-
-    if (options.importRoles && data.roles) {
-      if (options.mode === 'overwrite') {
-        set(rolesAtom, data.roles);
-      } else {
-        const existingNames = new Set(existingData.roles.map((r: any) => r.name));
-        const newRoles = data.roles.filter((r: any) => !existingNames.has(r.name));
-        set(rolesAtom, [...existingData.roles, ...newRoles]);
-      }
+    if (options.importTraditions) {
+      set(traditionsAtom, mergedData.traditions);
     }
-
-
-    if (options.importImportantDates && data.importantDates) {
-      if (options.mode === 'overwrite') {
-        set(importantDatesAtom, data.importantDates);
-      } else {
-        const existingTitles = new Set(existingData.importantDates.map((d: any) => d.title));
-        const newImportantDates = data.importantDates.filter((d: any) => !existingTitles.has(d.title));
-        set(importantDatesAtom, [...existingData.importantDates, ...newImportantDates]);
-      }
+    if (options.importSprints) {
+      set(sprintsAtom, mergedData.sprints);
     }
-
-    if (options.importTraditions && data.traditions) {
-      if (options.mode === 'overwrite') {
-        set(traditionsAtom, data.traditions);
-      } else {
-        const existingTitles = new Set(existingData.traditions.map((t: any) => t.title));
-        const newTraditions = data.traditions.filter((t: any) => !existingTitles.has(t.title));
-        set(traditionsAtom, [...existingData.traditions, ...newTraditions]);
-      }
+    if (options.importRoles) {
+      set(rolesAtom, mergedData.roles);
     }
-
-    if (options.importSettings && data.settings) {
-      set(settingsAtom, data.settings);
+    if (options.importClasses) {
+      set(classesAtom, mergedData.classes);
+    }
+    if (options.importAssignments) {
+      set(assignmentsAtom, mergedData.assignments);
+    }
+    if (options.importSettings) {
+      set(settingsAtom, mergedData.settings);
     }
   }
 );

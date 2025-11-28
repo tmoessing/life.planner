@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { ViewType } from '@/types';
-import { STORAGE_KEYS } from '@/constants';
+import { STORAGE_KEYS } from '@/constants/storage';
 
 // UI state atoms
 export const currentViewAtom = atomWithStorage<ViewType>(STORAGE_KEYS.CURRENT_VIEW, 'today');

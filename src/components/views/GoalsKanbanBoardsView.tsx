@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
+import { FilterBar } from '@/components/forms/FilterBar';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { SwipeableContainer } from '@/components/ui/swipeable-container';
 import { 
   goalsAtom, 
   storiesAtom, 
@@ -17,7 +17,7 @@ import {
 } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
-import { Target, Undo, Plus } from 'lucide-react';
+import { Target, Undo, Plus, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Story } from '@/types';
 
 export function GoalsKanbanBoardsView() {
@@ -45,6 +45,9 @@ export function GoalsKanbanBoardsView() {
     previousColumnId?: string;
     story?: Story;
   }>>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -150,6 +153,21 @@ export function GoalsKanbanBoardsView() {
     setActiveId(event.active.id as string);
   };
 
+  const handleMoveToColumn = (storyId: string, targetColumnId: string) => {
+    const story = stories.find(s => s.id === storyId);
+    if (story && story.status !== targetColumnId) {
+      // Add to undo stack before updating
+      setUndoStack(prev => [...prev, {
+        type: 'move',
+        storyId,
+        previousColumnId: story.status
+      }]);
+      updateStory(storyId, { status: targetColumnId as any });
+    }
+  };
+
+  const allColumnIds = statusColumns.map(col => col.id);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
@@ -220,26 +238,8 @@ export function GoalsKanbanBoardsView() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg sm:text-2xl font-bold">Goals - Kanban Boards</h2>
-            <p className="text-sm text-muted-foreground">
-              Select a goal to view and manage its stories in a Kanban board
-            </p>
-          </div>
-          
-          <Button 
-            onClick={() => setShowAddStoryModal(true)}
-            className="gap-2 w-full sm:w-auto"
-            disabled={!selectedGoal}
-          >
-            <Plus className="h-4 w-4" />
-            Add Story
-          </Button>
-        </div>
-          
-        {/* Goal Selector */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Goal Selector - Left aligned */}
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-muted-foreground" />
           <Select
@@ -274,32 +274,73 @@ export function GoalsKanbanBoardsView() {
           </Select>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          {undoStack.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleUndo}
-              className="gap-1"
-            >
-              <Undo className="h-3 w-3" />
-              <span className="hidden sm:inline">Undo</span>
-            </Button>
-          )}
-          {selectedStories.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedStories([])}
-            >
-              <span className="hidden sm:inline">Clear Selection</span>
-              <span className="sm:hidden">Clear</span>
-              <span className="ml-1">({selectedStories.length})</span>
-            </Button>
-          )}
+        {/* Search, Filter, and Add Story Buttons - Right aligned */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showSearch ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setShowSearch(!showSearch);
+              if (showSearch) setShowFilter(false);
+            }}
+            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden sm:inline">Search</span>
+          </Button>
+          <Button
+            variant={showFilter ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setShowFilter(!showFilter);
+              if (showFilter) setShowSearch(false);
+            }}
+            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+          >
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filter</span>
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowAddStoryModal(true)}
+            disabled={!selectedGoal}
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Story</span>
+          </Button>
         </div>
       </div>
+
+      {/* Search Panel */}
+      {showSearch && (
+        <div>
+          <FilterBar showSearchOnly={true} />
+        </div>
+      )}
+
+      {/* Filter Panel */}
+      {showFilter && (
+        <div>
+          <FilterBar showFilterOnly={true} />
+        </div>
+      )}
+
+      {/* Undo Button */}
+      {undoStack.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUndo}
+            className="gap-2"
+          >
+            <Undo className="h-4 w-4" />
+            Undo
+          </Button>
+        </div>
+      )}
 
       {/* Content */}
       {!selectedGoal ? (
@@ -319,14 +360,87 @@ export function GoalsKanbanBoardsView() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {/* Goal Info */}
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <h3 className="font-semibold">{selectedGoal.title}</h3>
-            <p className="text-sm text-muted-foreground">{selectedGoal.description}</p>
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-              <span>{goalStories.length} stories</span>
-              <span>Status: {selectedGoal.status}</span>
-              <span>Type: {selectedGoal.goalType}</span>
+          {/* Column Header Row - Desktop */}
+          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
+            {statusColumns.map((status) => {
+              const columnStories = storiesByStatus[status.id] || [];
+              return (
+                <div
+                  key={status.id}
+                  onClick={() => {
+                    const columnElement = document.querySelector(`[data-column-id="${status.id}"]`);
+                    if (columnElement) {
+                      columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                  }}
+                  className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{ backgroundColor: `${status.color}20` }}
+                >
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: status.color }}
+                  />
+                  <span className="text-sm font-medium" style={{ color: status.color }}>
+                    {status.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {columnStories.length}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Column Header Row with Navigation Arrows - Mobile */}
+          <div className="sm:hidden mb-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
+                disabled={currentMobileColumnIndex === 0}
+                className="flex-shrink-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex-1 grid grid-cols-3 gap-1.5">
+                {statusColumns.map((status, index) => {
+                  const columnStories = storiesByStatus[status.id] || [];
+                  const isActive = statusColumns[currentMobileColumnIndex]?.id === status.id;
+                  return (
+                    <div
+                      key={status.id}
+                      onClick={() => setCurrentMobileColumnIndex(index)}
+                      className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                        isActive ? `ring-2 ring-offset-1 ring-[${status.color}]` : ''
+                      }`}
+                      style={{ 
+                        backgroundColor: `${status.color}20`
+                      }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: status.color }}
+                      />
+                      <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: status.color }}>
+                        {status.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                        {columnStories.length}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentMobileColumnIndex(prev => Math.min(statusColumns.length - 1, prev + 1))}
+                disabled={currentMobileColumnIndex === statusColumns.length - 1}
+                className="flex-shrink-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
@@ -340,60 +454,38 @@ export function GoalsKanbanBoardsView() {
               {/* Desktop Grid Layout */}
               <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
                 {statusColumns.map((status) => (
-                  <div key={status.id} className="min-w-0">
+                  <div key={status.id} className="min-w-0" data-column-id={status.id}>
                     <KanbanColumn
                       column={{ id: status.id, name: status.name as "Icebox" | "Backlog" | "To Do" | "In Progress" | "Review" | "Done", storyIds: [] }}
                       stories={storiesByStatus[status.id] || []}
                       selectedStories={selectedStories}
                       onStoryClick={handleStoryClick}
                       onEditStory={handleEditStory}
+                      allColumnIds={allColumnIds}
+                      onMoveToColumn={handleMoveToColumn}
                     />
                   </div>
                 ))}
               </div>
 
-              {/* Mobile Swipeable Layout */}
-              <div className="sm:hidden min-h-[500px]">
-                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded">
-                  <p className="text-sm text-blue-800">Mobile Swipeable Layout Active</p>
-                </div>
-                <SwipeableContainer showNavigation={true} className="min-h-[400px]">
-                  {statusColumns.map((status) => (
-                    <div key={status.id} className="w-full px-4 min-h-[400px]">
-                      <div className="mb-4">
-                        <h3 
-                          className="text-lg font-semibold text-center mb-2"
-                          style={{ color: status.color }}
-                        >
-                          {status.name}
-                        </h3>
-                        <div className="text-sm text-muted-foreground text-center">
-                          {storiesByStatus[status.id]?.length || 0} stories
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        {(storiesByStatus[status.id] || []).map((story, index) => (
-                          <div
-                            key={story.id}
-                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                              selectedStories.includes(story.id)
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                            onClick={(e) => handleStoryClick(story.id, e, storiesByStatus[status.id], index)}
-                          >
-                            <StoryCard story={story} />
-                          </div>
-                        ))}
-                        {(!storiesByStatus[status.id] || storiesByStatus[status.id].length === 0) && (
-                          <div className="text-center text-muted-foreground py-8">
-                            No stories in {status.name.toLowerCase()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </SwipeableContainer>
+              {/* Mobile Single Column Layout */}
+              <div className="sm:hidden">
+                {statusColumns.map((status, index) => (
+                  <div
+                    key={status.id}
+                    className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
+                  >
+                    <KanbanColumn
+                      column={{ id: status.id, name: status.name as "Icebox" | "Backlog" | "To Do" | "In Progress" | "Review" | "Done", storyIds: [] }}
+                      stories={storiesByStatus[status.id] || []}
+                      selectedStories={selectedStories}
+                      onStoryClick={handleStoryClick}
+                      onEditStory={handleEditStory}
+                      allColumnIds={allColumnIds}
+                      onMoveToColumn={handleMoveToColumn}
+                    />
+                  </div>
+                ))}
               </div>
 
               <DragOverlay>

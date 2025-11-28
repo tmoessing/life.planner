@@ -4,7 +4,11 @@ import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
-  plugins: [react()],
+  plugins: [
+    react({
+      jsxRuntime: 'automatic',
+    })
+  ],
   base: command === 'build' ? '/life.planner/' : '/',
   server: {
     port: 5173,
@@ -17,6 +21,19 @@ export default defineConfig(({ command }) => ({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
+      // Force single React instance
+      "react": resolve(__dirname, "./node_modules/react"),
+      "react-dom": resolve(__dirname, "./node_modules/react-dom"),
+      "react/jsx-runtime": resolve(__dirname, "./node_modules/react/jsx-runtime"),
+    },
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
+    force: true,
+    esbuildOptions: {
+      // Ensure all React dependencies use the same version
+      plugins: [],
     },
   },
   build: {

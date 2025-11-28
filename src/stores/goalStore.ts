@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { Goal } from '@/types';
-import { STORAGE_KEYS } from '@/constants';
+import { STORAGE_KEYS } from '@/constants/storage';
 
 // Core goal atoms
 export const goalsAtom = atomWithStorage<Goal[]>(STORAGE_KEYS.GOALS, []);

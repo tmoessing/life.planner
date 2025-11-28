@@ -263,7 +263,6 @@ export function ImportanceView() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Importance List</h2>
             <p className="text-sm text-muted-foreground">
               Order your visions by importance. 
               <span className="hidden sm:inline"> Drag to reorder.</span>

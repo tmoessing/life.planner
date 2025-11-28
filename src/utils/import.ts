@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { googleSheetsService } from '@/services/googleSheetsService';
 import { syncService } from '@/services/syncService';
+import { applyDataMerge, type MergeOptions } from './dataMerge';
 
 export type ImportMode = 'merge' | 'overwrite';
 
@@ -15,6 +16,8 @@ export interface ImportOptions {
   importTraditions: boolean;
   importSprints: boolean;
   importRoles: boolean;
+  importClasses: boolean;
+  importAssignments: boolean;
   importSettings: boolean;
 }
 
@@ -29,6 +32,8 @@ export const defaultImportOptions: ImportOptions = {
   importTraditions: true,
   importSprints: false, // Usually don't import sprints as they're generated
   importRoles: true,
+  importClasses: true,
+  importAssignments: true,
   importSettings: false // Usually don't import settings to preserve user preferences
 };
 
@@ -45,7 +50,9 @@ export const parseCSVData = (csvContent: string) => {
     traditions: [],
     sprints: [],
     roles: [],
-    labels: []
+    labels: [],
+    classes: [],
+    assignments: []
   };
 
   let currentSection = '';
@@ -56,15 +63,14 @@ export const parseCSVData = (csvContent: string) => {
       // New section - handle both uppercase and lowercase
       currentSection = line.replace('=== ', '').replace(' ===', '').toLowerCase().trim();
       headers = [];
-      console.log('Found section:', currentSection);
     } else if (line.includes(',')) {
       const values = parseCSVLine(line);
       
       // Skip header rows (lines that start with the first column name)
       if (values[0] === 'Story' || values[0] === 'Goal' || values[0] === 'Project' || 
           values[0] === 'Vision' || values[0] === 'Bucketlist Item' || values[0] === 'Important Date' || 
-          values[0] === 'Tradition' || values[0] === 'Sprint' || values[0] === 'Role' || values[0] === 'Label') {
-        console.log('Skipping header row:', values[0]);
+          values[0] === 'Tradition' || values[0] === 'Sprint' || values[0] === 'Role' || values[0] === 'Label' ||
+          values[0] === 'Class' || values[0] === 'Assignment') {
         continue;
       }
       
@@ -101,26 +107,33 @@ export const parseCSVData = (csvContent: string) => {
         case 'sprints':
           sectionHeaders = ['Id', 'Iso Week', 'Year', 'Start Date', 'End Date', 'Created At', 'Updated At'];
           break;
+        case 'classes':
+          sectionHeaders = ['Title', 'Class Code', 'Semester', 'Year', 'Credit Hours', 'Class Type', 'Schedule', 'Assignment Ids', 'Created At', 'Updated At'];
+          break;
+        case 'assignments':
+          sectionHeaders = ['Class Id', 'Title', 'Type', 'Description', 'Due Date', 'Due Time', 'Status', 'Weight', 'Recurrence Pattern', 'Story Id', 'Created At', 'Updated At'];
+          break;
       }
 
       if (sectionHeaders.length > 0) {
         // Data row
         const rowData: any = {};
         sectionHeaders.forEach((header, index) => {
-          rowData[header.trim()] = (values[index] || '').trim();
+          const value = values[index];
+          // Preserve empty strings but trim whitespace
+          // Use the exact header name (with spaces) as the key
+          rowData[header] = value !== undefined && value !== null ? String(value).trim() : '';
         });
 
         // Add to appropriate section
         switch (currentSection) {
           case 'stories':
             if (rowData.Title) {
-              console.log('Parsing story:', rowData.Title);
               data.stories.push(parseStoryData(rowData));
             }
             break;
           case 'goals':
             if (rowData.Title) {
-              console.log('Parsing goal:', rowData.Title);
               data.goals.push(parseGoalData(rowData));
             }
             break;
@@ -136,7 +149,8 @@ export const parseCSVData = (csvContent: string) => {
             break;
           case 'bucketlist':
             if (rowData.Title) {
-              data.bucketlist.push(parseBucketlistData(rowData));
+              const bucketlistItem = parseBucketlistData(rowData);
+              data.bucketlist.push(bucketlistItem);
             }
             break;
           case 'important dates':
@@ -164,22 +178,20 @@ export const parseCSVData = (csvContent: string) => {
               data.labels.push(parseLabelData(rowData));
             }
             break;
+          case 'classes':
+            if (rowData.Title) {
+              data.classes.push(parseClassData(rowData));
+            }
+            break;
+          case 'assignments':
+            if (rowData.Title) {
+              data.assignments.push(parseAssignmentData(rowData));
+            }
+            break;
         }
       }
     }
   }
-
-  console.log('Parsed data summary:', {
-    stories: data.stories.length,
-    goals: data.goals.length,
-    projects: data.projects.length,
-    visions: data.visions.length,
-    bucketlist: data.bucketlist.length,
-    importantDates: data.importantDates.length,
-    traditions: data.traditions.length,
-    roles: data.roles.length,
-    labels: data.labels.length
-  });
 
   return data;
 };
@@ -213,6 +225,8 @@ const parseCSVLine = (line: string): string[] => {
   return result;
 };
 
+import { generateId, parseStringArray, parseIntSafe, parseBoolean, parseOptionalString } from './importParsers';
+
 // Parse different data types
 const parseStoryData = (row: any) => ({
   id: generateId(),
@@ -221,15 +235,15 @@ const parseStoryData = (row: any) => ({
   priority: row['Priority'] || 'Q4',
   type: row['Type'] || 'Intellectual',
   size: row['Size'] || 'M',
-  weight: parseInt(row['Weight']) || 1,
+  weight: parseIntSafe(row['Weight'], 1),
   status: row['Status'] || 'backlog',
   sprintId: row['SprintId'] || undefined,
   roleId: row['RoleId'] || undefined,
   visionId: row['VisionId'] || undefined,
   projectId: row['ProjectId'] || undefined,
   goalId: row['GoalId'] || undefined,
-  labels: row['Labels'] ? row['Labels'].split('; ').filter(Boolean) : [],
-  taskCategories: row['Task Categories'] ? row['Task Categories'].split('; ').filter(Boolean) : [],
+  labels: parseStringArray(row['Labels']),
+  taskCategories: parseStringArray(row['Task Categories']),
   dueDate: row['Due Date'] || undefined,
   scheduledDate: row['Scheduled Date'] || undefined,
   location: row['Location'] || undefined,
@@ -247,7 +261,7 @@ const parseGoalData = (row: any) => ({
   priority: row['Priority'] || 'medium',
   status: row['Status'] || 'backlog',
   targetDate: row['Target Date'] || undefined,
-  storyIds: row['Story Ids'] ? row['Story Ids'].split('; ').filter(Boolean) : [],
+  storyIds: parseStringArray(row['Story Ids']),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });
@@ -260,7 +274,7 @@ const parseProjectData = (row: any) => ({
   priority: row['Priority'] || 'medium',
   startDate: row['Start Date'] || undefined,
   endDate: row['End Date'] || undefined,
-  storyIds: row['Story Ids'] ? row['Story Ids'].split('; ').filter(Boolean) : [],
+  storyIds: parseStringArray(row['Story Ids']),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });
@@ -271,7 +285,7 @@ const parseVisionData = (row: any) => ({
   description: row['Description'] || '',
   type: row['Type'] || 'Spiritual',
   priority: row['Priority'] || 'medium',
-  order: parseInt(row['Order']) || 0,
+  order: parseIntSafe(row['Order']),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });
@@ -293,7 +307,7 @@ const parseBucketlistData = (row: any) => {
     id: generateId(),
     title: row['Title'] || '',
     description: row['Description'] || '',
-    completed: row['Completed'] === 'true' || row['Completed'] === true,
+    completed: parseBoolean(row['Completed']),
     completedAt: row['Completed At'] || undefined,
     category: row['Category'] || undefined,
     bucketlistType,
@@ -303,11 +317,11 @@ const parseBucketlistData = (row: any) => {
     roleId: row['Role Id'] || undefined,
     visionId: row['Vision Id'] || undefined,
     dueDate: row['Due Date'] || undefined,
-    order: parseInt(row['Order']) || 0,
-    country: row['Country'] || undefined,
-    state: row['State'] || undefined,
-    city: row['City'] || undefined,
-    experienceCategory: row['Experience Category'] || undefined,
+    order: parseIntSafe(row['Order']),
+    country: parseOptionalString(row['Country']),
+    state: parseOptionalString(row['State']),
+    city: parseOptionalString(row['City']),
+    experienceCategory: parseOptionalString(row['Experience Category']),
     createdAt: row['Created At'] || new Date().toISOString(),
     updatedAt: row['Updated At'] || new Date().toISOString()
   };
@@ -332,8 +346,8 @@ const parseTraditionData = (row: any) => ({
 
 const parseSprintData = (row: any) => ({
   id: row['Id'] || generateId(),
-  isoWeek: parseInt(row['Iso Week']) || 1,
-  year: parseInt(row['Year']) || new Date().getFullYear(),
+  isoWeek: parseIntSafe(row['Iso Week'], 1),
+  year: parseIntSafe(row['Year'], new Date().getFullYear()),
   startDate: row['Start Date'] || '',
   endDate: row['End Date'] || '',
   createdAt: new Date().toISOString(),
@@ -352,108 +366,80 @@ const parseLabelData = (row: any) => ({
   color: row['Color'] || '#6B7280'
 });
 
-// Generate a simple ID
-const generateId = () => {
-  return Math.random().toString(36).substr(2, 9);
+const parseClassData = (row: any) => {
+  let schedule: Array<{ time: string; endTime?: string; days: string[]; startDate?: string; endDate?: string }> = [];
+  try {
+    if (row['Schedule']) {
+      schedule = JSON.parse(row['Schedule']);
+    }
+  } catch (e) {
+    // If parsing fails, leave as empty array
+    schedule = [];
+  }
+
+  return {
+    id: generateId(),
+    title: row['Title'] || '',
+    classCode: row['Class Code'] || '',
+    semester: row['Semester'] || 'Fall',
+    year: parseIntSafe(row['Year'], new Date().getFullYear()),
+    creditHours: parseIntSafe(row['Credit Hours'], 3),
+    classType: row['Class Type'] || 'Major',
+    schedule: schedule,
+    assignmentIds: parseStringArray(row['Assignment Ids']),
+    createdAt: row['Created At'] || new Date().toISOString(),
+    updatedAt: row['Updated At'] || new Date().toISOString()
+  };
+};
+
+const parseAssignmentData = (row: any) => {
+  let recurrencePattern: any = undefined;
+  try {
+    if (row['Recurrence Pattern']) {
+      recurrencePattern = JSON.parse(row['Recurrence Pattern']);
+    }
+  } catch (e) {
+    // If parsing fails, leave as undefined
+    recurrencePattern = undefined;
+  }
+
+  return {
+    id: generateId(),
+    classId: row['Class Id'] || '',
+    title: row['Title'] || '',
+    type: row['Type'] || 'homework',
+    description: row['Description'] || undefined,
+    dueDate: row['Due Date'] || undefined,
+    dueTime: row['Due Time'] || undefined,
+    status: row['Status'] || 'not-started',
+    weight: parseIntSafe(row['Weight'], 3) as 1 | 3 | 5 | 8 | 13 | 21,
+    recurrencePattern: recurrencePattern,
+    storyId: row['Story Id'] || undefined,
+    createdAt: row['Created At'] || new Date().toISOString(),
+    updatedAt: row['Updated At'] || new Date().toISOString()
+  };
 };
 
 // Merge data with existing data
 export const mergeData = (existingData: any, importedData: any, options: ImportOptions) => {
-  const result = { ...existingData };
+  // Convert ImportOptions to MergeOptions format
+  const mergeOptions: MergeOptions = {
+    mode: options.mode,
+    importStories: options.importStories,
+    importGoals: options.importGoals,
+    importProjects: options.importProjects,
+    importVisions: options.importVisions,
+    importBucketlist: options.importBucketlist,
+    importImportantDates: options.importImportantDates,
+    importTraditions: options.importTraditions,
+    importSprints: options.importSprints,
+    importRoles: options.importRoles,
+    importClasses: options.importClasses,
+    importAssignments: options.importAssignments,
+    importSettings: options.importSettings
+  };
 
-  if (options.importStories && importedData.stories) {
-    if (options.mode === 'overwrite') {
-      result.stories = importedData.stories;
-    } else {
-      // Merge: combine and deduplicate by title
-      const existingTitles = new Set(existingData.stories.map((s: any) => s.title));
-      const newStories = importedData.stories.filter((s: any) => !existingTitles.has(s.title));
-      result.stories = [...existingData.stories, ...newStories];
-    }
-  }
-
-  if (options.importGoals && importedData.goals) {
-    if (options.mode === 'overwrite') {
-      result.goals = importedData.goals;
-    } else {
-      const existingTitles = new Set(existingData.goals.map((g: any) => g.title));
-      const newGoals = importedData.goals.filter((g: any) => !existingTitles.has(g.title));
-      result.goals = [...existingData.goals, ...newGoals];
-    }
-  }
-
-  if (options.importProjects && importedData.projects) {
-    if (options.mode === 'overwrite') {
-      result.projects = importedData.projects;
-    } else {
-      const existingNames = new Set(existingData.projects.map((p: any) => p.name));
-      const newProjects = importedData.projects.filter((p: any) => !existingNames.has(p.name));
-      result.projects = [...existingData.projects, ...newProjects];
-    }
-  }
-
-  if (options.importVisions && importedData.visions) {
-    if (options.mode === 'overwrite') {
-      result.visions = importedData.visions;
-    } else {
-      const existingTitles = new Set(existingData.visions.map((v: any) => v.title));
-      const newVisions = importedData.visions.filter((v: any) => !existingTitles.has(v.title));
-      result.visions = [...existingData.visions, ...newVisions];
-    }
-  }
-
-  if (options.importBucketlist && importedData.bucketlist) {
-    if (options.mode === 'overwrite') {
-      result.bucketlist = importedData.bucketlist;
-    } else {
-      const existingTitles = new Set(existingData.bucketlist.map((b: any) => b.title));
-      const newBucketlist = importedData.bucketlist.filter((b: any) => !existingTitles.has(b.title));
-      result.bucketlist = [...existingData.bucketlist, ...newBucketlist];
-    }
-  }
-
-  if (options.importImportantDates && importedData.importantDates) {
-    if (options.mode === 'overwrite') {
-      result.importantDates = importedData.importantDates;
-    } else {
-      const existingTitles = new Set(existingData.importantDates.map((d: any) => d.title));
-      const newDates = importedData.importantDates.filter((d: any) => !existingTitles.has(d.title));
-      result.importantDates = [...existingData.importantDates, ...newDates];
-    }
-  }
-
-  if (options.importTraditions && importedData.traditions) {
-    if (options.mode === 'overwrite') {
-      result.traditions = importedData.traditions;
-    } else {
-      const existingTitles = new Set(existingData.traditions.map((t: any) => t.title));
-      const newTraditions = importedData.traditions.filter((t: any) => !existingTitles.has(t.title));
-      result.traditions = [...existingData.traditions, ...newTraditions];
-    }
-  }
-
-  if (options.importSprints && importedData.sprints) {
-    if (options.mode === 'overwrite') {
-      result.sprints = importedData.sprints;
-    } else {
-      const existingIds = new Set(existingData.sprints.map((s: any) => s.id));
-      const newSprints = importedData.sprints.filter((s: any) => !existingIds.has(s.id));
-      result.sprints = [...existingData.sprints, ...newSprints];
-    }
-  }
-
-  if (options.importRoles && importedData.roles) {
-    if (options.mode === 'overwrite') {
-      result.roles = importedData.roles;
-    } else {
-      const existingNames = new Set(existingData.roles.map((r: any) => r.name));
-      const newRoles = importedData.roles.filter((r: any) => !existingNames.has(r.name));
-      result.roles = [...existingData.roles, ...newRoles];
-    }
-  }
-
-
-  return result;
+  return applyDataMerge(existingData, importedData, mergeOptions);
 };
 
 // Import data from Google Sheets
@@ -497,6 +483,12 @@ export const importFromGoogleSheets = async (options: ImportOptions = defaultImp
     }
     if (options.importSprints) {
       filteredData.sprints = sheetData.sprints || [];
+    }
+    if (options.importClasses) {
+      filteredData.classes = sheetData.classes || [];
+    }
+    if (options.importAssignments) {
+      filteredData.assignments = sheetData.assignments || [];
     }
     if (options.importSettings) {
       filteredData.settings = sheetData.settings || {};

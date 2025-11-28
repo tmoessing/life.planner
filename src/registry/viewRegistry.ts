@@ -24,6 +24,7 @@ const viewComponents: Record<ViewType, ComponentType> = {
   'important-dates': lazy(() => import('@/components/views/ImportantDatesView').then(m => ({ default: m.ImportantDatesView }))),
   'traditions': lazy(() => import('@/components/views/TraditionsView').then(m => ({ default: m.TraditionsView }))),
   'goal-boards': lazy(() => import('@/components/views/GoalBoardsView').then(m => ({ default: m.GoalBoardsView }))),
+  'classes': lazy(() => import('@/components/views/ClassView').then(m => ({ default: m.ClassView }))),
   'settings': lazy(() => import('@/components/views/SettingsView').then(m => ({ default: m.SettingsView }))),
 };
 

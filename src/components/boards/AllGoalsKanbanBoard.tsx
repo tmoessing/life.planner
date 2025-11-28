@@ -5,7 +5,8 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Edit, Trash2 } from 'lucide-react';
+import { FilterBar } from '@/components/forms/FilterBar';
+import { Plus, Target, Edit, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { 
   goalsAtom, 
   updateGoalAtom
@@ -14,10 +15,9 @@ import { useGoalSettings } from '@/utils/settingsMirror';
 import type { Goal } from '@/types';
 
 // Draggable Goal Card Component
-function DraggableGoalCard({ goal, onEdit, onDelete }: { 
+function DraggableGoalCard({ goal, onEdit }: { 
   goal: Goal; 
   onEdit: (goal: Goal) => void; 
-  onDelete: (goalId: string) => void;
 }) {
   const goalSettings = useGoalSettings();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -92,12 +92,21 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
       {...attributes}
       {...listeners}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
-        <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-1.5 line-clamp-1">
-          <Target className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
-          <span className="truncate">{goal.title}</span>
-        </CardTitle>
-        <div className="flex items-center gap-0.5 flex-shrink-0">
+      {/* Mobile: Single row layout */}
+      <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
+        <Target className="h-3 w-3 text-blue-600 flex-shrink-0" />
+        <span className="text-xs font-medium truncate flex-1 min-w-0">
+          {goal.title}
+        </span>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap" style={getStatusColor(goal.status)}>
+            {getStatusText(goal.status).substring(0, 4)}
+          </Badge>
+          {goal.priority && (
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap" style={getPriorityColor(goal.priority)}>
+              {goal.priority}
+            </Badge>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -105,52 +114,56 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
               e.stopPropagation();
               onEdit(goal);
             }}
-            className="h-5 w-5 p-0 sm:h-6 sm:w-6"
+            className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
           >
-            <Edit className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm('Are you sure you want to delete this goal?')) {
-                onDelete(goal.id);
-              }
-            }}
-            className="h-5 w-5 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 sm:h-6 sm:w-6"
-          >
-            <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+            <Edit className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-1.5 px-3 pb-3">
-        {/* Badges */}
+      </div>
+
+      {/* Desktop: Compact card layout */}
+      <div className="hidden sm:block">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0.5 px-2 pt-2">
+          <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-1 line-clamp-1">
+            <Target className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600 flex-shrink-0" />
+            <span className="truncate">{goal.title}</span>
+          </CardTitle>
+          <div className="flex items-center gap-0.5 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(goal);
+              }}
+              className="h-4 w-4 p-0 sm:h-5 sm:w-5"
+            >
+              <Edit className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-0.5 px-2 pb-1.5">
+        {/* Badges - compact */}
         <div className="flex flex-wrap gap-0.5">
-          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getStatusColor(goal.status)}>
-            {getStatusText(goal.status)}
-          </Badge>
-          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getCategoryColor(goal.category)}>
-            {goal.category}
-          </Badge>
-          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getGoalTypeColor(goal.goalType)}>
-            {goal.goalType === 'target' ? 'Target' : 'Lifestyle/Value'}
+          <Badge variant="outline" className="text-[9px] px-1 py-0" style={getStatusColor(goal.status)}>
+            {getStatusText(goal.status).substring(0, 4)}
           </Badge>
           {goal.priority && (
-            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getPriorityColor(goal.priority)}>
+            <Badge variant="outline" className="text-[9px] px-1 py-0" style={getPriorityColor(goal.priority)}>
               {goal.priority}
             </Badge>
           )}
         </div>
 
         {goal.description && (
-          <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{goal.description}</p>
+          <p className="text-[9px] text-muted-foreground line-clamp-1">{goal.description}</p>
         )}
 
-        <div className="text-[10px] sm:text-xs text-muted-foreground">
-          Stories: {goal.storyIds?.length || 0}
+        <div className="text-[9px] text-muted-foreground">
+          {goal.storyIds?.length || 0} stories
         </div>
-      </CardContent>
+        </CardContent>
+      </div>
     </Card>
   );
 }
@@ -159,13 +172,11 @@ function DraggableGoalCard({ goal, onEdit, onDelete }: {
 function DroppableColumn({ 
   status, 
   goals, 
-  onEdit, 
-  onDelete
+  onEdit
 }: { 
   status: { id: string; name: string }; 
   goals: Goal[];
   onEdit: (goal: Goal) => void;
-  onDelete: (goalId: string) => void;
 }) {
   const goalSettings = useGoalSettings();
   const { isOver, setNodeRef } = useDroppable({
@@ -208,7 +219,6 @@ function DroppableColumn({
               key={goal.id}
               goal={goal}
               onEdit={onEdit}
-              onDelete={onDelete}
             />
           ))
         )}
@@ -229,6 +239,9 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
   const [, updateGoal] = useAtom(updateGoalAtom);
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -278,40 +291,148 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold">Goals</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your goals and track their progress
-          </p>
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-lg sm:text-xl font-bold">Goals</h2>
         </div>
-        <Button onClick={onAddGoal} className="gap-2 w-full sm:w-auto">
-          <Plus className="h-4 w-4" />
-          New Goal
-        </Button>
+
+        {/* Search, Filter, and Add Goal Buttons - Right aligned */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showSearch ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setShowSearch(!showSearch);
+              if (showSearch) setShowFilter(false);
+            }}
+            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden sm:inline">Search</span>
+          </Button>
+          <Button
+            variant={showFilter ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setShowFilter(!showFilter);
+              if (showFilter) setShowSearch(false);
+            }}
+            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+          >
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filter</span>
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onAddGoal}
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Goal</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-6">
+      {/* Search Panel */}
+      {showSearch && (
+        <div className="mb-4">
+          <FilterBar showSearchOnly={true} />
+        </div>
+      )}
+
+      {/* Filter Panel */}
+      {showFilter && (
+        <div className="mb-4">
+          <FilterBar showFilterOnly={true} />
+        </div>
+      )}
+
+      {/* Column Header Row - Desktop */}
+      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
         {statusColumns.map((column) => {
           const goalCount = goalsByStatus[column.id]?.length || 0;
           const statusColor = goalSettings.getStatusColor(column.id);
-          
           return (
-            <div key={column.id} className="bg-card p-3 sm:p-4 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: statusColor }}
-                  ></div>
-                  <span className="text-xs sm:text-sm font-medium">{column.name}</span>
-                </div>
-                <span className="text-lg sm:text-2xl font-bold">{goalCount}</span>
-              </div>
+            <div
+              key={column.id}
+              onClick={() => {
+                const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
+                if (columnElement) {
+                  columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+              }}
+              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ backgroundColor: `${statusColor}20` }}
+            >
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: statusColor }}
+              />
+              <span className="text-sm font-medium" style={{ color: statusColor }}>
+                {column.name}
+              </span>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {goalCount}
+              </span>
             </div>
           );
         })}
+      </div>
+
+      {/* Column Header Row with Navigation Arrows - Mobile */}
+      <div className="sm:hidden mb-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
+            disabled={currentMobileColumnIndex === 0}
+            className="flex-shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 grid grid-cols-3 gap-1.5">
+            {statusColumns.map((column, index) => {
+              const goalCount = goalsByStatus[column.id]?.length || 0;
+              const statusColor = goalSettings.getStatusColor(column.id);
+              const isActive = statusColumns[currentMobileColumnIndex]?.id === column.id;
+              return (
+                <div
+                  key={column.id}
+                  onClick={() => setCurrentMobileColumnIndex(index)}
+                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                    isActive ? `ring-2 ring-offset-1 ring-[${statusColor}]` : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: `${statusColor}20`
+                  }}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: statusColor }}
+                  />
+                  <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
+                    {column.name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                    {goalCount}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentMobileColumnIndex(prev => Math.min(statusColumns.length - 1, prev + 1))}
+            disabled={currentMobileColumnIndex === statusColumns.length - 1}
+            className="flex-shrink-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Kanban Board */}
@@ -321,14 +442,30 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
           onDragEnd={handleDragEnd}
           sensors={sensors}
         >
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 h-full overflow-x-auto">
+          {/* Desktop Grid Layout */}
+          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
             {statusColumns.map((status) => (
-              <div key={status.id} className="flex-1 min-w-0 sm:min-w-[200px]">
+              <div key={status.id} className="min-w-0" data-column-id={status.id}>
                 <DroppableColumn
                   status={status}
                   goals={goalsByStatus[status.id] || []}
                   onEdit={onEditGoal}
-                  onDelete={onDeleteGoal}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile Single Column Layout */}
+          <div className="sm:hidden">
+            {statusColumns.map((status, index) => (
+              <div
+                key={status.id}
+                className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
+              >
+                <DroppableColumn
+                  status={status}
+                  goals={goalsByStatus[status.id] || []}
+                  onEdit={onEditGoal}
                 />
               </div>
             ))}
@@ -340,7 +477,6 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
                 <DraggableGoalCard
                   goal={activeGoal}
                   onEdit={onEditGoal}
-                  onDelete={onDeleteGoal}
                 />
               </div>
             ) : null}

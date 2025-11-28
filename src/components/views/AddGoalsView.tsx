@@ -265,47 +265,396 @@ export function AddGoalsView() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-2 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
         <div>
-          <h2 className="text-lg sm:text-2xl font-bold">Add Goals</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-base sm:text-2xl font-bold">Add Goals</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             Batch add multiple goals to track your progress
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-row gap-1.5 sm:gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={addNewGoalForm}
-            className="gap-2"
+            size="sm"
+            className="gap-1 sm:gap-2 flex-1 sm:flex-initial touch-target h-9 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm px-2 sm:px-4"
           >
-            <Plus className="h-4 w-4" />
-            Add Goal
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Add Goal</span>
           </Button>
           
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || goalForms.every(form => form.title.trim() === '')}
-            className="gap-2"
+            size="sm"
+            className="gap-1 sm:gap-2 flex-1 sm:flex-initial touch-target h-9 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm px-2 sm:px-4"
             title="Add goals (Ctrl+Enter)"
           >
-            <Save className="h-4 w-4" />
-            {isSubmitting ? 'Adding...' : `Add ${goalForms.filter(f => f.title.trim()).length} Goals`}
-            <span className="text-xs opacity-70 ml-1">(Ctrl+Enter)</span>
+            <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">
+              {isSubmitting ? 'Adding...' : `Add ${goalForms.filter(f => f.title.trim()).length} Goals`}
+            </span>
+            <span className="sm:hidden">
+              {isSubmitting ? 'Adding...' : `Add ${goalForms.filter(f => f.title.trim()).length}`}
+            </span>
+            <span className="hidden sm:inline text-xs opacity-70 ml-1">(Ctrl+Enter)</span>
           </Button>
         </div>
       </div>
 
-      {/* Goal Forms - Table View */}
-      <Card>
+      {/* Default Options - Mobile */}
+      <Card className="sm:hidden">
+        <CardHeader>
+          <CardTitle className="text-base">Default Options</CardTitle>
+          <p className="text-xs text-muted-foreground">Set defaults for all new goals</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Category</label>
+              <Select
+                value={defaultOptions.category}
+                onValueChange={(value) => handleDefaultOptionChange('category', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {settings.goalCategories?.map((category) => (
+                    <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Priority</label>
+              <Select
+                value={defaultOptions.priority}
+                onValueChange={(value) => handleDefaultOptionChange('priority', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+              <Select
+                value={defaultOptions.status}
+                onValueChange={(value) => handleDefaultOptionChange('status', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="icebox">Icebox</SelectItem>
+                  <SelectItem value="backlog">Backlog</SelectItem>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Role</label>
+              <Select
+                value={defaultOptions.roleId}
+                onValueChange={(value) => handleDefaultOptionChange('roleId', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Goal Forms - Mobile Card View */}
+      <div className="sm:hidden space-y-3">
+        {goalForms.map((goal, index) => (
+          <Card key={index} className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Title *</label>
+                  <Input
+                    ref={getFieldRef(index, 'title')}
+                    value={goal.title}
+                    onChange={(e) => updateGoalForm(index, 'title', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, index, 'title')}
+                    placeholder="Enter goal title..."
+                    className="w-full text-sm min-h-[44px]"
+                  />
+                </div>
+                {goalForms.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeGoalForm(index)}
+                    className="h-10 w-10 p-0 text-red-600 hover:text-red-700 flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
+                <Textarea
+                  ref={getFieldRef(index, 'description')}
+                  value={goal.description}
+                  onChange={(e) => updateGoalForm(index, 'description', e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, index, 'description')}
+                  placeholder="Description (optional)..."
+                  className="w-full text-sm min-h-[60px] resize-none"
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Category</label>
+                  <Select
+                    value={goal.category}
+                    onValueChange={(value) => updateGoalForm(index, 'category', value)}
+                    data-field="category"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {goalSettings.goalTypes?.map((goalType) => (
+                        <SelectItem key={goalType.name} value={goalType.name}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: goalType.color }}
+                            />
+                            {goalType.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Goal Type</label>
+                  <Select
+                    value={goal.goalType}
+                    onValueChange={(value) => updateGoalForm(index, 'goalType', value)}
+                    data-field="goalType"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Select Goal Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {settings.goalCategories?.map((category) => (
+                        <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            {category.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Goal Category</label>
+                <Select
+                  value={goal.goalCategory}
+                  onValueChange={(value) => updateGoalForm(index, 'goalCategory', value)}
+                  data-field="goalCategory"
+                >
+                  <SelectTrigger className="w-full h-10 text-sm">
+                    <SelectValue placeholder="Select Goal Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {settings.goalCategories?.map((category) => (
+                      <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Priority</label>
+                  <Select
+                    value={goal.priority}
+                    onValueChange={(value) => updateGoalForm(index, 'priority', value)}
+                    data-field="priority"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Select Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        { value: 'low', label: 'Low', color: goalSettings.getPriorityColor('low') },
+                        { value: 'medium', label: 'Medium', color: goalSettings.getPriorityColor('medium') },
+                        { value: 'high', label: 'High', color: goalSettings.getPriorityColor('high') }
+                      ].map((priority) => (
+                        <SelectItem key={priority.value} value={priority.value}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: priority.color }}
+                            />
+                            {priority.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+                  <Select
+                    value={goal.status}
+                    onValueChange={(value) => updateGoalForm(index, 'status', value)}
+                    data-field="status"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {settings.goalStatuses?.map((status) => {
+                        const statusId = status.name.toLowerCase().replace(' ', '-');
+                        return (
+                          <SelectItem key={statusId} value={statusId}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: status.color }}
+                              />
+                              {status.name}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Role</label>
+                  <Select
+                    value={goal.roleId || 'none'}
+                    onValueChange={(value) => updateGoalForm(index, 'roleId', value === 'none' ? undefined : value)}
+                    data-field="role"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Role..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Role</SelectItem>
+                      {roles.map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Vision</label>
+                  <Select
+                    value={goal.visionId || 'none'}
+                    onValueChange={(value) => updateGoalForm(index, 'visionId', value === 'none' ? undefined : value)}
+                    data-field="vision"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Vision..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Vision</SelectItem>
+                      {visions.map((vision) => (
+                        <SelectItem key={vision.id} value={vision.id}>
+                          {vision.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Project</label>
+                <Select
+                  value={goal.projectId || 'none'}
+                  onValueChange={(value) => updateGoalForm(index, 'projectId', value === 'none' ? undefined : value)}
+                  data-field="project"
+                >
+                  <SelectTrigger className="w-full h-10 text-sm">
+                    <SelectValue placeholder="Project..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Project</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Goal Forms - Desktop Table View */}
+      <Card className="hidden sm:block">
         <CardHeader>
           <CardTitle className="text-lg">Goals to Add</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto mobile-scroll">
+            <table className="w-full min-w-[800px]">
               <thead className="border-b">
                 {/* Default Options Row */}
                 <tr className="bg-muted/30">
@@ -358,14 +707,14 @@ export function AddGoalsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          {settings.goalCategories?.map((category) => (
-                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                          {goalSettings.goalTypes?.map((goalType) => (
+                            <SelectItem key={goalType.name} value={goalType.name}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full" 
-                                  style={{ backgroundColor: category.color }}
+                                  style={{ backgroundColor: goalType.color }}
                                 />
-                                {category.name}
+                                {goalType.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -385,14 +734,14 @@ export function AddGoalsView() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          {goalSettings.goalTypes?.map((goalType) => (
-                            <SelectItem key={goalType.name} value={goalType.name}>
+                          {settings.goalCategories?.map((category) => (
+                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full" 
-                                  style={{ backgroundColor: goalType.color }}
+                                  style={{ backgroundColor: category.color }}
                                 />
-                                {goalType.name}
+                                {category.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -553,14 +902,14 @@ export function AddGoalsView() {
                           <SelectValue placeholder="Select Category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {goalSettings.goalTypes?.map((goalType) => (
-                            <SelectItem key={goalType.name} value={goalType.name}>
+                          {settings.goalCategories?.map((category) => (
+                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: goalType.color }}
+                                  style={{ backgroundColor: category.color }}
                                 />
-                                {goalType.name}
+                                {category.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -589,14 +938,14 @@ export function AddGoalsView() {
                           <SelectValue placeholder="Select Goal Type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {settings.goalCategories?.map((category) => (
-                            <SelectItem key={category.name} value={category.name.toLowerCase().replace('/', '-')}>
+                          {goalSettings.goalTypes?.map((goalType) => (
+                            <SelectItem key={goalType.name} value={goalType.name}>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: category.color }}
+                                  style={{ backgroundColor: goalType.color }}
                                 />
-                                {category.name}
+                                {goalType.name}
                               </div>
                             </SelectItem>
                           ))}

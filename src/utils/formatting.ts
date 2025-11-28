@@ -1,5 +1,6 @@
 /**
  * Display formatting utilities
+ * Formatting functions for dates, durations, locations, and other display values
  */
 
 export const formatDate = (date: string | Date) => {

@@ -248,7 +248,6 @@ export function ImportantDatesView() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Important Dates</h2>
             <p className="text-sm text-muted-foreground">
               Track your important dates and events
             </p>
@@ -388,47 +387,76 @@ export function ImportantDatesView() {
                   backgroundColor: `${categoryColor}10`
                 }}
               >
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base sm:text-lg break-words">{date.title}</h3>
-                      <p className="text-sm sm:text-base text-muted-foreground">
-                        <span className="hidden sm:inline">{formatDate(date.date, date.endDate)}</span>
-                        <span className="sm:hidden">{formatDateMobile(date.date, date.endDate)}</span>
-                      </p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        {getDaysUntil(date.date, date.endDate)}
-                      </p>
-                    </div>
-                    <div className="flex gap-1 sm:gap-2 justify-end sm:justify-start">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => addToGoogleCalendar(date.title, date.date, date.endDate)}
-                        className="text-blue-600 hover:text-blue-700 h-8 w-8 p-0 touch-manipulation"
-                        title="Add to Google Calendar"
-                      >
-                        <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditDate(date)}
-                        className="h-8 w-8 p-0 touch-manipulation"
-                      >
-                        <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteDate(date.id)}
-                        className="text-red-600 hover:text-red-700 h-8 w-8 p-0 touch-manipulation"
-                      >
-                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                    </div>
+                {/* Mobile: Single row layout */}
+                <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
+                  <div 
+                    className="w-1 h-6 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: categoryColor }}
+                  />
+                  <span className="text-xs font-medium truncate flex-1 min-w-0">
+                    {date.title}
+                  </span>
+                  <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                    <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                      {formatDateMobile(date.date, date.endDate)}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                      {getDaysUntil(date.date, date.endDate)}
+                    </span>
                   </div>
-                </CardContent>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditDate(date)}
+                    className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
+                  >
+                    <Edit2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                  </Button>
+                </div>
+
+                {/* Desktop: Compact card layout */}
+                <div className="hidden sm:block">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg break-words">{date.title}</h3>
+                        <p className="text-sm sm:text-base text-muted-foreground">
+                          {formatDate(date.date, date.endDate)}
+                        </p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          {getDaysUntil(date.date, date.endDate)}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 sm:gap-2 justify-end sm:justify-start">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => addToGoogleCalendar(date.title, date.date, date.endDate)}
+                          className="text-blue-600 hover:text-blue-700 h-8 w-8 p-0 touch-manipulation"
+                          title="Add to Google Calendar"
+                        >
+                          <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditDate(date)}
+                          className="h-8 w-8 p-0 touch-manipulation"
+                        >
+                          <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteDate(date.id)}
+                          className="text-red-600 hover:text-red-700 h-8 w-8 p-0 touch-manipulation"
+                        >
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </div>
               </Card>
             );
           })

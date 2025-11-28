@@ -59,6 +59,8 @@ export const exportAllData = (data: {
   labels: any[];
   importantDates: any[];
   traditions: any[];
+  classes?: any[];
+  assignments?: any[];
 }) => {
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
   
@@ -102,6 +104,14 @@ export const exportAllData = (data: {
   if (data.traditions.length > 0) {
     exportToCSV(data.traditions, `traditions_${timestamp}`);
   }
+  
+  if (data.classes && data.classes.length > 0) {
+    exportToCSV(data.classes, `classes_${timestamp}`);
+  }
+  
+  if (data.assignments && data.assignments.length > 0) {
+    exportToCSV(data.assignments, `assignments_${timestamp}`);
+  }
 };
 
 // Create a comprehensive Excel-like export with multiple sheets
@@ -116,6 +126,8 @@ export const exportToExcel = (data: {
   labels: any[];
   importantDates: any[];
   traditions: any[];
+  classes?: any[];
+  assignments?: any[];
 }) => {
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
   
@@ -272,6 +284,42 @@ export const exportToExcel = (data: {
         label.name || '',
         label.color || ''
       ])
+    ] : []),
+    
+    // Classes section
+    ...(data.classes && data.classes.length > 0 ? [
+      ['=== CLASSES ==='],
+      ...data.classes.map(cls => [
+        cls.title || '',
+        cls.classCode || '',
+        cls.semester || '',
+        cls.year || '',
+        cls.creditHours || '',
+        cls.classType || '',
+        cls.schedule ? JSON.stringify(cls.schedule) : '',
+        cls.assignmentIds?.join('; ') || '',
+        cls.createdAt || '',
+        cls.updatedAt || ''
+      ])
+    ] : []),
+    
+    // Assignments section
+    ...(data.assignments && data.assignments.length > 0 ? [
+      ['=== ASSIGNMENTS ==='],
+      ...data.assignments.map(assignment => [
+        assignment.classId || '',
+        assignment.title || '',
+        assignment.type || '',
+        assignment.description || '',
+        assignment.dueDate || '',
+        assignment.dueTime || '',
+        assignment.status || '',
+        assignment.weight || '',
+        assignment.recurrencePattern ? JSON.stringify(assignment.recurrencePattern) : '',
+        assignment.storyId || '',
+        assignment.createdAt || '',
+        assignment.updatedAt || ''
+      ])
     ] : [])
   ];
   
@@ -309,6 +357,8 @@ export const exportToGoogleSheets = async (data: {
   labels: any[];
   importantDates: any[];
   traditions: any[];
+  classes?: any[];
+  assignments?: any[];
   settings: any;
 }): Promise<{ success: boolean; sheetUrl?: string; error?: string }> => {
   try {
@@ -327,6 +377,8 @@ export const exportToGoogleSheets = async (data: {
       importantDates: data.importantDates,
       traditions: data.traditions,
       sprints: data.sprints,
+      classes: data.classes || [],
+      assignments: data.assignments || [],
       settings: data.settings
     };
 
@@ -359,6 +411,8 @@ export const exportToNewGoogleSheet = async (data: {
   labels: any[];
   importantDates: any[];
   traditions: any[];
+  classes?: any[];
+  assignments?: any[];
   settings: any;
 }): Promise<{ success: boolean; sheetUrl?: string; error?: string }> => {
   try {
@@ -397,6 +451,8 @@ export const exportToNewGoogleSheet = async (data: {
       importantDates: data.importantDates,
       traditions: data.traditions,
       sprints: data.sprints,
+      classes: data.classes || [],
+      assignments: data.assignments || [],
       settings: data.settings
     };
 

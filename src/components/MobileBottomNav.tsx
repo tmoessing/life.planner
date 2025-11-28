@@ -1,26 +1,34 @@
 import React from 'react';
+import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
-import { Home, Target, BookOpen, FolderOpen, Settings, Calendar } from 'lucide-react';
+import { Home, Target, BookOpen, FolderOpen, Calendar, GraduationCap } from 'lucide-react';
 import type { ViewType } from '@/constants/views';
+import { settingsAtom } from '@/stores/settingsStore';
 
 interface MobileBottomNavProps {
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
 }
 
-const mobileNavItems = [
-  { id: 'today', label: 'Today', icon: Calendar },
-  { id: 'bucketlist', label: 'Bucketlist', icon: Home },
-  { id: 'goals', label: 'Goals', icon: Target },
-  { id: 'sprint', label: 'Stories', icon: BookOpen },
-  { id: 'projects', label: 'Projects', icon: FolderOpen },
-  { id: 'settings', label: 'Settings', icon: Settings },
-];
-
 export function MobileBottomNav({ currentView, setCurrentView }: MobileBottomNavProps) {
+  const [settings] = useAtom(settingsAtom);
+  
+  const baseNavItems = [
+    { id: 'goals', label: 'Goals', icon: Target },
+    { id: 'sprint', label: 'Stories', icon: BookOpen },
+    { id: 'today', label: 'Today', icon: Calendar },
+    { id: 'projects', label: 'Projects', icon: FolderOpen },
+  ];
+  
+  const lastNavItem = settings.layout.sections.classes
+    ? { id: 'classes', label: 'Class', icon: GraduationCap }
+    : { id: 'bucketlist', label: 'Bucketlist', icon: Home };
+  
+  const mobileNavItems = [...baseNavItems, lastNavItem];
+  
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border lg:hidden">
-      <div className="flex items-center justify-around py-2">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border lg:hidden safe-area-bottom">
+      <div className="flex items-center justify-around py-2 safe-area-left safe-area-right">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;

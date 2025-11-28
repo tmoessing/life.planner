@@ -106,6 +106,20 @@ export type Project = {
   updatedAt: string;
 };
 
+export type Class = {
+  id: string;
+  title: string;
+  classCode: string;
+  semester: 'Fall' | 'Winter' | 'Spring' | 'Summer';
+  year: number;
+  creditHours: number;
+  classType: 'Major' | 'Minor' | 'GE' | 'Religion' | 'Elective';
+  schedule: Array<{ time: string; endTime?: string; days: string[]; startDate?: string; endDate?: string }>;
+  assignmentIds: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Story = {
   id: string;
   title: string;
@@ -119,6 +133,7 @@ export type Story = {
   roleId?: string; // Role selection
   visionId?: string; // link to Vision
   projectId?: string; // link to Project
+  classId?: string; // link to Class
   dueDate?: string; // ISO date
   sprintId?: string; // nullable, story may exist without a sprint
   scheduled?: string; // ISO date for Roadmap scheduling, optional
@@ -131,10 +146,32 @@ export type Story = {
   updatedAt: string;
   deleted?: boolean;
   repeat?: {
-    cadence: "none" | "weekly" | "biweekly" | "monthly"; // implement weekly at minimum
-    count?: number; // optional number of repeats
+    cadence: "none" | "daily" | "weekly" | "biweekly" | "monthly" | "yearly" | "custom";
+    interval?: number; // e.g., every 2 weeks
+    endDate?: string; // ISO date
+    count?: number; // number of occurrences
+    
+    // Week-of-month patterns
+    weekOfMonth?: "first" | "second" | "third" | "fourth" | "last";
+    
+    // Day selections for weekly patterns
+    daysOfWeek?: number[]; // 0-6 for Sun-Sat
+    
+    // Instance-specific overrides
+    instances?: {
+      [date: string]: { // ISO date key
+        status?: Story['status'];
+        completed?: boolean;
+        skipped?: boolean;
+        modified?: boolean;
+      }
+    };
   };
   subtasks?: string[]; // child Story ids for bigger work
+  // Recurring instance properties (only present on virtual instances)
+  _isRecurringInstance?: boolean;
+  _originalId?: string;
+  _instanceDate?: string;
 };
 
 export type Sprint = {
@@ -224,6 +261,7 @@ export type Settings = {
   bucketlistPriorityColors: Record<string, string>; // bucketlist priority colors (low, medium, high)
   projectPriorityColors: Record<string, string>; // project priority colors (low, medium, high)
   weightBaseColor: string; // base color for weight gradient
+  assignmentWeightBaseColor: string; // base color for assignment weight gradient
   roleToTypeMap: Record<string, StoryType>; // Disciple -> Spiritual, Friend -> Social, etc.
   statusColors: Record<string, string>; // status colors (icebox, backlog, todo, progress, review, done)
   roadmapScheduledColor: string; // color for scheduled items in roadmap
@@ -375,6 +413,7 @@ export type LayoutCustomization = {
     content: boolean;
     footer: boolean;
     sidebar: boolean;
+    classes: boolean; // Show/hide classes section
   };
   
   // Component Arrangement
@@ -529,7 +568,7 @@ export type AppState = {
 };
 
 // View types
-export type ViewType = "today" | "sprint" | "story-boards" | "importance" | "goals" | "goals-kanban" | "bucketlist" | "bucketlist-boards" | "planner" | "sprint-planning" | "add-stories" | "add-goals" | "add-projects" | "add-bucketlist" | "projects" | "projects-kanban" | "project-product-management" | "important-dates" | "traditions" | "goal-boards" | "settings";
+export type ViewType = "today" | "sprint" | "story-boards" | "importance" | "goals" | "goals-kanban" | "bucketlist" | "bucketlist-boards" | "planner" | "sprint-planning" | "add-stories" | "add-goals" | "add-projects" | "add-bucketlist" | "projects" | "projects-kanban" | "project-product-management" | "classes" | "important-dates" | "traditions" | "goal-boards" | "settings";
 
 // Filter keyword types
 export type FilterKey = "sprint" | "type" | "role" | "priority" | "label" | "weight" | "size" | "due" | "dueSoon";
@@ -598,6 +637,58 @@ export type SyncConflict = {
   localVersion: any;
   remoteVersion: any;
   conflictType: 'update' | 'delete' | 'create';
+};
+
+// Recurrence management types
+export type RecurrencePattern = {
+  cadence: "daily" | "weekly" | "biweekly" | "monthly" | "yearly" | "custom";
+  interval?: number;
+  endDate?: string;
+  count?: number;
+  weekOfMonth?: "first" | "second" | "third" | "fourth" | "last";
+  daysOfWeek?: number[];
+};
+
+export type RecurrenceInstance = {
+  date: string;
+  storyId: string;
+  status: Story['status'];
+  completed: boolean;
+  skipped: boolean;
+  isOriginal: boolean;
+};
+
+export type RecurrenceEditMode = "this" | "future" | "all";
+
+// Assignment types
+export type AssignmentType = 'homework' | 'reading' | 'paper' | 'project' | 'test' | 'other';
+
+export type AssignmentStatus = 'not-started' | 'in-progress' | 'completed' | 'submitted';
+
+export type AssignmentRecurrencePattern = {
+  type: 'before-class' | 'weekly' | 'biweekly' | 'custom';
+  // For 'before-class': uses class schedule
+  // For 'weekly'/'biweekly': uses daysOfWeek and time
+  daysOfWeek?: number[]; // 0-6 for Sun-Sat
+  time?: string; // HH:MM format
+  endDate?: string; // ISO date
+  count?: number; // number of occurrences
+};
+
+export type Assignment = {
+  id: string;
+  classId: string;
+  title: string;
+  type: AssignmentType;
+  description?: string;
+  dueDate?: string; // ISO date
+  dueTime?: string; // HH:MM format
+  status: AssignmentStatus;
+  weight: 1 | 3 | 5 | 8 | 13 | 21;
+  recurrencePattern?: AssignmentRecurrencePattern;
+  storyId?: string; // Optional link to Story
+  createdAt: string;
+  updatedAt: string;
 };
 
 // Re-export types from story.ts

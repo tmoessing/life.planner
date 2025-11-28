@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { addStoryAtom, addStoryToProjectAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, currentSprintAtom, projectsAtom, storyPrioritiesAtom } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
@@ -52,8 +53,14 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
     ...initialData
   });
 
-  const [repeatWeekly, setRepeatWeekly] = useState(false);
-  const [repeatEndDate, setRepeatEndDate] = useState<string>('');
+  // Recurrence state
+  const [hasRecurrence, setHasRecurrence] = useState(false);
+  const [recurrenceCadence, setRecurrenceCadence] = useState<'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly'>('weekly');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [recurrenceWeekOfMonth, setRecurrenceWeekOfMonth] = useState<'first' | 'second' | 'third' | 'fourth' | 'last' | 'any'>('any');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string>('');
+  const [recurrenceCount, setRecurrenceCount] = useState<number | ''>('');
+  const [recurrenceEndType, setRecurrenceEndType] = useState<'date' | 'count' | 'never'>('never');
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,53 +70,33 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
       return;
     }
 
+    // Require sprint selection for recurring stories
+    if (hasRecurrence && !formData.sprintId) {
+      alert('Please select a sprint for recurring stories.');
+      return;
+    }
+
     const storyData = {
       ...formData,
       title: formData.title.trim(),
-      description: formData.description?.trim() || ''
+      description: formData.description?.trim() || '',
+      // Add recurrence data if enabled
+      repeat: hasRecurrence ? {
+        cadence: recurrenceCadence,
+        interval: recurrenceInterval,
+        endDate: recurrenceEndType === 'date' ? recurrenceEndDate : undefined,
+        count: recurrenceEndType === 'count' ? (typeof recurrenceCount === 'number' ? recurrenceCount : undefined) : undefined,
+        weekOfMonth: recurrenceWeekOfMonth === 'any' ? undefined : recurrenceWeekOfMonth,
+        instances: {}
+      } : undefined
     };
     
-    
-    if (repeatWeekly) {
-      // Create stories for multiple sprints
-      const selectedSprint = sprints.find(s => s.id === formData.sprintId) || currentSprint;
-      if (selectedSprint) {
-        const startSprintIndex = sprints.findIndex(s => s.id === selectedSprint.id);
-        const endDate = repeatEndDate ? new Date(repeatEndDate) : null;
-        
-        let sprintIndex = startSprintIndex;
-        while (sprintIndex < sprints.length) {
-          const sprint = sprints[sprintIndex];
-          
-          // Check if we've reached the end date
-          if (endDate && new Date(sprint.startDate) > endDate) {
-            break;
-          }
-          
-          // Create story for this sprint
-          const weeklyStoryData = {
-            ...storyData,
-            sprintId: sprint.id,
-            title: `${storyData.title} (Week ${sprint.isoWeek})`
-          };
-          
-          const newStory = addStory(weeklyStoryData, formData.status);
-          // Add to project if projectId is provided
-          const projectId = initialData?.projectId || formData.projectId;
-          if (projectId && newStory) {
-            addStoryToProject(projectId, newStory.id);
-          }
-          sprintIndex++;
-        }
-      }
-    } else {
-      // Create single story
-      const newStory = addStory(storyData, formData.status);
-      // Add to project if projectId is provided
-      const projectId = initialData?.projectId || formData.projectId;
-      if (projectId && newStory) {
-        addStoryToProject(projectId, newStory.id);
-      }
+    // Create single story with recurrence metadata
+    const newStory = addStory(storyData, formData.status);
+    // Add to project if projectId is provided
+    const projectId = initialData?.projectId || formData.projectId;
+    if (projectId && newStory) {
+      addStoryToProject(projectId, newStory.id);
     }
     
     // Reset form
@@ -130,8 +117,15 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
       goalId: undefined,
       status: (targetColumnId || 'backlog') as "icebox" | "backlog" | "todo" | "progress" | "review" | "done",
     });
-    setRepeatWeekly(false);
-    setRepeatEndDate('');
+    
+    // Reset recurrence state
+    setHasRecurrence(false);
+    setRecurrenceCadence('weekly');
+    setRecurrenceInterval(1);
+    setRecurrenceWeekOfMonth('any');
+    setRecurrenceEndDate('');
+    setRecurrenceCount('');
+    setRecurrenceEndType('never');
     
     onOpenChange(false);
   };
@@ -143,35 +137,35 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">Add New Story</DialogTitle>
-          <DialogDescription className="text-sm">
+      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto p-2 sm:p-6">
+        <DialogHeader className="pb-1 sm:pb-4">
+          <DialogTitle className="text-sm sm:text-xl">Add New Story</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm hidden sm:block">
             Create a new story to track your tasks and goals.
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-6">
           {/* Title - First and most prominent */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Title *</label>
+          <div className="space-y-1 sm:space-y-2">
+            <label className="text-xs sm:text-sm font-medium">Title *</label>
             <Input
               value={formData.title || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Enter story title..."
               required
-              className="text-lg"
+              className="text-sm sm:text-lg h-8 sm:h-auto"
             />
           </div>
 
 
           {/* Main Details Grid - 1 column on mobile, 2 columns on larger screens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6">
             {/* Left Column */}
-            <div className="space-y-4">
+            <div className="space-y-1.5 sm:space-y-4">
               {/* Priority */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Priority</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Priority</label>
                 <Select
                   value={formData.priority}
                   onValueChange={(value: Priority) => setFormData(prev => ({ ...prev, priority: value }))}
@@ -215,8 +209,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
               </div>
 
               {/* Role */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Role</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Role</label>
                 <Select
                   value={formData.roleId || 'none'}
                   onValueChange={(value) => {
@@ -249,9 +243,9 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
               </div>
 
               {/* Type and Status */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Type</label>
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium">Type</label>
                   <Select
                     value={formData.type}
                     onValueChange={(value: StoryType) => setFormData(prev => ({ ...prev, type: value }))}
@@ -285,10 +279,10 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Status</label>
+                <div className="space-y-1 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium">Status</label>
                   <Select
-                    value={formData.status || 'backlog'}
+                    value={formData.status || (formData.sprintId ? 'todo' : 'backlog')}
                     onValueChange={(value) => {
                       setFormData(prev => ({ ...prev, status: value as any }));
                     }}
@@ -314,24 +308,29 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="icebox">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: settings.statusColors?.icebox || '#6B7280' }}
-                          ></div>
-                          <span>Icebox</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="backlog">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: storySettings.getStatusColor('backlog') }}
-                          ></div>
-                          <span>Backlog</span>
-                        </div>
-                      </SelectItem>
+                      {/* Only show icebox/backlog if story is not assigned to a sprint */}
+                      {!formData.sprintId && (
+                        <SelectItem value="icebox">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: settings.statusColors?.icebox || '#6B7280' }}
+                            ></div>
+                            <span>Icebox</span>
+                          </div>
+                        </SelectItem>
+                      )}
+                      {!formData.sprintId && (
+                        <SelectItem value="backlog">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: storySettings.getStatusColor('backlog') }}
+                            ></div>
+                            <span>Backlog</span>
+                          </div>
+                        </SelectItem>
+                      )}
                       <SelectItem value="todo">
                         <div className="flex items-center gap-2">
                           <div 
@@ -375,11 +374,11 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
             </div>
 
             {/* Right Column */}
-            <div className="space-y-4">
+            <div className="space-y-1.5 sm:space-y-4">
               {/* Weight and Size in a row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Weight</label>
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium">Weight</label>
                   <Select
                     value={formData.weight?.toString()}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, weight: parseInt(value) as Story['weight'] }))}
@@ -406,8 +405,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Size</label>
+                <div className="space-y-1 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium">Size</label>
                   <Select
                     value={formData.size}
                     onValueChange={(value: Story['size']) => setFormData(prev => ({ ...prev, size: value }))}
@@ -449,8 +448,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
               </div>
 
               {/* Vision */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Vision</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Vision</label>
                 <Select
                   value={formData.visionId || 'none'}
                   onValueChange={(value) => {
@@ -497,8 +496,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
               </div>
 
               {/* Project */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Project</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Project</label>
                 <Select
                   value={formData.projectId || 'none'}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, projectId: value === 'none' ? undefined : value }))}
@@ -542,14 +541,14 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
           </div>
 
           {/* Additional Details */}
-          <div className="space-y-4">
+          <div className="space-y-1.5 sm:space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">Additional Details</h3>
+              <h3 className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">Additional Details</h3>
             </div>
             
             {/* Description */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+            <div className="space-y-1 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Description</label>
               <Textarea
                 value={formData.description || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -559,9 +558,9 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
             </div>
 
             {/* Sprint and Due Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Sprint</label>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Sprint</label>
                 <Select
                   value={formData.sprintId || 'none'}
                   onValueChange={(value) => {
@@ -595,8 +594,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Due Date</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Due Date</label>
                 <Input
                   type="date"
                   value={formData.dueDate || ''}
@@ -606,9 +605,9 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
             </div>
 
             {/* Task Categories, Scheduled Date, Location, and Goal */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Task Categories</label>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Task Categories</label>
                 <div className="space-y-2">
                   {(settings.taskCategories || []).map((category) => (
                     <div key={category.name} className="flex items-center space-x-2">
@@ -647,8 +646,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Scheduled Date</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Scheduled Date</label>
                 <Input
                   type="date"
                   value={formData.scheduledDate || ''}
@@ -656,8 +655,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Location</label>
                 <Input
                   type="text"
                   placeholder="Enter location..."
@@ -666,8 +665,8 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Goal Associated</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium">Goal Associated</label>
                 <Select
                   value={formData.goalId || 'none'}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, goalId: value === 'none' ? undefined : value }))}
@@ -695,29 +694,151 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
               </div>
             </div>
 
-            {/* Repeat Weekly */}
-            <div className="space-y-2">
+            {/* Recurrence Pattern Section */}
+            <div className="space-y-1.5 sm:space-y-4">
               <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="repeatWeekly"
-                  checked={repeatWeekly}
-                  onChange={(e) => setRepeatWeekly(e.target.checked)}
-                  className="rounded"
+                <Checkbox
+                  id="hasRecurrence"
+                  checked={hasRecurrence}
+                  onCheckedChange={(checked) => setHasRecurrence(checked as boolean)}
                 />
-                <label htmlFor="repeatWeekly" className="text-sm font-medium">
-                  Repeat every week
+                <label htmlFor="hasRecurrence" className="text-xs sm:text-sm font-medium">
+                  Repeat this story
                 </label>
               </div>
-              {repeatWeekly && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">End Date (Optional)</label>
-                  <Input
-                    type="date"
-                    value={repeatEndDate}
-                    onChange={(e) => setRepeatEndDate(e.target.value)}
-                    placeholder="Leave empty to repeat indefinitely"
-                  />
+              
+            {hasRecurrence && (
+              <div className="space-y-1.5 sm:space-y-4 pl-3 sm:pl-6 border-l-2 border-gray-200">
+                {/* Sprint requirement warning */}
+                {!formData.sprintId && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 text-yellow-600">⚠️</div>
+                      <p className="text-sm text-yellow-800">
+                        A sprint must be selected for recurring stories to generate instances within the sprint timeframe.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                  {/* Cadence selector */}
+                  <div className="space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium">Repeat</label>
+                    <Select
+                      value={recurrenceCadence}
+                      onValueChange={(value: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly') => setRecurrenceCadence(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Interval */}
+                  <div className="space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium">Every</label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={recurrenceInterval}
+                        onChange={(e) => setRecurrenceInterval(parseInt(e.target.value) || 1)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {recurrenceCadence === 'daily' ? 'day(s)' :
+                         recurrenceCadence === 'weekly' || recurrenceCadence === 'biweekly' ? 'week(s)' :
+                         recurrenceCadence === 'monthly' ? 'month(s)' :
+                         recurrenceCadence === 'yearly' ? 'year(s)' : 'time(s)'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Week of month selector (shown when cadence is monthly) */}
+                  {recurrenceCadence === 'monthly' && (
+                    <div className="space-y-1 sm:space-y-2">
+                      <label className="text-xs sm:text-sm font-medium">Week of month</label>
+                      <Select
+                        value={recurrenceWeekOfMonth}
+                        onValueChange={(value: 'first' | 'second' | 'third' | 'fourth' | 'last' | 'any') => setRecurrenceWeekOfMonth(value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any week" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any week</SelectItem>
+                          <SelectItem value="first">First complete week</SelectItem>
+                          <SelectItem value="second">Second complete week</SelectItem>
+                          <SelectItem value="third">Third complete week</SelectItem>
+                          <SelectItem value="fourth">Fourth complete week</SelectItem>
+                          <SelectItem value="last">Last complete week</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  {/* End condition */}
+                  <div className="space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium">Ends</label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="endNever"
+                          name="endType"
+                          checked={recurrenceEndType === 'never'}
+                          onChange={() => setRecurrenceEndType('never')}
+                        />
+                        <label htmlFor="endNever" className="text-sm">Never</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="endDate"
+                          name="endType"
+                          checked={recurrenceEndType === 'date'}
+                          onChange={() => setRecurrenceEndType('date')}
+                        />
+                        <label htmlFor="endDate" className="text-sm">On date</label>
+                        {recurrenceEndType === 'date' && (
+                          <Input
+                            type="date"
+                            value={recurrenceEndDate}
+                            onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                            className="ml-2"
+                          />
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="endCount"
+                          name="endType"
+                          checked={recurrenceEndType === 'count'}
+                          onChange={() => setRecurrenceEndType('count')}
+                        />
+                        <label htmlFor="endCount" className="text-sm">After</label>
+                        {recurrenceEndType === 'count' && (
+                          <Input
+                            type="number"
+                            min="1"
+                            value={recurrenceCount}
+                            onChange={(e) => setRecurrenceCount(parseInt(e.target.value) || '')}
+                            className="ml-2 w-20"
+                          />
+                        )}
+                        {recurrenceEndType === 'count' && (
+                          <span className="text-sm text-muted-foreground">occurrences</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -726,11 +847,22 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row justify-end gap-1.5 sm:gap-2 pt-1.5 sm:pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)} 
+              size="sm"
+              className="w-full sm:w-auto h-8 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!formData.title?.trim()} className="w-full sm:w-auto">
+            <Button 
+              type="submit" 
+              disabled={!formData.title?.trim() || (hasRecurrence && !formData.sprintId)} 
+              size="sm"
+              className="w-full sm:w-auto h-8 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm"
+            >
               Add Story
             </Button>
           </div>

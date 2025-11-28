@@ -8,7 +8,12 @@ import type {
   Tradition,
   Sprint,
   Role,
-  Label
+  Label,
+  Class,
+  Assignment,
+  AssignmentType,
+  AssignmentStatus,
+  AssignmentRecurrencePattern
 } from '@/types';
 
 // Sample data arrays for generating pseudo content
@@ -174,6 +179,71 @@ const traditionTitles = [
   'Movie Night',
   'Exercise Routine',
   'Meditation Practice'
+];
+
+const classTitles = [
+  'Introduction to Computer Science',
+  'Data Structures and Algorithms',
+  'Database Systems',
+  'Software Engineering',
+  'Web Development',
+  'Mobile App Development',
+  'Machine Learning',
+  'Operating Systems',
+  'Computer Networks',
+  'Cybersecurity Fundamentals',
+  'Linear Algebra',
+  'Calculus III',
+  'Statistics and Probability',
+  'Discrete Mathematics',
+  'Digital Design',
+  'Computer Architecture',
+  'Artificial Intelligence',
+  'Cloud Computing',
+  'Distributed Systems',
+  'Human-Computer Interaction'
+];
+
+const classCodes = [
+  'CS101', 'CS201', 'CS301', 'CS401', 'CS501',
+  'MATH201', 'MATH301', 'MATH401',
+  'EE201', 'EE301',
+  'SE301', 'SE401',
+  'IT201', 'IT301'
+];
+
+const assignmentTypes = [
+  'homework',
+  'project',
+  'exam',
+  'quiz',
+  'lab',
+  'essay',
+  'presentation',
+  'discussion'
+];
+
+const assignmentTitles = [
+  'Complete Chapter 5 Exercises',
+  'Midterm Exam',
+  'Final Project Submission',
+  'Lab Report 3',
+  'Research Paper',
+  'Group Presentation',
+  'Weekly Quiz',
+  'Programming Assignment',
+  'Case Study Analysis',
+  'Online Discussion Post',
+  'Homework Set 4',
+  'Project Milestone 2',
+  'Final Exam',
+  'Lab Assignment 5',
+  'Essay on Topic',
+  'Code Review Assignment',
+  'Design Document',
+  'System Architecture Report',
+  'Literature Review',
+  'Capstone Project'
 ];
 
 // Helper function to get random item from array
@@ -352,6 +422,90 @@ export const generateTestData = () => {
     };
   });
 
+  // Generate Classes
+  const classes: Class[] = Array.from({ length: 6 }, (_, i) => {
+    const semester = getRandomItem(['Fall', 'Winter', 'Spring', 'Summer'] as const) as 'Fall' | 'Winter' | 'Spring' | 'Summer';
+    const year = now.getFullYear();
+    const classCode = getRandomItem(classCodes);
+    const creditHours = getRandomItem([3, 4]);
+    const classType = getRandomItem(['Major', 'Minor', 'GE', 'Religion', 'Elective'] as const) as 'Major' | 'Minor' | 'GE' | 'Religion' | 'Elective';
+    
+    // Generate schedule (1-3 time slots per class)
+    const schedule = Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => {
+      const days = getRandomItems(['Monday', 'Wednesday', 'Friday', 'Tuesday', 'Thursday'], Math.floor(Math.random() * 3) + 1);
+      const hour = Math.floor(Math.random() * 8) + 8; // 8 AM to 4 PM
+      const minute = Math.random() > 0.5 ? 0 : 30;
+      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const endHour = hour + (Math.random() > 0.5 ? 1 : 1.5);
+      const endMinute = endHour % 1 === 0.5 ? 30 : 0;
+      const endTime = `${Math.floor(endHour).toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+      
+      return {
+        time,
+        endTime,
+        days
+      };
+    });
+    
+    return {
+      id: generateId('class'),
+      title: getRandomItem(classTitles),
+      classCode,
+      semester,
+      year,
+      creditHours,
+      classType,
+      schedule,
+      assignmentIds: [], // Will be populated after assignments are created
+      createdAt: getRandomDate(pastDate, now),
+      updatedAt: getRandomDate(pastDate, now)
+    };
+  });
+
+  // Generate Assignments (linked to classes)
+  const assignments: Assignment[] = [];
+  classes.forEach((cls, classIndex) => {
+    // Each class gets 3-8 assignments
+    const assignmentCount = Math.floor(Math.random() * 6) + 3;
+    const classAssignments = Array.from({ length: assignmentCount }, (_, i) => {
+      const assignmentId = generateId('assignment');
+      const assignmentType = getRandomItem(assignmentTypes) as AssignmentType;
+      const dueDate = getRandomDate(now, futureDate);
+      const dueTime = Math.random() > 0.5 ? `${Math.floor(Math.random() * 12) + 8}:${Math.random() > 0.5 ? '00' : '30'}` : undefined;
+      const status = getRandomItem(['not-started', 'in-progress', 'completed', 'submitted'] as const) as AssignmentStatus;
+      const weight = getRandomItem([1, 3, 5, 8, 13, 21] as const);
+      
+      // Some assignments have recurrence patterns (for weekly homework, etc.)
+      const recurrencePattern: AssignmentRecurrencePattern | undefined = Math.random() > 0.7 && assignmentType === 'homework' ? {
+        type: 'weekly',
+        daysOfWeek: [1, 3, 5], // Monday, Wednesday, Friday
+        time: '09:00',
+        endDate: getRandomDate(now, futureDate)
+      } : undefined;
+      
+      return {
+        id: assignmentId,
+        classId: cls.id,
+        title: getRandomItem(assignmentTitles),
+        type: assignmentType,
+        description: Math.random() > 0.5 ? `Complete ${assignmentType} assignment for ${cls.title}` : undefined,
+        dueDate,
+        dueTime,
+        status,
+        weight,
+        recurrencePattern,
+        storyId: Math.random() > 0.6 ? undefined : undefined, // Could link to stories
+        createdAt: getRandomDate(pastDate, now),
+        updatedAt: getRandomDate(pastDate, now)
+      };
+    });
+    
+    assignments.push(...classAssignments);
+    
+    // Update class with assignment IDs
+    cls.assignmentIds = classAssignments.map(a => a.id);
+  });
+
   return {
     stories,
     goals,
@@ -360,6 +514,8 @@ export const generateTestData = () => {
     bucketlist,
     importantDates,
     traditions,
-    sprints
+    sprints,
+    classes,
+    assignments
   };
 };

@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible } from '@/components/ui/collapsible';
-import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, Tag, Target, FolderOpen, Sparkles, ListChecks, CheckSquare, BookOpen, Trophy, Eye, FileText, Zap, Star, Calendar, Heart, Gift } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, Tag, Target, FolderOpen, Sparkles, ListChecks, CheckSquare, BookOpen, Trophy, Eye, FileText, Zap, Star, Calendar, Heart, Gift, GraduationCap, Moon, Monitor } from 'lucide-react';
+import { settingsAtom } from '@/stores/settingsStore';
 import { ImportModal } from '@/components/modals/ImportModal';
 import { RolesSettings } from '@/components/settings/RolesSettings';
 import { TraditionsSettings } from '@/components/settings/TraditionsSettings';
@@ -33,6 +39,8 @@ import {
   importantDatesAtom,
   traditionsAtom
 } from '@/stores/appStore';
+import { classesAtom } from '@/stores/classStore';
+import { assignmentsAtom } from '@/stores/assignmentStore';
 import { exportToExcel } from '@/utils/export';
 import { generateTestData } from '@/utils/testDataGenerator';
 
@@ -40,6 +48,7 @@ type SettingsCategory = 'stories' | 'goals' | 'projects' | 'bucketlist' | 'visio
 
 export function SettingsView() {
   const [, deleteAllData] = useAtom(deleteAllDataAtom);
+  const [settings, setSettings] = useAtom(settingsAtom);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showTestDataModal, setShowTestDataModal] = useState(false);
@@ -56,6 +65,8 @@ export function SettingsView() {
   const [labels] = useAtom(labelsAtom);
   const [importantDates, setImportantDates] = useAtom(importantDatesAtom);
   const [traditions, setTraditions] = useAtom(traditionsAtom);
+  const [classes, setClasses] = useAtom(classesAtom);
+  const [assignments, setAssignments] = useAtom(assignmentsAtom);
 
   const handleDeleteAll = () => {
     setShowDeleteModal(true);
@@ -97,6 +108,8 @@ export function SettingsView() {
     setImportantDates(prev => [...prev, ...testData.importantDates]);
     setTraditions(prev => [...prev, ...testData.traditions]);
     setSprints(prev => [...prev, ...testData.sprints]);
+    setClasses(prev => [...prev, ...testData.classes]);
+    setAssignments(prev => [...prev, ...testData.assignments]);
     
     setShowTestDataModal(false);
   };
@@ -109,14 +122,14 @@ export function SettingsView() {
       </div>
 
       <Tabs defaultValue="configuration" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="configuration" className="gap-2">
+        <TabsList className="grid w-full grid-cols-2 h-auto">
+          <TabsTrigger value="configuration" className="gap-1 sm:gap-2 py-2 sm:py-1.5 touch-target min-h-[44px] sm:min-h-0">
             <Settings className="h-4 w-4" />
-            Configuration
+            <span className="text-xs sm:text-sm">Configuration</span>
           </TabsTrigger>
-          <TabsTrigger value="data" className="gap-2">
+          <TabsTrigger value="data" className="gap-1 sm:gap-2 py-2 sm:py-1.5 touch-target min-h-[44px] sm:min-h-0">
             <Download className="h-4 w-4" />
-            Data Management
+            <span className="text-xs sm:text-sm">Data Management</span>
           </TabsTrigger>
         </TabsList>
 
@@ -133,12 +146,12 @@ export function SettingsView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
+              <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
                 
                 <Button
                   variant={selectedCategory === 'stories' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('stories')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Stories</span>
@@ -147,7 +160,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'goals' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('goals')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Goals</span>
@@ -156,7 +169,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'projects' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('projects')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <FolderOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Projects</span>
@@ -165,7 +178,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'bucketlist' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('bucketlist')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <ListChecks className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Bucketlist</span>
@@ -174,7 +187,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'visions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('visions')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Visions</span>
@@ -183,7 +196,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'roles' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('roles')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Roles</span>
@@ -192,7 +205,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'traditions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('traditions')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Traditions</span>
@@ -201,7 +214,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'important-dates' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('important-dates')}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
                 >
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Important Dates</span>
@@ -461,6 +474,8 @@ export function SettingsView() {
                     <div>12 Important dates and events</div>
                     <div>10 Traditions and recurring activities</div>
                     <div>8 Sprints for project management</div>
+                    <div>6 Classes with schedules and assignments</div>
+                    <div>18-48 Assignments linked to classes</div>
                   </div>
                 </div>
               </div>
@@ -481,6 +496,83 @@ export function SettingsView() {
             icon={<FileSpreadsheet className="h-5 w-5" />}
           >
             <GoogleSheetsSettings />
+          </Collapsible>
+
+          <Collapsible
+            title="Appearance"
+            description="Customize the appearance and theme of the application."
+            icon={<Moon className="h-5 w-5" />}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5 flex-1">
+                  <Label htmlFor="theme" className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4" />
+                    Theme
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose between light mode, dark mode, or follow your system preference.
+                  </p>
+                </div>
+                <Select
+                  value={settings.ui?.theme || 'system'}
+                  onValueChange={(value: 'light' | 'dark' | 'system') => {
+                    setSettings({
+                      ...settings,
+                      ui: {
+                        ...settings.ui,
+                        theme: value
+                      }
+                    });
+                  }}
+                >
+                  <SelectTrigger id="theme" className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Collapsible>
+
+          <Collapsible
+            title="UI Visibility"
+            description="Control which sections and features are visible in the application."
+            icon={<Settings className="h-5 w-5" />}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="hideClasses" className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    Show Classes
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Toggle visibility of the Classes section in navigation. Hide this when you're not in classes.
+                  </p>
+                </div>
+                <Switch
+                  id="hideClasses"
+                  checked={settings.layout.sections.classes}
+                  onCheckedChange={(checked) => {
+                    setSettings({
+                      ...settings,
+                      layout: {
+                        ...settings.layout,
+                        sections: {
+                          ...settings.layout.sections,
+                          classes: checked
+                        }
+                      }
+                    });
+                  }}
+                />
+              </div>
+            </div>
           </Collapsible>
 
           <Collapsible
@@ -551,18 +643,18 @@ function DeleteAllModal({ onConfirm, onCancel }: DeleteAllModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
+    <Dialog open={true} onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
             Delete All Data
-          </CardTitle>
-          <CardDescription>
+          </DialogTitle>
+          <DialogDescription>
             This action is permanent and cannot be undone.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
           <div className="space-y-2">
             <p className="text-sm">
               This will permanently delete:
@@ -583,32 +675,35 @@ function DeleteAllModal({ onConfirm, onCancel }: DeleteAllModalProps) {
             <label htmlFor="confirmation" className="text-sm font-medium">
               To confirm, type <code className="bg-muted px-1 rounded">{requiredText}</code> in the box below:
             </label>
-            <input
+            <Input
               id="confirmation"
               type="text"
               value={confirmationText}
               onChange={(e) => handleTextChange(e.target.value)}
               placeholder={requiredText}
-              className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
               autoComplete="off"
             />
           </div>
-
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={onConfirm}
-              disabled={!isConfirmed}
-            >
-              Delete All Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            onClick={onCancel}
+            className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={onConfirm}
+            disabled={!isConfirmed}
+            className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+          >
+            Delete All Data
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -619,18 +714,18 @@ interface TestDataModalProps {
 
 function TestDataModal({ onConfirm, onCancel }: TestDataModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+    <Dialog open={true} onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
             Generate Test Data
-          </CardTitle>
-          <CardDescription>
+          </DialogTitle>
+          <DialogDescription>
             This will add sample data to your existing data for testing purposes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
           <div className="space-y-2">
             <p className="text-sm">
               This will generate realistic sample data including:
@@ -644,23 +739,31 @@ function TestDataModal({ onConfirm, onCancel }: TestDataModalProps) {
               <li>12 Important dates and events</li>
               <li>10 Traditions and recurring activities</li>
               <li>8 Sprints for project management</li>
+              <li>6 Classes with schedules and assignments</li>
+              <li>18-48 Assignments linked to classes</li>
             </ul>
             <p className="text-sm text-muted-foreground mt-3">
               <strong>Note:</strong> This data will be added to your existing data, not replace it.
             </p>
           </div>
-
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button onClick={onConfirm} className="gap-2">
-              <Zap className="h-4 w-4" />
-              Generate Test Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            onClick={onCancel}
+            className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={onConfirm} 
+            className="gap-2 w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+          >
+            <Zap className="h-4 w-4" />
+            Generate Test Data
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

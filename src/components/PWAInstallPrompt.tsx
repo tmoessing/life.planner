@@ -84,8 +84,8 @@ export function PWAInstallPrompt() {
   }
 
   return (
-    <Card className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-200 shadow-xl rounded-none">
-      <CardContent className="p-4">
+    <Card className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-200 shadow-xl rounded-none safe-area-bottom">
+      <CardContent className="p-4 safe-area-left safe-area-right">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -116,11 +116,11 @@ export function PWAInstallPrompt() {
               🚀 Get the full experience! Add to your home screen for instant access and offline use.
             </p>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={handleInstallClick}
                 size="sm"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Install Now
@@ -129,7 +129,7 @@ export function PWAInstallPrompt() {
                 onClick={handleDismiss}
                 variant="ghost"
                 size="sm"
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 text-sm px-3 py-2 rounded-lg transition-all duration-200"
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 text-sm px-3 py-2 rounded-lg transition-all duration-200 h-11 w-11 sm:h-auto sm:w-auto touch-target"
               >
                 <X className="h-4 w-4" />
               </Button>

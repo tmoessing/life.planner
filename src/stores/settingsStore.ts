@@ -46,6 +46,11 @@ const migrateSettings = (settings: any): Settings => {
     };
   }
   
+  // If assignmentWeightBaseColor is missing, default to weightBaseColor or blue
+  if (!settings.assignmentWeightBaseColor) {
+    settings.assignmentWeightBaseColor = settings.weightBaseColor || '#3B82F6';
+  }
+  
          // If bucketlistCategories is missing, add default categories
          if (!settings.bucketlistCategories || settings.bucketlistCategories.length === 0) {
            settings.bucketlistCategories = [
@@ -271,6 +276,7 @@ const getDefaultSettings = (): Settings => {
     'low': '#6B7280'
   },
   weightBaseColor: '#3B82F6',
+  assignmentWeightBaseColor: '#3B82F6', // Default to same as story weights, but can be customized
   roleToTypeMap: {
     'disciple': 'Spiritual',
     'individual': 'Intellectual',
@@ -393,7 +399,8 @@ const getDefaultSettings = (): Settings => {
       navigation: true,
       content: true,
       footer: false,
-      sidebar: false
+      sidebar: false,
+      classes: true
     },
     componentOrder: {
       header: ['title', 'navigation', 'actions'],

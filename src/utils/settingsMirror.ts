@@ -319,11 +319,6 @@ export const useBucketlistSettings = () => {
 export const useProjectSettings = () => {
   const [settings] = useAtom(settingsAtom);
   
-  // Debug: Log settings to see what's being returned
-  console.log('useProjectSettings Debug:');
-  console.log('- settings:', settings);
-  console.log('- settings.projectTypes:', settings.projectTypes);
-  
   return {
     // Status colors for projects - using story status colors
     statusColors: {

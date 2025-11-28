@@ -20,6 +20,29 @@ export function SwipeableContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const childrenArray = React.Children.toArray(children);
   const totalSlides = childrenArray.length;
+  
+  // Use refs to store latest values for event handlers
+  const isDraggingRef = useRef(isDragging);
+  const startXRef = useRef(startX);
+  const currentIndexRef = useRef(currentIndex);
+  const translateXRef = useRef(translateX);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
+  
+  useEffect(() => {
+    startXRef.current = startX;
+  }, [startX]);
+  
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  
+  useEffect(() => {
+    translateXRef.current = translateX;
+  }, [translateX]);
 
   const goToSlide = (index: number) => {
     if (index >= 0 && index < totalSlides) {
@@ -40,46 +63,56 @@ export function SwipeableContainer({
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+  const handleTouchStart = (e: TouchEvent) => {
     setIsDragging(true);
-    setStartX(e.touches[0].clientX);
+    isDraggingRef.current = true;
+    const x = e.touches[0].clientX;
+    setStartX(x);
+    startXRef.current = x;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDraggingRef.current) return;
     
     e.preventDefault();
     const currentX = e.touches[0].clientX;
-    const diff = startX - currentX;
-    const currentTranslate = -currentIndex * 100;
+    const diff = startXRef.current - currentX;
+    const currentTranslate = -currentIndexRef.current * 100;
     const newTranslate = currentTranslate + (diff / (containerRef.current?.offsetWidth || 1)) * 100;
     
     // Constrain the translation
     const minTranslate = -(totalSlides - 1) * 100;
     const maxTranslate = 0;
-    setTranslateX(Math.max(minTranslate, Math.min(maxTranslate, newTranslate)));
+    const constrainedTranslate = Math.max(minTranslate, Math.min(maxTranslate, newTranslate));
+    setTranslateX(constrainedTranslate);
+    translateXRef.current = constrainedTranslate;
   };
 
   const handleTouchEnd = () => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
     
     setIsDragging(false);
+    isDraggingRef.current = false;
     const threshold = 50; // Minimum swipe distance
-    const currentX = translateX;
-    const currentSlide = -currentX / 100;
+    const currentX = translateXRef.current;
+    const currentIdx = currentIndexRef.current;
     
-    if (Math.abs(currentX - (-currentIndex * 100)) > threshold) {
-      if (currentX < -currentIndex * 100) {
+    if (Math.abs(currentX - (-currentIdx * 100)) > threshold) {
+      if (currentX < -currentIdx * 100) {
         // Swiped left, go to next slide
-        nextSlide();
+        if (currentIdx < totalSlides - 1) {
+          goToSlide(currentIdx + 1);
+        }
       } else {
         // Swiped right, go to previous slide
-        prevSlide();
+        if (currentIdx > 0) {
+          goToSlide(currentIdx - 1);
+        }
       }
     } else {
       // Snap back to current slide
-      setTranslateX(-currentIndex * 100);
+      setTranslateX(-currentIdx * 100);
+      translateXRef.current = -currentIdx * 100;
     }
   };
 
@@ -128,6 +161,23 @@ export function SwipeableContainer({
     setTranslateX(-currentIndex * 100);
   }, [currentIndex]);
 
+  // Add native touch event listeners with passive: false to allow preventDefault
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalSlides]); // Only depend on totalSlides which shouldn't change
+
   return (
     <div className={`relative ${className}`}>
       {/* Navigation Buttons */}
@@ -157,10 +207,7 @@ export function SwipeableContainer({
       {/* Swipeable Container */}
       <div
         ref={containerRef}
-        className="overflow-hidden h-full"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className="overflow-hidden h-full touch-pan-y"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

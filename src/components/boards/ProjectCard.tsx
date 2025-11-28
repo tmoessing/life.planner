@@ -7,7 +7,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit } from 'lucide-react';
 import type { Project } from '@/types';
 import { useAtom } from 'jotai';
-import { storiesAtom, settingsAtom, currentViewAtom, selectedProjectIdAtom } from '@/stores/appStore';
+import { storiesAtom, settingsAtom } from '@/stores/appStore';
 import { useProjectSettings } from '@/utils/settingsMirror';
 
 interface ProjectCardProps {
@@ -22,8 +22,6 @@ interface ProjectCardProps {
 export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOpenKanban, onOpenStoryManager }: ProjectCardProps) {
   const [stories] = useAtom(storiesAtom);
   const [settings] = useAtom(settingsAtom);
-  const [, setCurrentView] = useAtom(currentViewAtom);
-  const [, setSelectedProjectId] = useAtom(selectedProjectIdAtom);
 
   // Use settings mirror system for project settings
   const projectSettings = useProjectSettings();
@@ -111,41 +109,75 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
         }
       }}
     >
-      <CardContent className="p-3 space-y-2">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-sm line-clamp-1">{project.name}</h3>
-            {project.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                {project.description}
-              </p>
-            )}
-          </div>
+      {/* Mobile: Single row layout */}
+      <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
+        <FolderOpen className="h-3 w-3 text-blue-600 flex-shrink-0" />
+        <span className="text-xs font-medium truncate flex-1 min-w-0">
+          {project.name}
+        </span>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Badge 
+            variant="outline" 
+            className="text-[9px] px-1 py-0 h-4 whitespace-nowrap"
+            style={statusColors}
+          >
+            {project.status.substring(0, 4)}
+          </Badge>
+          <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+            {progressPercentage}%
+          </span>
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0 ml-2"
+            className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               onEdit?.(project);
             }}
             title="Edit Project"
           >
-            <Edit className="h-3 w-3" />
+            <Edit className="h-3.5 w-3.5" />
           </Button>
         </div>
+      </div>
 
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          <Badge 
-            variant="outline" 
-            className="text-xs px-2 py-1"
-            style={statusColors}
-          >
-            {project.status}
-          </Badge>
-        </div>
+      {/* Desktop: Compact card layout */}
+      <div className="hidden sm:block">
+        <CardContent className="p-3 space-y-2">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm line-clamp-1">{project.name}</h3>
+              {project.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                  {project.description}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 ml-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(project);
+              }}
+              title="Edit Project"
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant="outline" 
+              className="text-xs px-2 py-1"
+              style={statusColors}
+            >
+              {project.status}
+            </Badge>
+          </div>
 
         {/* Progress Bar */}
         <div className="space-y-1">
@@ -195,38 +227,37 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between items-center">
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedProjectId(project.id);
-                setCurrentView('projects-kanban');
-              }}
-              title="Open Kanban Board"
-            >
-              <LayoutDashboard className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedProjectId(project.id);
-                setCurrentView('project-product-management');
-              }}
-              title="Project Management"
-            >
-              <BarChart3 className="h-3 w-3" />
-            </Button>
+          {/* Actions */}
+          <div className="flex justify-between items-center">
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenKanban?.(project);
+                }}
+                title="Open Kanban Board"
+              >
+                <LayoutDashboard className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenStoryManager?.(project);
+                }}
+                title="Project Management"
+              >
+                <BarChart3 className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardContent>
+        </CardContent>
+      </div>
     </Card>
   );
 }

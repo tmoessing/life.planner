@@ -3,12 +3,13 @@ import { useAtom } from 'jotai';
 import { goalsAtom, settingsAtom, updateGoalAtom, visionsAtom } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { useSettingsMigration } from '@/hooks/useSettingsMigration';
+import { FilterBar } from '@/components/forms/FilterBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GoalModal } from '@/components/modals/GoalModal';
-import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus } from 'lucide-react';
+import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Goal } from '@/types';
 
 type BoardType = 'Goal Type' | 'Category' | 'Priority' | 'Status' | 'Vision';
@@ -31,6 +32,9 @@ export function GoalBoardsView() {
   const [viewType, setViewType] = useState<ViewType>('list');
   const [draggedGoalId, setDraggedGoalId] = useState<string | null>(null);
   const [dragOverBoardId, setDragOverBoardId] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -319,29 +323,15 @@ export function GoalBoardsView() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg sm:text-2xl font-bold">Goal Boards</h2>
-          <p className="text-sm text-muted-foreground">
-            Organize goals by different attributes with drag and drop
-          </p>
-        </div>
-        
-        <Button onClick={handleAddGoal} className="gap-2 w-full sm:w-auto">
-          <Plus className="h-4 w-4" />
-          Add Goal
-        </Button>
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Group by:</span>
-          </div>
-          <Select value={selectedBoardType} onValueChange={(value: BoardType) => setSelectedBoardType(value)}>
-            <SelectTrigger className="w-48">
+      <div className="flex items-center justify-between gap-4">
+        {/* Board Type Selector - Left aligned */}
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedBoardType} onValueChange={(value: BoardType) => {
+            setSelectedBoardType(value);
+            setCurrentMobileColumnIndex(0);
+          }}>
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -354,9 +344,42 @@ export function GoalBoardsView() {
           </Select>
         </div>
 
-        {/* View Toggle */}
+        {/* Search, Filter, Add Goal, and View Toggle - Right aligned */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">View:</span>
+          <Button
+            variant={showSearch ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setShowSearch(!showSearch);
+              if (showSearch) setShowFilter(false);
+            }}
+            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden sm:inline">Search</span>
+          </Button>
+          <Button
+            variant={showFilter ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setShowFilter(!showFilter);
+              if (showFilter) setShowSearch(false);
+            }}
+            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+          >
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filter</span>
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleAddGoal}
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Goal</span>
+          </Button>
+          {/* View Toggle */}
           <div className="flex border rounded-md">
             <Button
               variant={viewType === 'list' ? 'default' : 'ghost'}
@@ -364,8 +387,8 @@ export function GoalBoardsView() {
               onClick={() => setViewType('list')}
               className="rounded-r-none"
             >
-              <List className="h-4 w-4 mr-1" />
-              List
+              <List className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">List</span>
             </Button>
             <Button
               variant={viewType === 'pie' ? 'default' : 'ghost'}
@@ -373,72 +396,135 @@ export function GoalBoardsView() {
               onClick={() => setViewType('pie')}
               className="rounded-l-none"
             >
-              <PieChart className="h-4 w-4 mr-1" />
-              Chart
+              <PieChart className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Chart</span>
             </Button>
           </div>
         </div>
       </div>
 
+      {/* Search Panel */}
+      {showSearch && (
+        <div>
+          <FilterBar showSearchOnly={true} />
+        </div>
+      )}
+
+      {/* Filter Panel */}
+      {showFilter && (
+        <div>
+          <FilterBar showFilterOnly={true} />
+        </div>
+      )}
+
       {/* Content */}
       {viewType === 'list' ? (
         <>
-          {/* Status Labels Section - Fixed at top */}
-          <div className="mb-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
-              {boardOptions.map((board) => {
-                const goalsForBoard = getGoalsForBoard(board.id);
-                const boardColor = getBoardColor(board.id);
-                
-                return (
-                  <div key={board.id} className="bg-card p-3 sm:p-4 rounded-lg border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: boardColor.color }}
-                        ></div>
-                        <span className="text-xs sm:text-sm font-medium">{board.label}</span>
-                      </div>
-                      <span className="text-lg sm:text-2xl font-bold">{goalsForBoard.length}</span>
+          {/* Column Header Row - Desktop */}
+          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
+            {boardOptions.map((board) => {
+              const goalsForBoard = getGoalsForBoard(board.id);
+              const boardColor = getBoardColor(board.id);
+              return (
+                <div
+                  key={board.id}
+                  onClick={() => {
+                    const columnElement = document.querySelector(`[data-column-id="${board.id}"]`);
+                    if (columnElement) {
+                      columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                  }}
+                  className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{ backgroundColor: `${boardColor.color}20` }}
+                >
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: boardColor.color }}
+                  />
+                  <span className="text-sm font-medium" style={{ color: boardColor.color }}>
+                    {board.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {goalsForBoard.length}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Column Header Row with Navigation Arrows - Mobile */}
+          <div className="sm:hidden mb-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
+                disabled={currentMobileColumnIndex === 0}
+                className="flex-shrink-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex-1 grid grid-cols-3 gap-1.5">
+                {boardOptions.map((board, index) => {
+                  const goalsForBoard = getGoalsForBoard(board.id);
+                  const boardColor = getBoardColor(board.id);
+                  const isActive = boardOptions[currentMobileColumnIndex]?.id === board.id;
+                  return (
+                    <div
+                      key={board.id}
+                      onClick={() => setCurrentMobileColumnIndex(index)}
+                      className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                        isActive ? `ring-2 ring-offset-1 ring-[${boardColor.color}]` : ''
+                      }`}
+                      style={{ 
+                        backgroundColor: `${boardColor.color}20`
+                      }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: boardColor.color }}
+                      />
+                      <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: boardColor.color }}>
+                        {board.label}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                        {goalsForBoard.length}
+                      </span>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentMobileColumnIndex(prev => Math.min(boardOptions.length - 1, prev + 1))}
+                disabled={currentMobileColumnIndex === boardOptions.length - 1}
+                className="flex-shrink-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
-          {/* Mobile Swipeable Kanban Boards */}
+          {/* Mobile Single Column Layout */}
           <div className="sm:hidden">
-            <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-              ← Swipe left/right to navigate between kanban boards →
-            </div>
-            <div 
-              className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 scroll-smooth" 
-              style={{ 
-                scrollbarWidth: 'thin',
-                WebkitOverflowScrolling: 'touch',
-                scrollBehavior: 'smooth'
-              }}
-            >
-              {boardOptions.map((board) => {
-                const goalsForBoard = getGoalsForBoard(board.id);
-                
-                return (
-                  <div 
-                    key={board.id}
-                    className="w-80 flex-shrink-0"
-                  >
-                    <Card 
-                      className={`h-96 overflow-y-auto ${
-                        dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
-                      }`}
-                      style={getBoardColor(board.id)}
-                      onDragOver={handleDragOver}
-                      onDragEnter={() => handleDragOverBoard(board.id)}
-                      onDragLeave={handleDragLeaveBoard}
-                      onDrop={(e) => handleDrop(e, board.id)}
-                    >
+            {boardOptions.map((board, index) => {
+              if (index !== currentMobileColumnIndex) return null;
+              const goalsForBoard = getGoalsForBoard(board.id);
+              
+              return (
+                <Card 
+                  key={board.id}
+                  className={`h-96 overflow-y-auto ${
+                    dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  style={getBoardColor(board.id)}
+                  onDragOver={handleDragOver}
+                  onDragEnter={() => handleDragOverBoard(board.id)}
+                  onDragLeave={handleDragLeaveBoard}
+                  onDrop={(e) => handleDrop(e, board.id)}
+                  data-column-id={board.id}
+                >
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center justify-between">
                           <span className="text-base">{board.label}</span>
@@ -491,10 +577,8 @@ export function GoalBoardsView() {
                         )}
                       </CardContent>
                     </Card>
-                  </div>
-                );
-              })}
-            </div>
+              );
+            })}
           </div>
           
           {/* Desktop Kanban Grid */}
@@ -513,6 +597,7 @@ export function GoalBoardsView() {
                   onDragEnter={() => handleDragOverBoard(board.id)}
                   onDragLeave={handleDragLeaveBoard}
                   onDrop={(e) => handleDrop(e, board.id)}
+                  data-column-id={board.id}
                 >
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center justify-between">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { storiesAtom, safeSprintsAtom, updateStoryAtom, deleteStoryAtom, addStoryAtom, rolesAtom, visionsAtom, settingsAtom, currentSprintAtom } from '@/stores/appStore';
+import { generateRecurrenceInstances } from '@/utils/recurrenceUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,51 @@ export function SprintPlanningView() {
     previousSprintId?: string;
     story?: Story;
   }>>([]);
+
+  // Helper function to get expanded stories for a sprint (including recurring instances)
+  const getExpandedStoriesForSprint = (sprint: any) => {
+    // Get all recurring stories (regardless of which sprint they're assigned to)
+    const recurringStories = stories.filter(story => 
+      !story.deleted && 
+      story.repeat && 
+      story.repeat.cadence !== 'none'
+    );
+    
+    // Get non-recurring stories for the sprint
+    const nonRecurringStories = stories.filter(story => 
+      !story.deleted && 
+      story.sprintId === sprint.id &&
+      (!story.repeat || story.repeat.cadence === 'none')
+    );
+    
+    // Expand recurring stories into virtual instances for the sprint
+    const expandedStories: (Story & { _isRecurringInstance?: boolean; _instanceDate?: string; _originalId?: string })[] = [];
+    
+    // Add non-recurring stories
+    expandedStories.push(...nonRecurringStories);
+    
+    // Generate instances for recurring stories within the sprint date range
+    recurringStories.forEach(story => {
+      const instances = generateRecurrenceInstances(
+        story,
+        new Date(sprint.startDate),
+        new Date(sprint.endDate)
+      );
+      
+      instances.forEach(instance => {
+        expandedStories.push({
+          ...story,
+          id: `${story.id}-${instance.date}`,
+          status: instance.status,
+          _isRecurringInstance: true,
+          _instanceDate: instance.date,
+          _originalId: story.id
+        });
+      });
+    });
+    
+    return expandedStories;
+  };
 
   // Get stories that are not assigned to any sprint
   const unassignedStories = stories.filter(story => !story.sprintId && !story.deleted);
@@ -314,15 +360,14 @@ export function SprintPlanningView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center gap-2">
-        <Target className="h-6 w-6" />
-        <h2 className="text-2xl font-bold">Sprint Planning</h2>
+        <Target className="h-5 w-5 sm:h-6 sm:w-6" />
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Drag stories between sprints to organize your work
           </p>
           {selectedStoryIds.size > 0 && (
@@ -334,7 +379,7 @@ export function SprintPlanningView() {
                 size="sm" 
                 variant="outline" 
                 onClick={clearSelection}
-                className="text-xs h-6"
+                className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
               >
                 Clear
               </Button>
@@ -342,7 +387,7 @@ export function SprintPlanningView() {
                 size="sm" 
                 variant="destructive" 
                 onClick={handleDeleteSelected}
-                className="text-xs h-6"
+                className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
               >
                 Delete
               </Button>
@@ -354,7 +399,7 @@ export function SprintPlanningView() {
                 size="sm" 
                 variant="outline" 
                 onClick={handleUndo}
-                className="text-xs h-6"
+                className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
               >
                 <Undo className="h-3 w-3 mr-1" />
                 Undo
@@ -362,7 +407,10 @@ export function SprintPlanningView() {
             </div>
           )}
         </div>
-        <Button onClick={() => setShowAddStoryModal(true)}>
+        <Button 
+          onClick={() => setShowAddStoryModal(true)}
+          className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Story
         </Button>
@@ -390,7 +438,7 @@ export function SprintPlanningView() {
               <p className="text-sm">Create a new story or assign existing stories to sprints</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {unassignedStories.map((story, index) => (
                 <Card 
                   key={story.id} 
@@ -404,8 +452,8 @@ export function SprintPlanningView() {
                   onDragEnd={handleDragEnd}
                   onClick={(e) => handleStoryClick(e, story.id, unassignedStories, index)}
                 >
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
+                  <CardContent className="p-3">
+                    <div className="space-y-2">
                       <div>
                         <h3 className="font-medium text-sm mb-1">{story.title}</h3>
                         {story.description && (
@@ -470,13 +518,13 @@ export function SprintPlanningView() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="text-xs h-6 p-1"
+                            className="text-xs h-11 w-11 sm:h-6 sm:w-auto sm:p-1 touch-target"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEditStory(story);
                             }}
                           >
-                            <Edit className="h-3 w-3" />
+                            <Edit className="h-4 w-4 sm:h-3 sm:w-3" />
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -485,7 +533,7 @@ export function SprintPlanningView() {
                               key={sprint.id}
                               size="sm"
                               variant="outline"
-                              className="text-xs h-6"
+                              className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAssignToSprint(story.id, sprint.id);
@@ -517,7 +565,7 @@ export function SprintPlanningView() {
       {/* Sprint Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {sprints.slice(0, 6).map((sprint) => {
-          const sprintStories = stories.filter(story => story.sprintId === sprint.id && !story.deleted);
+          const sprintStories = getExpandedStoriesForSprint(sprint);
           return (
             <Card 
               key={sprint.id} 

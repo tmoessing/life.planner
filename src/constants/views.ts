@@ -15,6 +15,7 @@ import { AddBucketlistView } from '@/components/views/AddBucketlistView';
 import { ProjectView } from '@/components/views/ProjectView';
 import { ProjectsKanbanBoardsView } from '@/components/views/ProjectsKanbanBoardsView';
 import { ProjectProductManagementView } from '@/components/views/ProjectProductManagementView';
+import { ClassView } from '@/components/views/ClassView';
 import { ImportantDatesView } from '@/components/views/ImportantDatesView';
 import { TraditionsView } from '@/components/views/TraditionsView';
 import { SettingsView } from '@/components/views/SettingsView';
@@ -38,6 +39,7 @@ export const VIEW_TYPES = [
   'projects',
   'projects-kanban',
   'project-product-management',
+  'classes',
   'important-dates',
   'traditions',
   'goal-boards',
@@ -64,6 +66,7 @@ export const VIEW_COMPONENTS = {
   'projects': ProjectView,
   'projects-kanban': ProjectsKanbanBoardsView,
   'project-product-management': ProjectProductManagementView,
+  'classes': ClassView,
   'important-dates': ImportantDatesView,
   'traditions': TraditionsView,
   'goal-boards': GoalBoardsView,

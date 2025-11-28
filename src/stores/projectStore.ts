@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { Project } from '@/types';
-import { STORAGE_KEYS } from '@/constants';
+import { STORAGE_KEYS } from '@/constants/storage';
 
 // Core project atoms
 export const projectsAtom = atomWithStorage<Project[]>(STORAGE_KEYS.PROJECTS, []);

@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   STORIES: 'life-scrum-stories',
   SPRINTS: 'life-scrum-sprints',
   PROJECTS: 'life-scrum-projects',
+  CLASSES: 'life-scrum-classes',
   ROLES: 'life-scrum-roles',
   LABELS: 'life-scrum-labels',
   VISIONS: 'life-scrum-visions',
@@ -29,5 +30,6 @@ export const STORAGE_KEYS = {
   CHART_ABOVE_BOARD: 'life-scrum-chart-above-board',
   ROADMAP_POSITION: 'life-scrum-roadmap-position',
   BURNDOWN_COLLAPSED: 'life-scrum-burndown-collapsed',
-  BURNUP_COLLAPSED: 'life-scrum-burnup-collapsed'
+  BURNUP_COLLAPSED: 'life-scrum-burnup-collapsed',
+  ASSIGNMENTS: 'life-scrum-assignments'
 } as const;

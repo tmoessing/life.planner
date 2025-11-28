@@ -190,19 +190,20 @@ export function ImportantDateModal({
             </Label>
           </div>
           
-          <DialogFooter className="gap-2">
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isSubmitting}
+              className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={!title.trim() || !date || isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
             >
               <Plus className="h-4 w-4 mr-2" />
               {isSubmitting ? 'Saving...' : (mode === 'add' ? 'Add Date' : 'Save Changes')}

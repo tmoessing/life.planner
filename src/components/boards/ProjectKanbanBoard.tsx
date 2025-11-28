@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { 
   storiesAtom, 
@@ -75,6 +75,18 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
     setEditingStory(story);
   };
 
+  const handleMoveToColumn = (storyId: string, targetColumnId: string) => {
+    // Find which column the story is currently in
+    const fromColumn = columns.find(col => col.storyIds.includes(storyId));
+    const targetColumn = columns.find(col => col.id === targetColumnId);
+    
+    if (fromColumn && targetColumn && fromColumn.id !== targetColumn.id) {
+      moveStory(storyId, targetColumnId);
+    }
+  };
+
+  const allColumnIds = columns.map(col => col.id);
+
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header - positioned below main app header */}
@@ -94,7 +106,7 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
       {/* Kanban Board */}
       <div className="flex-1 p-4 overflow-hidden pb-20 lg:pb-4">
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 h-full overflow-x-auto">
+          <div className="flex gap-4 h-full overflow-x-auto mobile-scroll pb-4">
             {columns.map((column) => (
               <div key={column.id} className="flex-shrink-0 w-80">
                 <KanbanColumn
@@ -104,6 +116,8 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
                   onStoryClick={handleStoryClick}
                   onEditStory={handleEditStory}
                   projectId={project.id}
+                  allColumnIds={allColumnIds}
+                  onMoveToColumn={handleMoveToColumn}
                 />
               </div>
             ))}

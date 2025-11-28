@@ -257,47 +257,368 @@ export function AddProjectsView() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-2 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
         <div>
-          <h2 className="text-lg sm:text-2xl font-bold">Add Projects</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-base sm:text-2xl font-bold">Add Projects</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             Batch add multiple projects to organize your work
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-row gap-1.5 sm:gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={addNewProjectForm}
-            className="gap-2"
+            size="sm"
+            className="gap-1 sm:gap-2 flex-1 sm:flex-initial touch-target h-9 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm px-2 sm:px-4"
           >
-            <Plus className="h-4 w-4" />
-            Add Project
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Add Project</span>
           </Button>
           
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || projectForms.every(form => form.name.trim() === '')}
-            className="gap-2"
+            size="sm"
+            className="gap-1 sm:gap-2 flex-1 sm:flex-initial touch-target h-9 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm px-2 sm:px-4"
             title="Add projects (Ctrl+Enter)"
           >
-            <Save className="h-4 w-4" />
-            {isSubmitting ? 'Adding...' : `Add ${projectForms.filter(f => f.name.trim()).length} Projects`}
-            <span className="text-xs opacity-70 ml-1">(Ctrl+Enter)</span>
+            <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">
+              {isSubmitting ? 'Adding...' : `Add ${projectForms.filter(f => f.name.trim()).length} Projects`}
+            </span>
+            <span className="sm:hidden">
+              {isSubmitting ? 'Adding...' : `Add ${projectForms.filter(f => f.name.trim()).length}`}
+            </span>
+            <span className="hidden sm:inline text-xs opacity-70 ml-1">(Ctrl+Enter)</span>
           </Button>
         </div>
       </div>
 
-      {/* Project Forms - Table View */}
-      <Card>
+      {/* Default Options - Mobile */}
+      <Card className="sm:hidden">
+        <CardHeader>
+          <CardTitle className="text-base">Default Options</CardTitle>
+          <p className="text-xs text-muted-foreground">Set defaults for all new projects</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+              <Select
+                value={defaultOptions.status}
+                onValueChange={(value) => handleDefaultOptionChange('status', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {projectStatuses.map((status) => (
+                    <SelectItem key={status.id} value={status.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: status.color }}
+                        />
+                        {status.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Priority</label>
+              <Select
+                value={defaultOptions.priority}
+                onValueChange={(value) => handleDefaultOptionChange('priority', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Role</label>
+              <Select
+                value={defaultOptions.roleId}
+                onValueChange={(value) => handleDefaultOptionChange('roleId', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Vision</label>
+              <Select
+                value={defaultOptions.visionId}
+                onValueChange={(value) => handleDefaultOptionChange('visionId', value)}
+              >
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue placeholder="Set default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {visions.map((vision) => (
+                    <SelectItem key={vision.id} value={vision.id}>
+                      {vision.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Project Forms - Mobile Card View */}
+      <div className="sm:hidden space-y-3">
+        {projectForms.map((project, index) => (
+          <Card key={index} className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Name *</label>
+                  <Input
+                    ref={getFieldRef(index, 'name')}
+                    value={project.name}
+                    onChange={(e) => updateProjectForm(index, 'name', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, index, 'name')}
+                    placeholder="Enter project name..."
+                    className="w-full text-sm min-h-[44px]"
+                  />
+                </div>
+                {projectForms.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeProjectForm(index)}
+                    className="h-10 w-10 p-0 text-red-600 hover:text-red-700 flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
+                <Textarea
+                  ref={getFieldRef(index, 'description')}
+                  value={project.description}
+                  onChange={(e) => updateProjectForm(index, 'description', e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, index, 'description')}
+                  placeholder="Description (optional)..."
+                  className="w-full text-sm min-h-[60px] resize-none"
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+                  <Select
+                    value={project.status}
+                    onValueChange={(value) => updateProjectForm(index, 'status', value)}
+                    data-field="status"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projectStatuses.map((status) => (
+                        <SelectItem key={status.id} value={status.name}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: status.color }}
+                            />
+                            {status.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Priority</label>
+                  <Select
+                    value={project.priority}
+                    onValueChange={(value) => updateProjectForm(index, 'priority', value)}
+                    data-field="priority"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['high', 'medium', 'low'].map((priority) => (
+                        <SelectItem key={priority} value={priority}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: projectSettings.priorityColors?.[priority as 'high' | 'medium' | 'low'] || '#6B7280' }}
+                            />
+                            {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Type</label>
+                  <Select
+                    value={project.type || 'none'}
+                    onValueChange={(value) => updateProjectForm(index, 'type', value === 'none' ? undefined : value)}
+                    data-field="type"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Type</SelectItem>
+                      {projectSettings.projectTypes.map((type) => (
+                        <SelectItem key={type.name} value={type.name}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: type.color }}
+                            />
+                            {type.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Size</label>
+                  <Select
+                    value={project.size || 'none'}
+                    onValueChange={(value) => updateProjectForm(index, 'size', value === 'none' ? undefined : value)}
+                    data-field="size"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Size..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Size</SelectItem>
+                      {projectSettings.projectSizes.map((size) => (
+                        <SelectItem key={size.name} value={size.name}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: size.color }}
+                            />
+                            {size.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Role</label>
+                  <Select
+                    value={project.roleId || 'none'}
+                    onValueChange={(value) => updateProjectForm(index, 'roleId', value === 'none' ? undefined : value)}
+                    data-field="role"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Role..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Role</SelectItem>
+                      {roles.map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Vision</label>
+                  <Select
+                    value={project.visionId || 'none'}
+                    onValueChange={(value) => updateProjectForm(index, 'visionId', value === 'none' ? undefined : value)}
+                    data-field="vision"
+                  >
+                    <SelectTrigger className="w-full h-10 text-sm">
+                      <SelectValue placeholder="Vision..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Vision</SelectItem>
+                      {visions.map((vision) => (
+                        <SelectItem key={vision.id} value={vision.id}>
+                          {vision.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Start Date</label>
+                  <Input
+                    ref={getFieldRef(index, 'startDate')}
+                    type="date"
+                    value={project.startDate || ''}
+                    onChange={(e) => updateProjectForm(index, 'startDate', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, index, 'startDate')}
+                    className="w-full h-10 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">End Date</label>
+                  <Input
+                    ref={getFieldRef(index, 'endDate')}
+                    type="date"
+                    value={project.endDate || ''}
+                    onChange={(e) => updateProjectForm(index, 'endDate', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, index, 'endDate')}
+                    className="w-full h-10 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Project Forms - Desktop Table View */}
+      <Card className="hidden sm:block">
         <CardHeader>
           <CardTitle className="text-lg">Projects to Add</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto mobile-scroll">
+            <table className="w-full min-w-[800px]">
               <thead className="border-b">
                 {/* Default Options Row */}
                 <tr className="bg-muted/30">

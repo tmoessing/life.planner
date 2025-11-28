@@ -31,6 +31,12 @@ export const getLabelNames = (labelIds: string[], labels: Label[]): string[] => 
     .map(label => label!.name);
 };
 
+export const getLabelObjects = (labelIds: string[], labels: Label[]): Label[] => {
+  return labelIds
+    .map(id => labels.find(l => l.id === id))
+    .filter((label): label is Label => label !== undefined);
+};
+
 export const getPriorityOrder = (priority: Priority): number => {
   const order: Record<Priority, number> = { 
     Q1: 1, 

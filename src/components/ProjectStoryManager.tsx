@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable, DragOverEvent } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,7 +62,7 @@ function DraggableStoryCard({
         }
       }}
     >
-      <StoryCard story={story} isSelected={isSelected} onEdit={onEdit} />
+      <StoryCard story={story} isSelected={isSelected} onEdit={onEdit} isDragging={isDragging} />
     </div>
   );
 }

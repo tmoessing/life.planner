@@ -337,12 +337,6 @@ export function ReviewViewRefactored() {
                 <StoryCard
                   key={story.id}
                   story={story}
-                  roles={roles}
-                  labels={labels}
-                  visions={visions}
-                  goals={[]}
-                  projects={[]}
-                  settings={settings}
                   showActions={false}
                   className="transition-all duration-200 hover:shadow-md"
                 />

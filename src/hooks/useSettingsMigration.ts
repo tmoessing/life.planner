@@ -33,7 +33,6 @@ export function useSettingsMigration() {
     const oldKeys = ['life-scrum-project-types', 'project-types', 'projectTypes'];
     oldKeys.forEach(key => {
       if (localStorage.getItem(key)) {
-        console.log('Settings Migration: Removing old localStorage key:', key);
         localStorage.removeItem(key);
       }
     });
@@ -165,28 +164,13 @@ export function useSettingsMigration() {
     
     // Always update project types to ensure they are correct
     if (needsProjectTypeUpdate) {
-      console.log('Settings Migration: Updating project types from', currentProjectTypes, 'to', newProjectTypes);
       settingsUpdates.projectTypes = newProjectTypes;
       needsUpdate = true;
     }
     
     // Force update project types regardless of current state to ensure they're correct
-    console.log('Settings Migration: Force updating project types to', newProjectTypes);
     settingsUpdates.projectTypes = newProjectTypes;
     needsUpdate = true;
-    
-    // Also check if there are any old project types in the current settings and log them
-    if (settings.projectTypes && settings.projectTypes.length > 0) {
-      console.log('Settings Migration: Current project types in settings:', settings.projectTypes);
-      const hasOldTypes = settings.projectTypes.some(type => 
-        type.name === 'Work' || type.name === 'Personal' || type.name === 'Health' || 
-        type.name === 'work' || type.name === 'personal' || type.name === 'health' ||
-        type.name === 'Learning' // This might be the issue - Learning is in both old and new
-      );
-      if (hasOldTypes) {
-        console.log('Settings Migration: Found old project types, forcing update');
-      }
-    }
     
     if (!settings.traditionTypes) {
       settingsUpdates.traditionTypes = [

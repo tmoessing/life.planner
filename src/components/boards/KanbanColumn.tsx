@@ -4,11 +4,11 @@ import { useDroppable } from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { currentSprintAtom } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
-import { Plus } from 'lucide-react';
+import { Plus, Weight } from 'lucide-react';
 import type { Column, Story } from '@/types';
 
 interface KanbanColumnProps {
@@ -21,9 +21,12 @@ interface KanbanColumnProps {
   activeStory?: Story | null;
   isDragOver?: boolean;
   activeStoryId?: string;
+  // Kanban board context for swipe-to-move
+  allColumnIds?: string[];
+  onMoveToColumn?: (storyId: string, targetColumnId: string) => void;
 }
 
-export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, activeStory, isDragOver, activeStoryId }: KanbanColumnProps) {
+export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, activeStory, isDragOver, activeStoryId, allColumnIds, onMoveToColumn }: KanbanColumnProps) {
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [currentSprint] = useAtom(currentSprintAtom);
   const storySettings = useStorySettings();
@@ -76,9 +79,20 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
                 <span className="ml-2 text-xs text-red-500">⚠️ Complete Retro</span>
               )}
             </CardTitle>
-            <Badge variant="secondary" className="text-xs">
-              {stories.length}
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="secondary" className="text-xs">
+                {stories.length}
+              </Badge>
+              {(() => {
+                const totalWeight = stories.reduce((sum, story) => sum + (story.weight || 0), 0);
+                return totalWeight > 0 ? (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Weight className="h-3 w-3" />
+                    <span>{totalWeight}</span>
+                  </div>
+                ) : null;
+              })()}
+            </div>
           </div>
         </CardHeader>
         
@@ -89,10 +103,16 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
           {stories.map((story, index) => (
             <StoryCard 
               key={story.id} 
-              story={story} 
+              story={story}
+              index={index}
               isSelected={selectedStories.includes(story.id)}
               onClick={(event) => onStoryClick(story.id, event, stories, index)}
               onEdit={onEditStory}
+              draggable={true}
+              kanbanMode={!!allColumnIds && allColumnIds.length > 0}
+              currentColumnId={column.id}
+              allColumnIds={allColumnIds || []}
+              onMoveToColumn={onMoveToColumn}
             />
           ))}
           

@@ -1,3 +1,14 @@
+// Type declaration for Google API
+declare global {
+  interface Window {
+    gapi?: {
+      load: (api: string, callback: () => void) => void;
+      client: unknown;
+      auth2: unknown;
+    };
+  }
+}
+
 // Google API Loader utility
 let isGoogleApiLoaded = false;
 let isGoogleApiLoading = false;
@@ -29,11 +40,9 @@ export const loadGoogleApi = (): Promise<void> => {
     script.defer = true;
     
     script.onload = () => {
-      console.log('Google API script loaded');
       // Wait for gapi to be available
       const checkGapi = () => {
         if (typeof window !== 'undefined' && window.gapi) {
-          console.log('Google API is ready');
           isGoogleApiLoaded = true;
           isGoogleApiLoading = false;
           resolve();
@@ -45,7 +54,6 @@ export const loadGoogleApi = (): Promise<void> => {
     };
     
     script.onerror = () => {
-      console.error('Failed to load Google API script');
       isGoogleApiLoading = false;
       loadPromise = null;
       reject(new Error('Failed to load Google API script'));
@@ -57,6 +65,17 @@ export const loadGoogleApi = (): Promise<void> => {
   return loadPromise;
 };
 
+// Type declaration for Google API
+declare global {
+  interface Window {
+    gapi?: {
+      load: (api: string, callback: () => void) => void;
+      client: unknown;
+      auth2: unknown;
+    };
+  }
+}
+
 export const isGoogleApiReady = (): boolean => {
-  return isGoogleApiLoaded && typeof window !== 'undefined' && !!(window as any).gapi;
+  return isGoogleApiLoaded && typeof window !== 'undefined' && !!window.gapi;
 };

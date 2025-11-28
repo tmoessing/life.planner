@@ -16,7 +16,7 @@ export { SprintKanbanBoard } from './boards/SprintKanbanBoard';
 export { KanbanColumn } from './boards/KanbanColumn';
 export { ProjectKanbanBoard } from './boards/ProjectKanbanBoard';
 export { ProjectKanbanView } from './boards/ProjectKanbanView';
-export { StoryCard } from './boards/StoryCard';
+export { StoryCard } from './shared/StoryCard';
 export { ProjectCard } from './boards/ProjectCard';
 
 // Chart Components

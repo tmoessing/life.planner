@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { sprintStoriesByStatusAtom, storiesAtom, moveStoryAtom } from '@/stores/appStore';
+import { sprintStoriesByStatusAtom, storiesAtom, moveStoryAtom, updateStoryAtom } from '@/stores/appStore';
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { Button } from '@/components/ui/button';
-import { Undo } from 'lucide-react';
+import { Undo, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useStorySettings } from '@/utils/settingsMirror';
 import type { Story } from '@/types';
 
 interface SprintKanbanBoardProps {
@@ -16,6 +17,7 @@ interface SprintKanbanBoardProps {
 export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardProps) {
   const [sprintStoriesByStatus] = useAtom(sprintStoriesByStatusAtom);
   const [allStories] = useAtom(storiesAtom);
+  const storySettings = useStorySettings();
   
   // Use all stories if showAllSprints is true, otherwise use sprint-specific stories
   const storiesByStatus = showAllSprints ? 
@@ -31,7 +33,8 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
   
   
   // Define the status columns
-  const statusColumns = [
+  // When viewing a specific sprint (not all sprints), hide icebox and backlog columns
+  const allStatusColumns = [
     { id: 'icebox', name: 'Icebox' as const, storyIds: [] },
     { id: 'backlog', name: 'Backlog' as const, storyIds: [] },
     { id: 'todo', name: 'To Do' as const, storyIds: [] },
@@ -39,7 +42,12 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     { id: 'review', name: 'Review' as const, storyIds: [] },
     { id: 'done', name: 'Done' as const, storyIds: [] }
   ];
+  
+  const statusColumns = showAllSprints 
+    ? allStatusColumns 
+    : allStatusColumns.filter(col => col.id !== 'icebox' && col.id !== 'backlog');
   const [, moveStory] = useAtom(moveStoryAtom);
+  const [, updateStory] = useAtom(updateStoryAtom);
   // const [, deleteStory] = useAtom(deleteStoryAtom);
   // const [, addStory] = useAtom(addStoryAtom);
   // const [, updateStory] = useAtom(updateStoryAtom);
@@ -57,6 +65,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     previousColumnId?: string;
     story?: Story;
   }>>([]);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -65,6 +74,29 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
       },
     })
   );
+
+  const handleMoveToColumn = (storyId: string, targetColumnId: string) => {
+    // Find which column the story is currently in
+    let fromColumnId = '';
+    for (const [columnId, stories] of Object.entries(storiesByStatus)) {
+      if (stories.some(story => story.id === storyId)) {
+        fromColumnId = columnId;
+        break;
+      }
+    }
+
+    if (fromColumnId && fromColumnId !== targetColumnId) {
+      // Add to undo stack before moving
+      setUndoStack(prev => [...prev, {
+        type: 'move',
+        storyId,
+        previousColumnId: fromColumnId
+      }]);
+      moveStory(storyId, targetColumnId);
+    }
+  };
+
+  const allColumnIds = statusColumns.map(col => col.id);
 
   const handleDragStart = (event: DragStartEvent) => {
     const storyId = event.active.id as string;
@@ -95,14 +127,45 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     const targetStatus = statusColumns.find(col => col.id === overId);
     if (!targetStatus) return;
 
+    // Prevent dragging to icebox/backlog when viewing a specific sprint
+    if (!showAllSprints && (targetStatus.id === 'icebox' || targetStatus.id === 'backlog')) {
+      return;
+    }
+
     // Set drag over column for visual feedback
     setDragOverColumn(targetStatus.id);
 
     // Check if story is already in this status
     if (activeStory.status === targetStatus.id) return;
 
-    // Move the story to the target status
-    moveStory(activeId, targetStatus.id);
+    // Handle recurring instances differently
+    if (activeStory._isRecurringInstance && activeStory._originalId) {
+      // For recurring instances, we need to update the instance status in the original story
+      const originalStory = allStories.find(s => s.id === activeStory._originalId);
+      if (originalStory && originalStory.repeat) {
+        const instanceDate = activeStory._instanceDate;
+        if (instanceDate) {
+          // Update the instance status in the original story's repeat.instances
+          const updatedRepeat = {
+            ...originalStory.repeat,
+            instances: {
+              ...originalStory.repeat.instances,
+              [instanceDate]: {
+                ...originalStory.repeat.instances?.[instanceDate],
+                status: targetStatus.id as any,
+                modified: true
+              }
+            }
+          };
+          
+          // Update the story with the new repeat configuration
+          updateStory(originalStory.id, { repeat: updatedRepeat });
+        }
+      }
+    } else {
+      // For regular stories, use the normal move logic
+      moveStory(activeId, targetStatus.id);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -141,7 +204,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
 
     if (lastAction.type === 'delete' && lastAction.story) {
       // Restore the story - would need to implement story restoration
-      console.log('Restore story:', lastAction.story);
+      // Restore story from undo history
     } else if (lastAction.type === 'move' && lastAction.previousColumnId) {
       // Move story back to previous status
       moveStory(lastAction.storyId, lastAction.previousColumnId);
@@ -201,20 +264,134 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
           </div>
         )}
 
+        {/* Column Header Row - Desktop */}
+        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
+          {statusColumns.map((column, index) => {
+            const columnStories = storiesByStatus[column.id] || [];
+            const statusColor = storySettings.getStatusColor(column.id);
+            return (
+              <div
+                key={column.id}
+                onClick={() => {
+                  // Scroll to the column on desktop
+                  const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
+                  if (columnElement) {
+                    columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
+                }}
+                className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ backgroundColor: `${statusColor}20` }}
+              >
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: statusColor }}
+                />
+                <span className="text-sm font-medium" style={{ color: statusColor }}>
+                  {column.name}
+                </span>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {columnStories.length}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Column Header Row with Navigation Arrows - Mobile */}
+        <div className="sm:hidden mb-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
+              disabled={currentMobileColumnIndex === 0}
+              className="flex-shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 grid grid-cols-3 gap-1.5">
+              {statusColumns.map((column, index) => {
+                const columnStories = storiesByStatus[column.id] || [];
+                const statusColor = storySettings.getStatusColor(column.id);
+                const isActive = statusColumns[currentMobileColumnIndex]?.id === column.id;
+                return (
+                  <div
+                    key={column.id}
+                    onClick={() => setCurrentMobileColumnIndex(index)}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                      isActive ? `ring-2 ring-offset-1 ring-[${statusColor}]` : ''
+                    }`}
+                    style={{ 
+                      backgroundColor: `${statusColor}20`
+                    }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: statusColor }}
+                    />
+                    <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
+                      {column.name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                      {columnStories.length}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMobileColumnIndex(prev => Math.min(statusColumns.length - 1, prev + 1))}
+              disabled={currentMobileColumnIndex === statusColumns.length - 1}
+              className="flex-shrink-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         {/* Kanban Board */}
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        {/* Desktop Grid Layout */}
+        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {statusColumns.map((column) => (
-            <KanbanColumn
+            <div key={column.id} className="min-w-0" data-column-id={column.id}>
+              <KanbanColumn
+                column={column}
+                stories={storiesByStatus[column.id] || []}
+                onStoryClick={handleStoryClick}
+                onEditStory={handleEditStory}
+                selectedStories={selectedStories}
+                isDragOver={dragOverColumn === column.id}
+                activeStoryId={activeId || undefined}
+                activeStory={activeStory}
+                allColumnIds={allColumnIds}
+                onMoveToColumn={handleMoveToColumn}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile Single Column Layout */}
+        <div className="sm:hidden">
+          {statusColumns.map((column, index) => (
+            <div
               key={column.id}
-              column={column}
-              stories={storiesByStatus[column.id] || []}
-              onStoryClick={handleStoryClick}
-              onEditStory={handleEditStory}
-              selectedStories={selectedStories}
-              isDragOver={dragOverColumn === column.id}
-              activeStoryId={activeId || undefined}
-              activeStory={activeStory}
-            />
+              className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
+            >
+              <KanbanColumn
+                column={column}
+                stories={storiesByStatus[column.id] || []}
+                onStoryClick={handleStoryClick}
+                onEditStory={handleEditStory}
+                selectedStories={selectedStories}
+                isDragOver={dragOverColumn === column.id}
+                activeStoryId={activeId || undefined}
+                activeStory={activeStory}
+                allColumnIds={allColumnIds}
+                onMoveToColumn={handleMoveToColumn}
+              />
+            </div>
           ))}
         </div>
       </div>

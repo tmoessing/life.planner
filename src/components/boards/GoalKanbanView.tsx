@@ -1,9 +1,9 @@
 import { useAtom } from 'jotai';
-import { goalsAtom, deleteGoalAtom } from '@/stores/appStore';
+import { goalsAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Edit, Trash2, Calendar } from 'lucide-react';
+import { Plus, Target, Edit, Calendar } from 'lucide-react';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import type { Goal } from '@/types';
 
@@ -21,7 +21,6 @@ export function GoalKanbanView({
   onOpenKanban 
 }: GoalKanbanViewProps) {
   const [goals] = useAtom(goalsAtom);
-  const [, deleteGoal] = useAtom(deleteGoalAtom);
   const goalSettings = useGoalSettings();
 
   const getPriorityColor = (priority: string) => {
@@ -104,12 +103,11 @@ export function GoalKanbanView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 className="text-2xl font-bold">Goals</h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Manage your life goals and track progress
           </p>
         </div>
@@ -122,11 +120,11 @@ export function GoalKanbanView({
       {/* Goals Grid */}
       {goals.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
-              <Target className="h-12 w-12 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Goals Yet</h3>
-              <p>Start by adding your first goal to get organized</p>
+          <CardContent className="text-center py-8">
+            <div className="text-muted-foreground mb-3">
+              <Target className="h-8 w-8 mx-auto mb-3" />
+              <h3 className="text-base font-semibold mb-1">No Goals Yet</h3>
+              <p className="text-sm">Start by adding your first goal to get organized</p>
             </div>
             <Button onClick={onAddGoal}>
               <Plus className="h-4 w-4 mr-2" />
@@ -135,44 +133,60 @@ export function GoalKanbanView({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
           {goals.map((goal) => (
             <Card key={goal.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2 px-3 pt-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm sm:text-lg line-clamp-2">{goal.title}</CardTitle>
-                    {goal.description && (
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {goal.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-0.5 ml-2 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEditGoal(goal)}
-                      className="h-6 w-6 p-0 sm:h-8 sm:w-8"
-                    >
-                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete this goal?')) {
-                          deleteGoal(goal.id);
-                        }
-                      }}
-                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 sm:h-8 sm:w-8"
-                    >
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
+              {/* Mobile: Single row layout */}
+              <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
+                <Target className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                <span className="text-xs font-medium truncate flex-1 min-w-0">
+                  {goal.title}
+                </span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap" style={getStatusColor(goal.status)}>
+                    {getStatusText(goal.status).substring(0, 4)}
+                  </Badge>
+                  {goal.priority && (
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap" style={getPriorityColor(goal.priority)}>
+                      {goal.priority}
+                    </Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEditGoal(goal)}
+                    className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
+                  >
+                    <Edit className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2 px-3 pb-3">
+              </div>
+
+              {/* Desktop: Compact card layout */}
+              <div className="hidden sm:block">
+                <CardHeader className="pb-0.5 px-2 pt-1.5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-xs sm:text-sm line-clamp-1">{goal.title}</CardTitle>
+                      {goal.description && (
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {goal.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-0.5 ml-2 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEditGoal(goal)}
+                        className="h-6 w-6 p-0 sm:h-8 sm:w-8"
+                      >
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 px-3 pb-3">
                 {/* Badges */}
                 <div className="flex flex-wrap gap-1">
                   <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5" style={getCategoryColor(goal.category)}>
@@ -210,7 +224,8 @@ export function GoalKanbanView({
                     <span className="sm:hidden">Kanban</span>
                   </Button>
                 </div>
-              </CardContent>
+                </CardContent>
+              </div>
             </Card>
           ))}
         </div>

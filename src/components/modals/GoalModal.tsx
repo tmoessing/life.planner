@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { goalsAtom, addGoalAtom, updateGoalAtom, visionsAtom, rolesAtom, settingsAtom } from '@/stores/appStore';
+import { Trash2 } from 'lucide-react';
+import { goalsAtom, addGoalAtom, updateGoalAtom, deleteGoalAtom, visionsAtom, rolesAtom, settingsAtom } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import type { Goal, StoryType, Priority } from '@/types';
 
 interface GoalModalProps {
@@ -14,15 +16,19 @@ interface GoalModalProps {
   onClose: () => void;
   mode: 'add' | 'edit';
   goal?: Goal | null;
+  initialGoalType?: string;
+  initialStatus?: 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done';
 }
 
-export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
+export function GoalModal({ isOpen, onClose, mode, goal, initialGoalType, initialStatus }: GoalModalProps) {
   const [goals] = useAtom(goalsAtom);
   const [visions] = useAtom(visionsAtom);
   const [roles] = useAtom(rolesAtom);
   const [settings] = useAtom(settingsAtom);
   const [, addGoal] = useAtom(addGoalAtom);
   const [, updateGoal] = useAtom(updateGoalAtom);
+  const [, deleteGoal] = useAtom(deleteGoalAtom);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Use settings mirror system for goal settings
   const goalSettings = useGoalSettings();
@@ -56,13 +62,13 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
         description: '',
         visionId: 'none',
         category: 'target',
-        goalType: 'target',
+        goalType: initialGoalType || goalSettings.goalTypes?.[0]?.name || 'Spiritual',
         roleId: 'none',
         priority: undefined,
-        status: 'icebox'
+        status: initialStatus || 'icebox'
       });
     }
-  }, [mode, goal]);
+  }, [mode, goal, initialGoalType, initialStatus]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,46 +96,58 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
     onClose();
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!goal) return;
+    deleteGoal(goal.id);
+    setShowDeleteConfirm(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-2 sm:p-6">
+        <DialogHeader className="pb-1 sm:pb-4">
+          <DialogTitle className="text-sm sm:text-xl">
             {mode === 'add' ? 'Add New Goal' : 'Edit Goal'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm hidden sm:block">
             {mode === 'add' 
               ? 'Create a new goal to track your progress and achievements.'
               : 'Edit the goal details and manage its properties.'
             }
           </DialogDescription>
         </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-1.5 sm:space-y-3">
             <div>
-              <label className="text-sm font-medium">Title *</label>
+              <label className="text-xs sm:text-sm font-medium">Title *</label>
               <Input
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter goal title..."
-                className="mt-1"
+                className="mt-0.5 h-8 sm:h-auto"
                 required
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-xs sm:text-sm font-medium">Description</label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter goal description..."
-                className="mt-1"
-                rows={3}
+                className="mt-0.5 text-sm"
+                rows={1}
               />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
               <div>
-                <label className="text-sm font-medium">Vision</label>
+                <label className="text-xs sm:text-sm font-medium">Vision</label>
                 <Select
                   value={formData.visionId}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, visionId: value }))}
@@ -149,7 +167,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
               </div>
               
               <div>
-                <label className="text-sm font-medium">Goal Category</label>
+                <label className="text-xs sm:text-sm font-medium">Goal Category</label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as 'target' | 'lifestyle-value' }))}
@@ -189,9 +207,9 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               <div>
-                <label className="text-sm font-medium">Goal Type</label>
+                <label className="text-xs sm:text-sm font-medium">Goal Type</label>
                 <Select
                   value={formData.goalType}
                   onValueChange={(value: string) => setFormData(prev => ({ ...prev, goalType: value }))}
@@ -231,7 +249,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
               </div>
               
               <div>
-                <label className="text-sm font-medium">Goal Priority</label>
+                <label className="text-xs sm:text-sm font-medium">Goal Priority</label>
                 <Select
                   value={formData.priority || ""}
                   onValueChange={(value: Priority) => setFormData(prev => ({ ...prev, priority: value }))}
@@ -264,7 +282,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
             </div>
             
             <div>
-              <label className="text-sm font-medium">Role</label>
+              <label className="text-xs sm:text-sm font-medium">Role</label>
               <Select
                 value={formData.roleId}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, roleId: value }))}
@@ -290,7 +308,7 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
             </div>
             
             <div>
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-xs sm:text-sm font-medium">Status</label>
               <Select
                 value={formData.status}
                 onValueChange={(value: 'icebox' | 'backlog' | 'todo' | 'in-progress' | 'review' | 'done') => setFormData(prev => ({ ...prev, status: value }))}
@@ -317,16 +335,53 @@ export function GoalModal({ isOpen, onClose, mode, goal }: GoalModalProps) {
               </Select>
             </div>
             
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={!formData.title.trim()}>
-                {mode === 'add' ? 'Add Goal' : 'Update Goal'}
-              </Button>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-1.5 sm:gap-2 pt-1.5 sm:pt-4">
+              {mode === 'edit' ? (
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={handleDeleteClick}
+                  size="sm"
+                  className="gap-1 sm:gap-2 w-full sm:w-auto touch-target h-8 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm"
+                >
+                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  Delete
+                </Button>
+              ) : (
+                <div></div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 w-full sm:w-auto">
+                <Button 
+                  type="submit" 
+                  disabled={!formData.title.trim()}
+                  size="sm"
+                  className="w-full sm:w-auto touch-target h-8 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm"
+                >
+                  {mode === 'add' ? 'Add Goal' : 'Update Goal'}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onClose}
+                  size="sm"
+                  className="w-full sm:w-auto touch-target h-8 sm:h-auto min-h-[44px] sm:min-h-0 text-xs sm:text-sm"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </form>
       </DialogContent>
     </Dialog>
+
+    <DeleteConfirmationModal
+      isOpen={showDeleteConfirm}
+      onClose={() => setShowDeleteConfirm(false)}
+      onConfirm={handleConfirmDelete}
+      title="Delete Goal"
+      itemName={goal?.title}
+      description="This will permanently delete the goal and cannot be undone."
+    />
+    </>
   );
 }

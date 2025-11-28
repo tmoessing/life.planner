@@ -9,7 +9,9 @@ import type {
   ImportantDate, 
   Tradition, 
   Sprint,
-  Settings 
+  Settings,
+  Class,
+  Assignment
 } from '@/types';
 
 // Google Sheets API configuration
@@ -31,6 +33,8 @@ export interface SheetData {
   importantDates: ImportantDate[];
   traditions: Tradition[];
   sprints: Sprint[];
+  classes?: Class[];
+  assignments?: Assignment[];
   settings: Settings;
 }
 

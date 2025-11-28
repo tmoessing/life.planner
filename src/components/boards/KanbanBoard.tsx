@@ -4,7 +4,7 @@ import { storiesByColumnAtom, safeColumnsAtom, moveStoryAtom, deleteStoryAtom, a
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
-import { StoryCard } from '@/components/boards/StoryCard';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { Button } from '@/components/ui/button';
 import { Undo } from 'lucide-react';
 import type { Story } from '@/types';
@@ -222,6 +222,29 @@ export function KanbanBoard() {
     }
   };
 
+  const handleMoveToColumn = (storyId: string, targetColumnId: string) => {
+    // Find which column the story is currently in
+    let fromColumnId = '';
+    for (const [columnId, stories] of Object.entries(storiesByColumn)) {
+      if (stories.some(story => story.id === storyId)) {
+        fromColumnId = columnId;
+        break;
+      }
+    }
+
+    if (fromColumnId && fromColumnId !== targetColumnId) {
+      // Add to undo stack before moving
+      setUndoStack(prev => [...prev, {
+        type: 'move',
+        storyId,
+        previousColumnId: fromColumnId
+      }]);
+      moveStory(storyId, targetColumnId);
+    }
+  };
+
+  const allColumnIds = columns.map(col => col.id);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -262,6 +285,8 @@ export function KanbanBoard() {
                   selectedStories={selectedStories}
                   onStoryClick={handleStoryClick}
                   onEditStory={handleEditStory}
+                  allColumnIds={allColumnIds}
+                  onMoveToColumn={handleMoveToColumn}
                 />
               </div>
             ))}

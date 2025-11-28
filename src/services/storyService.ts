@@ -1,4 +1,4 @@
-import type { Story, Priority, StoryType, Role, Label, Vision, Goal, Project } from '@/types';
+import type { Story, Priority, StoryType, Role, Label, Vision, Goal, Project, RecurrenceEditMode } from '@/types';
 
 export interface StoryFilters {
   priority: Priority | 'all';
@@ -333,5 +333,181 @@ export class StoryService {
       const date = new Date(storyDate);
       return date >= startDate && date <= endDate;
     });
+  }
+
+  /**
+   * Update a recurring story with different edit modes
+   */
+  static updateRecurringStory(
+    story: Story,
+    updates: Partial<Story>,
+    mode: RecurrenceEditMode,
+    instanceDate?: string
+  ): Story {
+    if (!story.repeat || story.repeat.cadence === 'none') {
+      // Not a recurring story, just update normally
+      return { ...story, ...updates };
+    }
+
+    const updatedStory = { ...story };
+
+    if (mode === 'this' && instanceDate) {
+      // Update only this instance
+      if (!updatedStory.repeat) {
+        updatedStory.repeat = {
+          cadence: 'none',
+          instances: {}
+        };
+      }
+      updatedStory.repeat = {
+        ...updatedStory.repeat,
+        cadence: updatedStory.repeat.cadence || 'none',
+        instances: {
+          ...updatedStory.repeat.instances,
+          [instanceDate]: {
+            ...updatedStory.repeat.instances?.[instanceDate],
+            status: updates.status,
+            modified: true
+          }
+        }
+      };
+    } else if (mode === 'future') {
+      // Update repeat rules and clear future instance overrides
+      if (!updatedStory.repeat) {
+        updatedStory.repeat = {
+          cadence: 'none',
+          instances: {}
+        };
+      }
+      updatedStory.repeat = {
+        ...updatedStory.repeat,
+        cadence: updates.repeat?.cadence || updatedStory.repeat.cadence || 'none',
+        ...updates.repeat,
+        instances: this.clearFutureInstanceOverrides(
+          updatedStory.repeat.instances || {},
+          instanceDate
+        )
+      };
+    } else if (mode === 'all') {
+      // Update base story and clear all overrides
+      if (!updatedStory.repeat) {
+        updatedStory.repeat = {
+          cadence: 'none',
+          instances: {}
+        };
+      }
+      updatedStory.repeat = {
+        ...updatedStory.repeat,
+        cadence: updates.repeat?.cadence || updatedStory.repeat.cadence || 'none',
+        ...updates.repeat,
+        instances: {}
+      };
+    }
+
+    return { ...updatedStory, ...updates };
+  }
+
+  /**
+   * Update a specific instance of a recurring story
+   */
+  static updateStoryInstanceOverride(
+    story: Story,
+    date: string,
+    overrides: Partial<Story>
+  ): Story {
+    if (!story.repeat) return story;
+
+    return {
+      ...story,
+      repeat: {
+        ...story.repeat,
+        instances: {
+          ...story.repeat.instances,
+          [date]: {
+            ...story.repeat.instances?.[date],
+            status: overrides.status,
+            completed: overrides.status === 'done',
+            modified: true
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * Clear future instance overrides from a specific date
+   */
+  private static clearFutureInstanceOverrides(
+    instances: { [date: string]: any },
+    fromDate?: string
+  ): { [date: string]: any } {
+    if (!fromDate) return {};
+
+    const clearedInstances: { [date: string]: any } = {};
+    const fromDateObj = new Date(fromDate);
+
+    Object.entries(instances).forEach(([date, instance]) => {
+      const instanceDate = new Date(date);
+      if (instanceDate < fromDateObj) {
+        clearedInstances[date] = instance;
+      }
+    });
+
+    return clearedInstances;
+  }
+
+  /**
+   * Get recurring stories
+   */
+  static getRecurringStories(stories: Story[]): Story[] {
+    return stories.filter(story => 
+      story.repeat && story.repeat.cadence !== 'none'
+    );
+  }
+
+  /**
+   * Get non-recurring stories
+   */
+  static getNonRecurringStories(stories: Story[]): Story[] {
+    return stories.filter(story => 
+      !story.repeat || story.repeat.cadence === 'none'
+    );
+  }
+
+  /**
+   * Check if a story is recurring
+   */
+  static isRecurringStory(story: Story): boolean {
+    return !!(story.repeat && story.repeat.cadence !== 'none');
+  }
+
+  /**
+   * Get the status for a specific instance of a recurring story
+   */
+  static getInstanceStatus(story: Story, date: string): Story['status'] {
+    if (!story.repeat?.instances) return story.status;
+    
+    const instance = story.repeat.instances[date];
+    return instance?.status || story.status;
+  }
+
+  /**
+   * Check if an instance is completed
+   */
+  static isInstanceCompleted(story: Story, date: string): boolean {
+    if (!story.repeat?.instances) return false;
+    
+    const instance = story.repeat.instances[date];
+    return instance?.completed || false;
+  }
+
+  /**
+   * Check if an instance is skipped
+   */
+  static isInstanceSkipped(story: Story, date: string): boolean {
+    if (!story.repeat?.instances) return false;
+    
+    const instance = story.repeat.instances[date];
+    return instance?.skipped || false;
   }
 }

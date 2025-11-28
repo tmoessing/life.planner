@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import { storiesAtom, rolesAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
+import { storiesAtom, settingsAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { Brain, Clock, Target } from 'lucide-react';
 import type { BrainLevel, TimeBucket, Priority } from '@/types';
 import { getBrainLevelWeights, getPriorityOrder } from '@/utils';
@@ -11,9 +12,6 @@ import { getWeightGradientColor } from '@/utils/color';
 
 export function PlannerView() {
   const [stories] = useAtom(storiesAtom);
-  const [roles] = useAtom(rolesAtom);
-  // const [labels] = useAtom(labelsAtom);
-  const [visions] = useAtom(visionsAtom);
   const [settings] = useAtom(settingsAtom);
 
   const [selectedBrainLevel, setSelectedBrainLevel] = useState<BrainLevel>('moderate');
@@ -63,12 +61,6 @@ export function PlannerView() {
     }
   };
 
-  const getWeightColor = (weight: number) => {
-    if (weight <= 3) return 'bg-green-100 text-green-800';
-    if (weight <= 8) return 'bg-yellow-100 text-yellow-800';
-    if (weight <= 13) return 'bg-orange-100 text-orange-800';
-    return 'bg-red-100 text-red-800';
-  };
 
   const getStorySizeColor = (size: string) => {
     const sizeConfig = settings.storySizes?.find(ss => ss.name === size);
@@ -84,10 +76,9 @@ export function PlannerView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center gap-2">
-        <Brain className="h-6 w-6" />
-        <h2 className="text-2xl font-bold">Planner</h2>
+        <Brain className="h-5 w-5 sm:h-6 sm:w-6" />
       </div>
 
       {/* Controls */}
@@ -99,7 +90,7 @@ export function PlannerView() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Brain Level</label>
               <Select value={selectedBrainLevel} onValueChange={(value: BrainLevel) => setSelectedBrainLevel(value)}>
@@ -224,40 +215,13 @@ export function PlannerView() {
                     <CardTitle className="text-base">{priority} Priority</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {priorityStories.map((story) => {
-                      const role = roles.find(r => r.id === story.roleId);
-                      const vision = visions.find(v => v.id === story.visionId);
-                      
-                      return (
-                        <div
-                          key={story.id}
-                          className="p-3 bg-background rounded border cursor-pointer hover:shadow-sm transition-shadow"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium text-sm flex-1">{story.title}</h4>
-                            <div className="flex gap-1">
-                              <Badge variant="outline" className={`text-xs ${getWeightColor(story.weight)}`}>
-                                {story.weight}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                {story.size}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          {story.description && (
-                            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                              {story.description}
-                            </p>
-                          )}
-                          
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {role && <span>{role.name}</span>}
-                            {vision && <span>• {vision.title}</span>}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {priorityStories.map((story) => (
+                      <StoryCard
+                        key={story.id}
+                        story={story}
+                        showActions={false}
+                      />
+                    ))}
                   </CardContent>
                 </Card>
               ))}

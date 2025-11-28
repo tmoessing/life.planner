@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { storiesAtom, rolesAtom, visionsAtom, safeSprintsAtom, settingsAtom, updateStoryAtom, deleteStoryAtom, goalsAtom, projectsAtom } from '@/stores/appStore';
+import { generateRecurrenceInstances } from '@/utils/recurrenceUtils';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 import { FilterBar } from '@/components/forms/FilterBar';
@@ -11,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { Plus, Target, Calendar, Grid, Edit, Weight, Users, Star, List, PieChart, Filter, X, Clock } from 'lucide-react';
+import { StoryCard } from '@/components/shared/StoryCard';
 import type { Priority, StoryType, Story } from '@/types';
 
 type BoardType = 'Priority' | 'Role' | 'Type' | 'Vision' | 'Weight' | 'Size' | 'Status' | 'Project' | 'Task Categories' | 'Location';
@@ -72,6 +74,9 @@ export function StoryBoardsView() {
     if (selectedSprintId !== 'all') {
       filtered = filtered.filter(story => story.sprintId === selectedSprintId);
     }
+    
+    // For StoryBoardsView, we only show the original stories (not expanded instances)
+    // Recurring stories will show as single entries in the boards
     
     // Comprehensive filters
     if (filters.priority !== 'all') {
@@ -394,59 +399,16 @@ export function StoryBoardsView() {
       draggable
       onDragStart={(e) => handleDragStart(e, story.id)}
       onDragEnd={handleDragEnd}
-      onClick={(e) => handleStoryClick(e, story.id, storyList, index)}
-      className={`group p-3 bg-background rounded border cursor-pointer hover:shadow-sm transition-shadow ${
-        draggedStoryId === story.id ? 'opacity-50' : ''
-      } ${
-        selectedStoryIds.has(story.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-      }`}
+      className={draggedStoryId === story.id ? 'opacity-50' : ''}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-      <h4 className="font-medium text-sm mb-1">{story.title}</h4>
-      <div className="flex items-center gap-2 mb-2">
-            <Badge variant="outline" className={`text-xs flex items-center gap-1 ${getBadgeColor('weight', story.weight)}`}>
-              <Weight className="h-3 w-3" />
-          {story.weight}
-        </Badge>
-            <Badge variant="outline" className={`text-xs ${getBadgeColor('size', story.size)}`}>
-          {story.size}
-        </Badge>
-            <Badge variant="outline" className={`text-xs ${getBadgeColor('priority', story.priority)}`}>
-          {story.priority}
-        </Badge>
-      </div>
-      {story.roleId && (
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <Users className="h-3 w-3" />
-          {roles.find(r => r.id === story.roleId)?.name}
-        </div>
-      )}
-      {story.visionId && (
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <Star className="h-3 w-3" />
-          {visions.find(v => v.id === story.visionId)?.title}
-        </div>
-      )}
-      {story.createdAt && (
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-          Created: {new Date(story.createdAt).toLocaleDateString()}
-        </div>
-      )}
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEditStory(story);
-          }}
-        >
-          <Edit className="h-3 w-3" />
-        </Button>
-      </div>
+      <StoryCard
+        story={story}
+        index={index}
+        isSelected={selectedStoryIds.has(story.id)}
+        onSelect={(storyId, idx, event) => handleStoryClick(event, storyId, storyList, idx)}
+        onEdit={handleEditStory}
+        showActions={true}
+      />
     </div>
   );
 
@@ -1073,7 +1035,6 @@ export function StoryBoardsView() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Target className="h-6 w-6" />
-          <h2 className="text-2xl font-bold">Story Boards</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button 
