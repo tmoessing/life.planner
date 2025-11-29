@@ -168,7 +168,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = (_event: DragEndEvent) => {
     setActiveId(null);
     setActiveStory(null);
     setDragOverColumn(null);
@@ -190,13 +190,6 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     }
   };
 
-  const handleStoryDoubleClick = (_story: Story) => {
-    // Handle double click if needed
-  };
-
-  const handleDeleteStory = (_storyId: string) => {
-    // Handle delete if needed
-  };
 
   const handleUndo = () => {
     const lastAction = undoStack[undoStack.length - 1];
@@ -224,9 +217,6 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     setEditingStory(null);
   };
 
-  const handleSaveStory = (_updatedStory: Story) => {
-    // Handle save if needed
-  };
 
   // Clear selection when clicking outside
   useEffect(() => {
@@ -266,7 +256,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
 
         {/* Column Header Row - Desktop */}
         <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
-          {statusColumns.map((column, index) => {
+          {statusColumns.map((column) => {
             const columnStories = storiesByStatus[column.id] || [];
             const statusColor = storySettings.getStatusColor(column.id);
             return (
@@ -349,7 +339,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
         {/* Kanban Board */}
         {/* Desktop Grid Layout */}
         <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {statusColumns.map((column) => (
+              {statusColumns.map((column) => (
             <div key={column.id} className="min-w-0" data-column-id={column.id}>
               <KanbanColumn
                 column={column}

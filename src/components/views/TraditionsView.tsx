@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,21 +103,16 @@ export function TraditionsView() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Manage your traditions and build meaningful habits
-          </p>
-        </div>
-        
         {/* Add Tradition Button */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-blue-600 hover:bg-blue-700" size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Add Tradition
+              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">Add Tradition</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -153,7 +148,7 @@ export function TraditionsView() {
                   <SelectContent>
                     <SelectItem value="none">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-gray-400" />
+                        <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
                         None
                       </div>
                     </SelectItem>
@@ -180,7 +175,7 @@ export function TraditionsView() {
                   <SelectContent>
                     <SelectItem value="none">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-gray-400" />
+                        <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
                         None
                       </div>
                     </SelectItem>
@@ -220,38 +215,38 @@ export function TraditionsView() {
       {traditions.length === 0 ? (
         <Card className="h-96 flex items-center justify-center">
           <CardContent className="text-center">
-            <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Traditions Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start building meaningful traditions in your life
+            <Heart className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2">No Traditions Yet</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+              Start building meaningful traditions
             </p>
-            <p className="text-sm text-muted-foreground">
-              Click "Add Tradition" to create your first tradition
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Click "Add" to create your first tradition
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Traditions List */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
           {traditions.map((tradition) => {
             const typeInfo = getTypeInfo(tradition.traditionType, tradition.traditionalCategory);
             return (
               <Card key={tradition.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div>
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div 
-                          className="w-3 h-3 rounded-full"
+                          className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
                           style={{ backgroundColor: typeInfo.traditionType.color }}
                         />
                         <div>
-                          <h3 className="font-semibold text-lg">{tradition.title}</h3>
-                          <div className="flex gap-2">
+                          <h3 className="font-semibold text-sm sm:text-lg">{tradition.title}</h3>
+                          <div className="flex gap-1.5 sm:gap-2 mt-1">
                             <Badge 
                               variant="secondary" 
-                              className="text-xs"
+                              className="text-[10px] sm:text-xs"
                               style={{ 
                                 backgroundColor: `${typeInfo.traditionType.color}20`,
                                 color: typeInfo.traditionType.color,
@@ -262,7 +257,7 @@ export function TraditionsView() {
                             </Badge>
                             <Badge 
                               variant="outline" 
-                              className="text-xs"
+                              className="text-[10px] sm:text-xs"
                               style={{ 
                                 backgroundColor: `${typeInfo.traditionalCategory.color}20`,
                                 color: typeInfo.traditionalCategory.color,
@@ -279,21 +274,22 @@ export function TraditionsView() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEditTradition(tradition)}
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
-                            <Edit2 className="h-4 w-4" />
+                            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteTradition(tradition.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700 h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </div>
                       {tradition.description && (
-                        <p className="text-sm text-muted-foreground mb-3">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                           {tradition.description}
                         </p>
                       )}

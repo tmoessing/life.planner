@@ -31,7 +31,7 @@ export function BurnupChart() {
     const doneStories = sprintStories.filter(story => story.status === 'done');
     const completedWeight = doneStories.reduce((sum, story) => sum + story.weight, 0);
 
-    return days.map((day, index) => {
+    return days.map((day) => {
       const dayStr = format(day, 'MMM dd');
       
       // For burnup, we show cumulative completed work

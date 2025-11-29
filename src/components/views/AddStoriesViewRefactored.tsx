@@ -1,18 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { 
-  currentSprintAtom, 
-  safeSprintsAtom,
-  selectedSprintIdAtom,
-  storiesAtom,
+  currentSprintAtom,
   addStoryAtom,
   addStoryToProjectAtom,
-  rolesAtom,
-  labelsAtom,
-  settingsAtom,
-  visionsAtom,
-  goalsAtom,
-  projectsAtom,
   storyPrioritiesAtom
 } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
@@ -25,18 +16,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   Plus, 
   Trash2, 
-  Calendar, 
-  User, 
-  Weight, 
-  Target,
   Save,
-  X,
   Copy,
-  Download,
-  Upload
+  X
 } from 'lucide-react';
-import { getWeightGradientColor } from '@/utils/color';
-import type { Story, StoryFormData, Priority } from '@/types';
+import type { StoryFormData, Priority } from '@/types';
 
 const defaultStory: StoryFormData = {
   title: '',
@@ -59,22 +43,14 @@ const defaultStory: StoryFormData = {
 };
 
 export function AddStoriesViewRefactored() {
-  const [currentSprint] = useAtom(currentSprintAtom);
-  const [sprints] = useAtom(safeSprintsAtom);
-  const [selectedSprintId] = useAtom(selectedSprintIdAtom);
-  const [stories] = useAtom(storiesAtom);
   const [, addStory] = useAtom(addStoryAtom);
   const [, addStoryToProject] = useAtom(addStoryToProjectAtom);
-  const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
-  const [settings] = useAtom(settingsAtom);
-  const [visions] = useAtom(visionsAtom);
-  const [goals] = useAtom(goalsAtom);
-  const [projects] = useAtom(projectsAtom);
   const [storyPriorities] = useAtom(storyPrioritiesAtom);
 
   // Use settings mirror system
   const storySettings = useStorySettings();
+  
+  const [currentSprint] = useAtom(currentSprintAtom);
   
   // Form state
   const [storyForms, setStoryForms] = useState<StoryFormData[]>([{ ...defaultStory }]);
@@ -82,7 +58,6 @@ export function AddStoriesViewRefactored() {
   const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [templateMode, setTemplateMode] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   // Refs for auto-focus
   const titleRefs = useRef<(HTMLInputElement | null)[]>([]);

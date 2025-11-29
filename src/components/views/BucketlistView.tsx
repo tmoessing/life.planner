@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import { 
   bucketlistAtom, 
@@ -22,10 +22,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { getCitiesForState } from '@/utils/cityData';
-import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, Grid3X3, Trophy, Plane, Sparkles, GraduationCap, Award, Mountain, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, LayoutGrid, Trophy, Plane, Sparkles, GraduationCap, Award, Mountain, BookOpen } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
-import { BucketlistMapView } from './BucketlistMapView';
 import type { BucketlistItem, Priority } from '@/types';
 
 // Helper function to get category icon
@@ -60,12 +59,17 @@ export function BucketlistView() {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingItem, setEditingItem] = useState<BucketlistItem | null>(null);
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'in-progress' | 'on-hold'>('in-progress');
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   
   // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<BucketlistItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Horizontal section navigation (Experiences / Locations)
+  const [activeSection, setActiveSection] = useState<'experience' | 'location'>('experience');
+  const sectionsContainerRef = useRef<HTMLDivElement | null>(null);
+  const experienceSectionRef = useRef<HTMLDivElement | null>(null);
+  const locationSectionRef = useRef<HTMLDivElement | null>(null);
   
   // Form state for inline editing
   const [formData, setFormData] = useState({
@@ -318,6 +322,9 @@ export function BucketlistView() {
     });
   });
 
+  const experienceItems = groupedItems['experience'] || [];
+  const locationItems = groupedItems['location'] || [];
+
   // For location items, create sub-groups by location (city, state)
   const getLocationKey = (item: BucketlistItem) => {
     if (item.bucketlistType !== 'location') return null;
@@ -343,54 +350,42 @@ export function BucketlistView() {
   const completedCount = bucketlistItems.filter(item => item.completed).length;
   const totalCount = bucketlistItems.length;
 
+  const scrollToSection = (section: 'experience' | 'location') => {
+    setActiveSection(section);
+
+    const targetRef = section === 'experience' ? experienceSectionRef : locationSectionRef;
+    if (targetRef.current) {
+      targetRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start'
+      });
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+          <div className="hidden sm:block">
             <p className="text-sm text-muted-foreground">
               Track your life experiences and dreams
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => navigateToView('bucketlist-boards')}
-              variant="outline"
-              className="gap-2 w-full sm:w-auto"
-              size="sm"
-            >
-              <Grid3X3 className="h-4 w-4" />
-              <span className="hidden xs:inline">Boards View</span>
-              <span className="xs:hidden">Boards</span>
-            </Button>
-            <Button
-              onClick={handleAddItem}
-              className="gap-2 w-full sm:w-auto"
-              size="sm"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden xs:inline">Add Item</span>
-              <span className="xs:hidden">Add</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* View Toggle - Mobile Optimized */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">View:</span>
-            <div className="flex items-center bg-muted rounded-lg p-1 w-full sm:w-auto">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Filter Buttons */}
+            <div className="flex items-center bg-muted rounded-lg p-1">
               <button
                 onClick={() => setFilter('in-progress')}
-                className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                   filter === 'in-progress'
                     ? 'bg-background text-foreground shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <div className="flex items-center gap-1 sm:gap-1.5 justify-center">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <Circle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">In Progress</span>
                   <span className="xs:hidden">In Progress</span>
@@ -398,13 +393,13 @@ export function BucketlistView() {
               </button>
               <button
                 onClick={() => setFilter('completed')}
-                className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                   filter === 'completed' 
                     ? 'bg-background text-foreground shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <div className="flex items-center gap-1 sm:gap-1.5 justify-center">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Completed</span>
                   <span className="xs:hidden">Completed</span>
@@ -412,35 +407,84 @@ export function BucketlistView() {
               </button>
               <button
                 onClick={() => setFilter('all')}
-                className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                   filter === 'all' 
                     ? 'bg-background text-foreground shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <div className="flex items-center gap-1 sm:gap-1.5 justify-center">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">All</span>
                   <span className="xs:hidden">All</span>
                 </div>
               </button>
             </div>
-          </div>
-          
-          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-            {filter === 'pending' && `${totalCount - completedCount} in progress items`}
-            {filter === 'completed' && `${completedCount} completed items`}
-            {filter === 'all' && `${totalCount} total items`}
-            {totalCount > 0 && (
-              <div className="mt-1 sm:mt-0 sm:ml-2 inline-block">
-                <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                  {Math.round((completedCount / totalCount) * 100)}% complete ({completedCount}/{totalCount})
-                </span>
-              </div>
-            )}
+            
+            {/* Boards and Add Buttons */}
+            <Button
+              onClick={() => navigateToView('bucketlist-boards')}
+              variant="outline"
+              className="gap-2 w-auto sm:w-auto"
+              size="sm"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={handleAddItem}
+              className="gap-2 w-auto sm:w-auto"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Item</span>
+            </Button>
           </div>
         </div>
+        
       </div>
+
+      {/* Experiences / Locations section nav + completion pill */}
+      {totalCount > 0 && (
+        <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center justify-start gap-1.5 pb-1 flex-1 min-w-0">
+            <button
+              onClick={() => scrollToSection('experience')}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] sm:text-xs whitespace-nowrap transition-colors ${
+                activeSection === 'experience'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>Experiences</span>
+              <span className="text-[10px] sm:text-xs opacity-80">
+                {experienceItems.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => scrollToSection('location')}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs sm:text-sm whitespace-nowrap transition-colors ${
+                activeSection === 'location'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>Locations</span>
+              <span className="text-[10px] sm:text-xs opacity-80">
+                {locationItems.length}
+              </span>
+            </button>
+          </div>
+
+          <div className="text-[11px] sm:text-xs text-muted-foreground mt-1 sm:mt-0">
+            <span className="text-[11px] sm:text-xs bg-muted px-2 py-1 rounded-full whitespace-nowrap">
+              {Math.round((completedCount / totalCount) * 100)}% complete ({completedCount}/{totalCount})
+            </span>
+          </div>
+        </div>
+      )}
 
 
       {/* Bucketlist Modal */}
@@ -757,337 +801,293 @@ export function BucketlistView() {
       )}
 
       {/* Bucketlist Items */}
-      <div className="space-y-6">
-        {filteredItems.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8 sm:py-12">
-              <div className="text-muted-foreground mb-4">
-                <Circle className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-4" />
-                <h3 className="text-base sm:text-lg font-semibold mb-2">No Bucketlist Items Yet</h3>
-                <p className="text-sm sm:text-base">Start by adding your first bucketlist item</p>
-              </div>
-              <Button onClick={handleAddItem} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Item
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          // Render grouped items with headers - Experiences first, then Locations
-          ['experience', 'location'].map((type) => {
-            const items = groupedItems[type] || [];
-            if (items.length === 0) return null;
-            
-            return (
-            <div key={type} className="space-y-4">
-              {/* Section Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="flex items-center gap-2">
+      <div className="space-y-4">
+        {/* Experiences Section */}
+        {groupedItems['experience'] && groupedItems['experience'].length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-sm sm:text-base font-semibold px-1 mb-2">Experiences</h2>
+            {groupedItems['experience'].map((item) => {
+              const cardColor = getCardPrimaryColor(item);
+              const priorityColorObj = getPriorityColor(item.priority);
+              return (
+                <Card
+                  key={item.id}
+                  className="relative"
+                  style={{
+                    backgroundColor: item.completed
+                      ? '#F0FDF4' 
+                      : `${cardColor}08`,
+                    borderColor: `${cardColor}30`
+                  }}
+                >
+                  {/* Priority accent bar */}
+                  <div 
+                    className="absolute left-0 top-0 bottom-0 w-1"
+                    style={{ backgroundColor: priorityColorObj.color }}
+                  />
+                  {/* Mobile: Single row layout like Gmail */}
+                  <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
+                    {/* Priority indicator */}
                     <div 
-                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
-                      style={{ 
-                        backgroundColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === type)?.color || '#6B7280' 
-                      }}
+                      className="w-1 h-6 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: priorityColorObj.color }}
                     />
-                    <h3 className="text-base sm:text-lg font-semibold capitalize">
-                      {type === 'location' ? 'Locations' : 'Experiences'}
-                    </h3>
-                  </div>
-                  <Badge variant="outline" className="text-xs sm:text-sm">
-                    {items.length} {items.length === 1 ? 'item' : 'items'}
-                  </Badge>
-                </div>
-                
-                {/* View Toggle - Only for location items */}
-                {type === 'location' && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={viewMode === 'list' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
-                      className="text-xs"
-                    >
-                      {viewMode === 'list' ? 'Map View' : 'List View'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              {/* Items in this group */}
-              <div className="space-y-4">
-                {type === 'location' ? (
-                  viewMode === 'map' ? (
-                    // Map View for location items
-                    <BucketlistMapView items={items} />
-                  ) : (
-                    // List View for location items - show sub-groups by location
-                    Object.entries(getLocationSubGroups(items)).map(([locationKey, locationItems]) => (
-                    <div key={locationKey} className="space-y-3">
-                      {/* Location sub-header */}
-                      <div className="flex items-center gap-2 ml-2 sm:ml-4">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                          <h4 className="text-sm sm:text-md font-medium text-muted-foreground truncate">
-                            {locationKey}
-                          </h4>
-                        </div>
-                        <Badge variant="outline" className="text-xs flex-shrink-0">
-                          {locationItems.length} {locationItems.length === 1 ? 'item' : 'items'}
-                        </Badge>
-                      </div>
-                      
-                      {/* Items in this location */}
-                      <div className="space-y-3 ml-2 sm:ml-8">
-                        {locationItems.map((item) => {
-                          const cardColor = getCardPrimaryColor(item);
-                          const priorityColorObj = getPriorityColor(item.priority);
-                          return (
-            <Card key={item.id} className={`hover:shadow-md transition-shadow relative overflow-hidden ${
-              item.completed ? 'opacity-75' : ''
-            }`} style={{
-              backgroundColor: item.completed 
-                ? '#F0FDF4' 
-                : `${cardColor}08`,
-              borderColor: `${cardColor}30`
-            }}>
-              {/* Priority accent bar */}
-              <div 
-                className="absolute left-0 top-0 bottom-0 w-1"
-                style={{ backgroundColor: priorityColorObj.color }}
-              />
-              {/* Mobile: Single row layout */}
-              <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
-                {/* Priority indicator */}
-                <div 
-                  className="w-1 h-6 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: priorityColorObj.color }}
-                />
-                <Checkbox
-                  checked={item.completed}
-                  onCheckedChange={(checked) => handleToggleComplete(item.id, !!checked)}
-                  className="flex-shrink-0 h-4 w-4"
-                />
-                <span className={`text-xs font-medium truncate flex-1 min-w-0 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                  {item.title}
-                </span>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {item.bucketlistType && (
-                    <Badge 
-                      variant="outline"
-                      className="text-[9px] px-1 py-0 h-4 whitespace-nowrap"
-                      style={{
-                        borderColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280',
-                        color: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280'
-                      }}
-                    >
-                      {item.bucketlistType === 'location' ? 'Loc' : 'Exp'}
-                    </Badge>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditItem(item)}
-                    className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
-                  >
-                    <Edit className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Desktop: Compact card layout */}
-              <div className="hidden sm:block">
-                <CardHeader className="pb-0.5">
-                  <div className="flex items-start justify-between gap-1">
+                    <Checkbox
+                      checked={item.completed}
+                      onCheckedChange={(checked) => handleToggleComplete(item.id, !!checked)}
+                      className="flex-shrink-0 h-4 w-4"
+                    />
+                    {/* Title - takes available space */}
                     <div className="flex items-center gap-1 flex-1 min-w-0">
-                      <CardTitle className={`text-xs font-medium line-clamp-1 flex-1 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                      <span className={`text-xs font-medium truncate flex-1 min-w-0 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
                         {item.title}
-                      </CardTitle>
+                      </span>
                       {item.dueDate && (
                         <div title="Due Date">
                           <Calendar className="h-3 w-3 text-blue-500 flex-shrink-0" />
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center space-x-0.5 flex-shrink-0">
+                    {/* Key badges and info - right aligned, compact */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {item.bucketlistType && (
+                        <Badge 
+                          variant="outline"
+                          className="text-[9px] px-1 py-0 h-4 whitespace-nowrap"
+                          style={{
+                            borderColor: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280',
+                            color: settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280'
+                          }}
+                        >
+                          {item.bucketlistType === 'location' ? 'Loc' : 'Exp'}
+                        </Badge>
+                      )}
+                      {item.completed && (
+                        <Badge 
+                          style={{ 
+                            backgroundColor: '#10B981',
+                            color: 'white'
+                          }}
+                          className="text-[9px] px-1 py-0 h-4"
+                        >
+                          Done
+                        </Badge>
+                      )}
                       <Button
-                        size="sm"
                         variant="ghost"
-                        className="h-6 w-6 sm:h-5 sm:w-5 p-0 touch-manipulation"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditItem(item);
-                        }}
-                        title="Edit item"
-                      >
-                        <Edit className="h-3 w-3 sm:h-2.5 sm:w-2.5" />
-                      </Button>
-                      <Button
                         size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 sm:h-5 sm:w-5 p-0 text-red-500 hover:text-red-700 touch-manipulation"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteItem(item);
-                        }}
-                        title="Delete item"
+                        onClick={() => handleEditItem(item)}
+                        className="h-12 w-12 sm:h-8 sm:w-8 p-0 flex-shrink-0 touch-manipulation"
                       >
-                        <Trash2 className="h-3 w-3 sm:h-2.5 sm:w-2.5" />
+                        <Edit className="h-5 w-5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  {/* Description - optional, can be shown */}
-                  {item.description && (
-                    <p className={`text-[10px] text-muted-foreground mb-1 line-clamp-1 ${item.completed ? 'line-through' : ''}`}>
-                      {item.description}
-                    </p>
-                  )}
 
-                  {/* Priority, Type, Category, Status - All in one compact row */}
-                  <div className="flex items-center gap-1 flex-wrap mb-1">
-                    <Badge 
-                      variant="outline"
-                      className="text-[10px] px-1 py-0"
-                      style={getPriorityColor(item.priority)}
-                    >
-                      <div className="flex items-center gap-0.5">
-                        {getPriorityIcon(convertPriority(item.priority))}
-                        {getPriorityLetter(item.priority)}
-                      </div>
-                    </Badge>
-                    
-                    {item.bucketlistType && (() => {
-                      const typeColor = settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280';
-                      return (
-                      <Badge 
-                        variant="outline"
-                        className="text-[10px] px-1 py-0"
-                        style={{
-                          backgroundColor: `${typeColor}20`,
-                          borderColor: `${typeColor}40`,
-                          color: typeColor
-                        }}
-                      >
-                        <div className="flex items-center gap-0.5">
-                          {item.bucketlistType === 'location' ? (
-                            <Map className="h-2.5 w-2.5" />
-                          ) : (
-                            <Star className="h-2.5 w-2.5" />
+                  {/* Desktop: Compact card layout */}
+                  <div className="hidden sm:block">
+                    <CardHeader className="pb-0.5">
+                      <div className="flex items-start justify-between gap-1">
+                        <div className="flex items-center gap-1 flex-1 min-w-0">
+                          <CardTitle className={`text-xs font-medium line-clamp-1 flex-1 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                            {item.title}
+                          </CardTitle>
+                          {item.dueDate && (
+                            <div title="Due Date">
+                              <Calendar className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                            </div>
                           )}
                         </div>
-                      </Badge>
-                      );
-                    })()}
-                    
-                    {item.category && (() => {
-                      const categoryColor = bucketlistSettings.getCategoryColor(item.category);
-                      const IconComponent = getCategoryIcon(item.category);
-                      return (
-                      <Badge 
-                        variant="outline"
-                        className="text-[10px] px-1 py-0"
-                        style={{
-                          backgroundColor: `${categoryColor}20`,
-                          borderColor: `${categoryColor}40`,
-                          color: categoryColor
-                        }}
-                      >
-                        <IconComponent className="h-2.5 w-2.5" />
-                      </Badge>
-                      );
-                    })()}
-                    
-                    {item.completed && (
-                      <Badge 
-                        style={{ 
-                          backgroundColor: '#10B981',
-                          color: 'white'
-                        }}
-                        className="text-[10px] px-1 py-0"
-                      >
-                        Done
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Location, Experience Category, Due Date - compact badges */}
-                  {(item.bucketlistType === 'location' && (item.country || item.state || item.city)) || 
-                   (item.bucketlistType === 'experience' && item.experienceCategory) ||
-                   item.dueDate ? (
-                    <div className="flex items-center gap-1 flex-wrap mb-1">
-                      {item.bucketlistType === 'location' && (item.country || item.state || item.city) && (
-                        <Badge 
-                          variant="outline"
-                          className="text-[10px] px-1 py-0 flex items-center gap-0.5"
-                        >
-                          <MapPin className="h-2.5 w-2.5" />
-                          {[item.city, item.state, item.country].filter(Boolean).slice(0, 2).join(', ')}
-                        </Badge>
-                      )}
-                      {item.bucketlistType === 'experience' && item.experienceCategory && (
-                        <Badge 
-                          variant="outline"
-                          className="text-[10px] px-1 py-0 flex items-center gap-0.5"
-                        >
-                          <Star className="h-2.5 w-2.5" />
-                          {item.experienceCategory.substring(0, 8)}
-                        </Badge>
-                      )}
-                      {item.dueDate && (
-                        <Badge 
-                          variant="outline"
-                          className="text-[10px] px-1 py-0 flex items-center gap-0.5"
-                        >
-                          <Calendar className="h-2.5 w-2.5" />
-                          {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </Badge>
-                      )}
-                    </div>
-                  ) : null}
-
-                  {/* Role, Vision - compact badges */}
-                  {(item.roleId || item.visionId) && (
-                    <div className="flex flex-wrap gap-0.5 mb-0.5">
-                      {item.roleId && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 flex items-center gap-0.5">
-                          <User className="h-2 w-2" />
-                          {roles.find(r => r.id === item.roleId)?.name.substring(0, 8) || 'Role'}
-                        </Badge>
-                      )}
-                      {item.visionId && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 flex items-center gap-0.5">
-                          <Target className="h-2 w-2" />
-                          {visions.find(v => v.id === item.visionId)?.title.substring(0, 8) || 'Vision'}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </div>
-            </Card>
-                        );
-                        })}
+                        <div className="flex items-center space-x-0.5 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 sm:h-5 sm:w-5 p-0 touch-manipulation"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditItem(item);
+                            }}
+                            title="Edit item"
+                          >
+                            <Edit className="h-3 w-3 sm:h-2.5 sm:w-2.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 sm:h-5 sm:w-5 p-0 text-red-500 hover:text-red-700 touch-manipulation"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteItem(item);
+                            }}
+                            title="Delete item"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-2.5 sm:w-2.5" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                  )
-                ) : (
-                  // For experience items, show directly without sub-groups
-                  items.map((item) => {
-                    const cardColor = getCardPrimaryColor(item);
-                    const priorityColorObj = getPriorityColor(item.priority);
-                    return (
-            <Card key={item.id} className={`hover:shadow-md transition-shadow relative overflow-hidden ${
-              item.completed ? 'opacity-75' : ''
-            }`} style={{
-              backgroundColor: item.completed 
-                ? '#F0FDF4' 
-                : `${cardColor}08`,
-              borderColor: `${cardColor}30`
-            }}>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0">
+                      {/* Description - optional, can be shown */}
+                      {item.description && (
+                        <p className={`text-[10px] text-muted-foreground mb-1 line-clamp-1 ${item.completed ? 'line-through' : ''}`}>
+                          {item.description}
+                        </p>
+                      )}
+
+                      {/* Priority, Type, Category, Status - All in one compact row */}
+                      <div className="flex items-center gap-1 flex-wrap mb-1">
+                        <Badge 
+                          variant="outline"
+                          className="text-[10px] px-1 py-0"
+                          style={getPriorityColor(item.priority)}
+                        >
+                          <div className="flex items-center gap-0.5">
+                            {getPriorityIcon(convertPriority(item.priority))}
+                            {getPriorityLetter(item.priority)}
+                          </div>
+                        </Badge>
+                        
+                        {item.bucketlistType && (() => {
+                          const typeColor = settings.bucketlistTypes?.find(t => t.name.toLowerCase() === item.bucketlistType)?.color || '#6B7280';
+                          return (
+                          <Badge 
+                            variant="outline"
+                            className="text-[10px] px-1 py-0"
+                            style={{
+                              backgroundColor: `${typeColor}20`,
+                              borderColor: `${typeColor}40`,
+                              color: typeColor
+                            }}
+                          >
+                            <div className="flex items-center gap-0.5">
+                              {item.bucketlistType === 'location' ? (
+                                <Map className="h-2.5 w-2.5" />
+                              ) : (
+                                <Star className="h-2.5 w-2.5" />
+                              )}
+                            </div>
+                          </Badge>
+                          );
+                        })()}
+                        
+                        {item.category && (() => {
+                          const categoryColor = bucketlistSettings.getCategoryColor(item.category);
+                          const IconComponent = getCategoryIcon(item.category);
+                          return (
+                          <Badge 
+                            variant="outline"
+                            className="text-[10px] px-1 py-0"
+                            style={{
+                              backgroundColor: `${categoryColor}20`,
+                              borderColor: `${categoryColor}40`,
+                              color: categoryColor
+                            }}
+                          >
+                            <IconComponent className="h-2.5 w-2.5" />
+                          </Badge>
+                          );
+                        })()}
+                        
+                        {item.completed && (
+                          <Badge 
+                            style={{ 
+                              backgroundColor: '#10B981',
+                              color: 'white'
+                            }}
+                            className="text-[10px] px-1 py-0"
+                          >
+                            Done
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Location, Experience Category, Due Date - compact badges */}
+                      {(item.bucketlistType === 'location' && (item.country || item.state || item.city)) || 
+                       (item.bucketlistType === 'experience' && item.experienceCategory) ||
+                       item.dueDate ? (
+                        <div className="flex items-center gap-1 flex-wrap mb-1">
+                          {item.bucketlistType === 'location' && (item.country || item.state || item.city) && (
+                            <Badge 
+                              variant="outline"
+                              className="text-[10px] px-1 py-0 flex items-center gap-0.5"
+                            >
+                              <MapPin className="h-2.5 w-2.5" />
+                              {[item.city, item.state, item.country].filter(Boolean).slice(0, 2).join(', ')}
+                            </Badge>
+                          )}
+                          {item.bucketlistType === 'experience' && item.experienceCategory && (
+                            <Badge 
+                              variant="outline"
+                              className="text-[10px] px-1 py-0 flex items-center gap-0.5"
+                            >
+                              <Star className="h-2.5 w-2.5" />
+                              {item.experienceCategory.substring(0, 8)}
+                            </Badge>
+                          )}
+                          {item.dueDate && (
+                            <Badge 
+                              variant="outline"
+                              className="text-[10px] px-1 py-0 flex items-center gap-0.5"
+                            >
+                              <Calendar className="h-2.5 w-2.5" />
+                              {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : null}
+
+                      {/* Role, Vision - compact badges */}
+                      {(item.roleId || item.visionId) && (
+                        <div className="flex flex-wrap gap-0.5 mb-0.5">
+                          {item.roleId && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 flex items-center gap-0.5">
+                              <User className="h-2 w-2" />
+                              {roles.find(r => r.id === item.roleId)?.name.substring(0, 8) || 'Role'}
+                            </Badge>
+                          )}
+                          {item.visionId && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 flex items-center gap-0.5">
+                              <Target className="h-2 w-2" />
+                              {visions.find(v => v.id === item.visionId)?.title.substring(0, 8) || 'Vision'}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Locations Section */}
+        {Object.entries(groupedItems).map(([type, items]) => {
+          if (type === 'location' && items.length > 0) {
+            const locationSubGroups = getLocationSubGroups(items);
+            return (
+              <div key={type} className="space-y-2">
+                <h2 className="text-sm sm:text-base font-semibold px-1 mb-2">Locations</h2>
+                {Object.entries(locationSubGroups).map(([locationKey, locationItems]) => (
+                  <div key={locationKey} className="space-y-2">
+                    <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground px-1">
+                      {locationKey}
+                    </h3>
+                {locationItems.map((item) => {
+                  const cardColor = getCardPrimaryColor(item);
+                  const priorityColorObj = getPriorityColor(item.priority);
+                  return (
+                    <Card
+                      key={item.id}
+                      className="relative"
+                      style={{
+                        backgroundColor: item.completed
+                          ? '#F0FDF4' 
+                          : `${cardColor}08`,
+                        borderColor: `${cardColor}30`
+                      }}
+                    >
               {/* Priority accent bar */}
               <div 
                 className="absolute left-0 top-0 bottom-0 w-1"
@@ -1326,13 +1326,14 @@ export function BucketlistView() {
               </div>
             </Card>
                   );
-                  })
-                )}
+                })}
               </div>
-            </div>
+            ))}
+              </div>
             );
-          }).filter(Boolean)
-        )}
+          }
+          return null;
+        }).filter(Boolean)}
       </div>
     </div>
   );

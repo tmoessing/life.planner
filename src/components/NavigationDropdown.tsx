@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Eye, Target, BookOpen, FolderOpen, GraduationCap, MoreHorizontal } from 'lucide-react';
 import { settingsAtom } from '@/stores/settingsStore';
+import { useViewPrefetch } from '@/hooks/useViewPrefetch';
 import type { ViewType } from '@/constants';
 
 interface NavigationItem {
@@ -79,6 +80,7 @@ interface NavigationDropdownProps {
 
 export function NavigationDropdown({ currentView, setCurrentView }: NavigationDropdownProps) {
   const [settings] = useAtom(settingsAtom);
+  const { prefetchView } = useViewPrefetch();
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<'left' | 'right'>('left');
@@ -110,7 +112,6 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
   };
 
   const currentGroup = getCurrentGroup();
-  const currentItem = getCurrentItem();
 
   const handleMouseEnter = (groupLabel: string) => {
     if (timeoutRef.current) {
@@ -212,6 +213,21 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
     setIsHovering(false);
   };
 
+  // Memoized ref callbacks for each group to prevent infinite loops
+  const buttonRefCallbacks = useMemo(() => {
+    const callbacks: Record<string, (el: HTMLButtonElement | null) => void> = {};
+    visibleGroups.forEach((group) => {
+      callbacks[group.label] = (el: HTMLButtonElement | null) => {
+        if (el) {
+          buttonRefs.current.set(group.label, el);
+        } else {
+          buttonRefs.current.delete(group.label);
+        }
+      };
+    });
+    return callbacks;
+  }, [visibleGroups]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -255,10 +271,7 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
             onMouseLeave={handleMouseLeave}
           >
             <Button
-              ref={(el) => {
-                if (el) buttonRefs.current.set(group.label, el);
-                else buttonRefs.current.delete(group.label);
-              }}
+              ref={buttonRefCallbacks[group.label]}
               variant={currentGroup.label === group.label ? "default" : "ghost"}
               size="sm"
               className="flex flex-col items-center gap-0.5 text-xs h-auto min-h-[44px] px-2 sm:px-3 touch-target w-full py-2"
@@ -308,6 +321,9 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
                       <button
                         key={item.id}
                         onClick={() => handleViewClick(item.id)}
+                        onMouseEnter={() => prefetchView(item.id)}
+                        onFocus={() => prefetchView(item.id)}
+                        onTouchStart={() => prefetchView(item.id)}
                         className={`w-full text-left px-3 py-3 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md transition-colors touch-target min-h-[44px] sm:min-h-0 ${
                           currentView === item.id
                             ? 'bg-primary text-primary-foreground'

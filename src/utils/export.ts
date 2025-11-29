@@ -237,6 +237,7 @@ export const exportToExcel = (data: {
       ...data.importantDates.map(date => [
         date.title || '',
         date.date || '',
+        date.category || '',
         date.createdAt || '',
         date.updatedAt || ''
       ])

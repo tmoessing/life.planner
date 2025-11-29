@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { googleSheetsService } from '@/services/googleSheetsService';
 import { syncService } from '@/services/syncService';
 import type { ConnectionState, SyncStatus } from '@/types';

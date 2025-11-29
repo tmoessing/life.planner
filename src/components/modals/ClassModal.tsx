@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Clock } from 'lucide-react';
@@ -21,7 +20,6 @@ export function ClassModal({ isOpen, onClose, classItem, mode }: ClassModalProps
   const [, addClass] = useAtom(addClassAtom);
   const [, updateClass] = useAtom(updateClassAtom);
   const [, deleteClass] = useAtom(deleteClassAtom);
-  const [classes] = useAtom(classesAtom);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -173,19 +171,17 @@ export function ClassModal({ isOpen, onClose, classItem, mode }: ClassModalProps
             />
           </div>
 
-          {/* Class Code */}
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="classCode" className="text-xs sm:text-sm">Class Code</Label>
-            <Input
-              id="classCode"
-              value={formData.classCode}
-              onChange={(e) => setFormData(prev => ({ ...prev, classCode: e.target.value }))}
-              placeholder="e.g., CS101, MATH201"
-            />
-          </div>
-
-          {/* Semester and Year */}
-          <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
+          {/* Class Code, Semester and Year */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="classCode" className="text-xs sm:text-sm">Class Code</Label>
+              <Input
+                id="classCode"
+                value={formData.classCode}
+                onChange={(e) => setFormData(prev => ({ ...prev, classCode: e.target.value }))}
+                placeholder="e.g., CS101, MATH201"
+              />
+            </div>
             <div className="space-y-1 sm:space-y-2">
               <Label htmlFor="semester" className="text-xs sm:text-sm">Semester</Label>
               <Select
@@ -218,17 +214,79 @@ export function ClassModal({ isOpen, onClose, classItem, mode }: ClassModalProps
             </div>
           </div>
 
-          {/* Credit Hours */}
-          <div className="space-y-1 sm:space-y-2">
-            <Label htmlFor="creditHours" className="text-xs sm:text-sm">Credit Hours</Label>
-            <Input
-              id="creditHours"
-              type="number"
-              value={formData.creditHours}
-              onChange={(e) => setFormData(prev => ({ ...prev, creditHours: parseInt(e.target.value) || 3 }))}
-              min="1"
-              max="10"
-            />
+          {/* Credit Hours and Class Type */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="creditHours" className="text-xs sm:text-sm">Credit Hours</Label>
+              <Input
+                id="creditHours"
+                type="number"
+                value={formData.creditHours}
+                onChange={(e) => setFormData(prev => ({ ...prev, creditHours: parseInt(e.target.value) || 3 }))}
+                min="1"
+                max="10"
+              />
+            </div>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="classType" className="text-xs sm:text-sm">Class Type</Label>
+              <Select
+                value={formData.classType}
+                onValueChange={(value: Class['classType']) => 
+                  setFormData(prev => ({ ...prev, classType: value }))
+                }
+              >
+                <SelectTrigger className="touch-target">
+                  <SelectValue placeholder="Select class type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Major" className="touch-target min-h-[44px]">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: '#9333ea' }}
+                      />
+                      Major
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Minor" className="touch-target min-h-[44px]">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: '#ec4899' }}
+                      />
+                      Minor
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="GE" className="touch-target min-h-[44px]">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: '#f97316' }}
+                      />
+                      GE
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Religion" className="touch-target min-h-[44px]">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: '#eab308' }}
+                      />
+                      Religion
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Elective" className="touch-target min-h-[44px]">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: '#22c55e' }}
+                      />
+                      Elective
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Class Schedule */}
@@ -240,7 +298,7 @@ export function ClassModal({ isOpen, onClose, classItem, mode }: ClassModalProps
                 variant="outline"
                 size="sm"
                 onClick={handleAddSchedule}
-                className="gap-1"
+                className="gap-1 dark:border-gray-700 dark:hover:bg-gray-800"
               >
                 <Plus className="h-4 w-4" />
                 Add Time Slot
@@ -256,7 +314,7 @@ export function ClassModal({ isOpen, onClose, classItem, mode }: ClassModalProps
                 {formData.schedule.map((scheduleItem, index) => (
                   <div
                     key={index}
-                    className="border rounded-md p-3 space-y-3 bg-gray-50"
+                    className="border rounded-md p-3 space-y-3 bg-gray-50 dark:bg-gray-800/50 dark:border-gray-700"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 space-y-3">
@@ -298,7 +356,7 @@ export function ClassModal({ isOpen, onClose, classItem, mode }: ClassModalProps
                             {dayOptions.map(day => (
                               <label
                                 key={day.value}
-                                className="flex items-center space-x-1.5 cursor-pointer hover:bg-gray-100 px-2 py-1.5 rounded border border-gray-300 transition-colors"
+                                className="flex items-center space-x-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 transition-colors"
                               >
                                 <input
                                   type="checkbox"

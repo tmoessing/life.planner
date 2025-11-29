@@ -283,7 +283,7 @@ export function GoalsKanbanBoardsView() {
               setShowSearch(!showSearch);
               if (showSearch) setShowFilter(false);
             }}
-            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:border-gray-600'}`}
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Search</span>
@@ -295,7 +295,7 @@ export function GoalsKanbanBoardsView() {
               setShowFilter(!showFilter);
               if (showFilter) setShowSearch(false);
             }}
-            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:border-gray-600'}`}
           >
             <Filter className="h-4 w-4" />
             <span className="hidden sm:inline">Filter</span>

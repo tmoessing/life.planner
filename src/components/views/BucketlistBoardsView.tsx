@@ -16,10 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map, Plane, Sparkles, GraduationCap, Award, Mountain } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map, Plane, Sparkles, GraduationCap, Award, Mountain, Flag, Tag, Layers } from 'lucide-react';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { lazy, Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+
+// Lazy load chart component to reduce initial bundle size
+const BucketlistPieChart = lazy(() => import('@/components/charts/BucketlistPieChart').then(m => ({ default: m.BucketlistPieChart })));
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCenter, useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -39,6 +43,22 @@ const getCategoryIcon = (category: string) => {
   if (categoryLower === 'personal') return User;
   // Default fallback
   return Star;
+};
+
+// Helper function to get attribute type icon
+const getAttributeIcon = (attribute: AttributeType) => {
+  switch (attribute) {
+    case 'priority':
+      return Flag;
+    case 'category':
+      return Tag;
+    case 'type':
+      return Star;
+    case 'status':
+      return Layers;
+    default:
+      return Target;
+  }
 };
 
 // Droppable Group Component
@@ -890,114 +910,119 @@ export function BucketlistBoardsView() {
   const chartData = getChartData();
 
   // Custom tooltip for pie chart
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-background border rounded-lg p-3 shadow-lg">
-          <p className="font-medium">{data.name}</p>
-          <p className="text-sm text-muted-foreground">
-            {data.value} {data.value === 1 ? 'item' : 'items'}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-0 min-h-screen bg-gradient-to-br from-background via-background to-muted/5">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+          <div className="hidden sm:block">
             <p className="text-sm text-muted-foreground">
               View your bucketlist items organized by attribute
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => navigateToView('bucketlist')}
-              variant="outline"
-              className="gap-2 w-full sm:w-auto"
-              size="sm"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden xs:inline">Bucketlist View</span>
-              <span className="xs:hidden">Bucketlist</span>
-            </Button>
-            <Button
-              onClick={() => {
-                setModalMode('add');
-                setEditingItem(null);
-                setIsModalOpen(true);
-              }}
-              className="gap-2 w-full sm:w-auto"
-              size="sm"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden xs:inline">Add Item</span>
-              <span className="xs:hidden">Add</span>
-            </Button>
+          <div className="flex items-center gap-2 flex-wrap justify-between w-full">
+            {/* Group by selector */}
+            <Select value={selectedAttribute} onValueChange={(value) => setSelectedAttribute(value as AttributeType)}>
+              <SelectTrigger className="w-48">
+                <div className="flex items-center gap-2">
+                  {React.createElement(getAttributeIcon(selectedAttribute), { className: "h-4 w-4" })}
+                  <SelectValue>
+                    {selectedAttribute.charAt(0).toUpperCase() + selectedAttribute.slice(1)}
+                  </SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="priority" className="pl-12">
+                  <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">
+                    {React.createElement(Flag, { className: "h-4 w-4" })}
+                  </span>
+                  <span className="ml-6">Priority</span>
+                </SelectItem>
+                <SelectItem value="category" className="pl-12">
+                  <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">
+                    {React.createElement(Tag, { className: "h-4 w-4" })}
+                  </span>
+                  <span className="ml-6">Category</span>
+                </SelectItem>
+                <SelectItem value="type" className="pl-12">
+                  <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">
+                    {React.createElement(Star, { className: "h-4 w-4" })}
+                  </span>
+                  <span className="ml-6">Type</span>
+                </SelectItem>
+                <SelectItem value="status" className="pl-12">
+                  <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">
+                    {React.createElement(Layers, { className: "h-4 w-4" })}
+                  </span>
+                  <span className="ml-6">Status</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Back and Add Buttons - Right aligned */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Button
+                onClick={() => navigateToView('bucketlist')}
+                variant="outline"
+                className="gap-2 w-auto sm:w-auto"
+                size="sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => {
+                  setModalMode('add');
+                  setEditingItem(null);
+                  setIsModalOpen(true);
+                }}
+                className="gap-2 w-auto sm:w-auto"
+                size="sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Item</span>
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">Group by:</span>
-            <Select value={selectedAttribute} onValueChange={(value) => setSelectedAttribute(value as AttributeType)}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="priority">Priority</SelectItem>
-                <SelectItem value="category">Category</SelectItem>
-                <SelectItem value="type">Type</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* View Toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">View:</span>
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('boards')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'boards'
-                    ? 'bg-background text-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Grid3X3 className="h-4 w-4" />
-                Boards
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-background text-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <List className="h-4 w-4" />
-                List
-              </button>
-              <button
-                onClick={() => setViewMode('chart')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'chart'
-                    ? 'bg-background text-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <PieChart className="h-4 w-4" />
-                Chart
-              </button>
-            </div>
+        {/* View Toggle */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-muted rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('boards')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'boards'
+                  ? 'bg-background text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Grid3X3 className="h-4 w-4" />
+              Boards
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-background text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <List className="h-4 w-4" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('chart')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'chart'
+                  ? 'bg-background text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <PieChart className="h-4 w-4" />
+              Chart
+            </button>
           </div>
         </div>
       </div>
@@ -1029,38 +1054,15 @@ export function BucketlistBoardsView() {
         onDragEnd={handleDragEnd}
       >
         {viewMode === 'chart' ? (
-        <Card className="bg-gradient-to-br from-background to-muted/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Distribution by {selectedAttribute.charAt(0).toUpperCase() + selectedAttribute.slice(1)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+          <Suspense fallback={
+            <Card>
+              <CardContent className="h-96 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </CardContent>
+            </Card>
+          }>
+            <BucketlistPieChart chartData={chartData} selectedAttribute={selectedAttribute} />
+          </Suspense>
       ) : viewMode === 'list' ? (
         <div className="space-y-4">
           {attributeValues.map((value) => {

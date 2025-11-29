@@ -26,7 +26,6 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
   const [goals] = useAtom(goalsAtom);
   const [settings] = useAtom(settingsAtom);
   const [sprints] = useAtom(safeSprintsAtom);
-  const [currentSprint] = useAtom(currentSprintAtom);
   const [projects] = useAtom(projectsAtom);
   const [storyPriorities] = useAtom(storyPrioritiesAtom);
 
@@ -131,7 +130,6 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
   };
 
 
-  const priorities = storyPriorities.map(p => p.name as Priority);
   const weights = [1, 3, 5, 8, 13, 21];
   // Use story sizes from settings instead of hardcoded array
 

@@ -116,11 +116,6 @@ export function SettingsView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your application settings, data, and configuration options.</p>
-      </div>
-
       <Tabs defaultValue="configuration" className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-auto">
           <TabsTrigger value="configuration" className="gap-1 sm:gap-2 py-2 sm:py-1.5 touch-target min-h-[44px] sm:min-h-0">
@@ -135,13 +130,13 @@ export function SettingsView() {
 
         <TabsContent value="configuration" className="space-y-6">
           {/* Visual Category Selector */}
-          <Card className="sticky top-4 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <Card className="sticky top-4 z-20 glass-panel rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Settings className="h-5 w-5" />
                 Settings Category
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Choose which type of settings you want to configure
               </CardDescription>
             </CardHeader>
@@ -151,7 +146,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'stories' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('stories')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Stories</span>
@@ -160,7 +155,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'goals' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('goals')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Goals</span>
@@ -169,7 +164,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'projects' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('projects')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <FolderOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Projects</span>
@@ -178,7 +173,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'bucketlist' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('bucketlist')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <ListChecks className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Bucketlist</span>
@@ -187,7 +182,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'visions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('visions')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Visions</span>
@@ -196,7 +191,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'roles' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('roles')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Roles</span>
@@ -205,7 +200,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'traditions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('traditions')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Traditions</span>
@@ -214,7 +209,7 @@ export function SettingsView() {
                 <Button
                   variant={selectedCategory === 'important-dates' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('important-dates')}
-                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
                 >
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Important Dates</span>
@@ -227,155 +222,270 @@ export function SettingsView() {
           {/* Dynamic Settings Based on Category */}
 
           {selectedCategory === 'stories' && (
-            <div className="space-y-6">
-              {/* Priorities Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <PrioritiesSettings category="stories" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+            <div className="space-y-4">
+              <Collapsible
+                title="Story Priorities (Quadrants)"
+                description="Manage priority levels (Q1, Q2, Q3, Q4) and their colors for stories."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <PrioritiesSettings category="stories" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Types Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <TypesSettings category="stories" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Story Types"
+                description="Manage types for categorizing stories."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <TypesSettings category="stories" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Status Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <StatusSettings category="stories" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Story Statuses"
+                description="Manage status levels (icebox, backlog, todo, progress, review, done) and their colors."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <StatusSettings category="stories" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Weight Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <WeightSettings />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Weight Settings"
+                description="Configure the weight gradient colors for story and assignment weights."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <WeightSettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Task Categories Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <TaskCategoriesSettings />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Task Categories"
+                description="Manage task categories with colors for visual identification."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <TaskCategoriesSettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
             </div>
           )}
 
           {selectedCategory === 'goals' && (
-            <div className="space-y-6">
-              {/* Goal Categories Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <GoalCategoriesSettings />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+            <div className="space-y-4">
+              <Collapsible
+                title="Goal Categories"
+                description="Manage categories for organizing goals. These appear in the Add Goals view dropdown."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <GoalCategoriesSettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Priorities Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <PrioritiesSettings category="goals" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Goal Priorities"
+                description="Manage priority levels and their colors for goals."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <PrioritiesSettings category="goals" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Types Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <TypesSettings category="goals" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Goal Types"
+                description="Manage types for categorizing goals."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <TypesSettings category="goals" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Status Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <StatusSettings category="goals" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Goal Statuses"
+                description="Manage status levels and their colors for goals."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <StatusSettings category="goals" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
             </div>
           )}
 
           {selectedCategory === 'projects' && (
-            <div className="space-y-6">
-              {/* Types Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <TypesSettings category="projects" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+            <div className="space-y-4">
+              <Collapsible
+                title="Project Types"
+                description="Manage types for categorizing projects."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <TypesSettings category="projects" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Status Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <StatusSettings category="projects" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Project Statuses"
+                description="Manage status levels and their colors for projects."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <StatusSettings category="projects" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Project Sizes Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <ProjectSizesSettings />
-                <ProjectPrioritySettings />
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Project Sizes"
+                description="Manage project sizes (XS, S, M, L, XL) with colors for visual identification."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <ProjectSizesSettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
+
+              <Collapsible
+                title="Project Priority Colors"
+                description="Manage project priority levels and their colors for visual identification."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <ProjectPrioritySettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
             </div>
           )}
 
           {selectedCategory === 'bucketlist' && (
-            <div className="space-y-6">
-              {/* Types Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <BucketlistTypesSettings />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+            <div className="space-y-4">
+              <Collapsible
+                title="Bucketlist Types"
+                description="Manage types for organizing bucketlist items. These appear in the bucketlist modal dropdown."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <BucketlistTypesSettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
 
-              {/* Categories Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <BucketlistCategoriesSettings />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
-              
-              {/* Status Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <StatusSettings category="bucketlist" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
-              
-              {/* Priorities Settings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-                <PrioritiesSettings category="bucketlist" />
-                <div className="hidden lg:block"></div>
-                <div className="hidden lg:block"></div>
-              </div>
+              <Collapsible
+                title="Bucketlist Categories"
+                description="Manage categories for organizing bucketlist items. These appear in the bucketlist modal dropdown."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <BucketlistCategoriesSettings />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
+
+              <Collapsible
+                title="Bucketlist Statuses"
+                description="Manage status levels and their colors for bucketlist items."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <StatusSettings category="bucketlist" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
+
+              <Collapsible
+                title="Bucketlist Priorities"
+                description="Manage priority levels and their colors for bucketlist items."
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                  <PrioritiesSettings category="bucketlist" />
+                  <div className="hidden lg:block"></div>
+                  <div className="hidden lg:block"></div>
+                </div>
+              </Collapsible>
             </div>
           )}
 
           {selectedCategory === 'visions' && (
-            <div className="space-y-6">
-              <TypesSettings category="visions" />
+            <div className="space-y-4">
+              <Collapsible
+                title="Vision Types"
+                description="Manage types for categorizing visions."
+                defaultOpen={false}
+              >
+                <TypesSettings category="visions" />
+              </Collapsible>
             </div>
           )}
 
           {selectedCategory === 'roles' && (
-            <div className="space-y-6">
-              <RolesSettings />
+            <div className="space-y-4">
+              <Collapsible
+                title="Roles"
+                description="Manage roles that can be assigned to stories and other items."
+                defaultOpen={false}
+              >
+                <RolesSettings />
+              </Collapsible>
             </div>
           )}
 
-
           {selectedCategory === 'traditions' && (
-            <div className="space-y-6">
-              <TraditionsSettings />
+            <div className="space-y-4">
+              <Collapsible
+                title="Tradition Types"
+                description="Manage tradition types (life areas) that can be assigned to traditions."
+                defaultOpen={false}
+              >
+                <TraditionsSettings />
+              </Collapsible>
             </div>
           )}
 
           {selectedCategory === 'important-dates' && (
-            <div className="space-y-6">
-              <ImportantDateSettings />
+            <div className="space-y-4">
+              <Collapsible
+                title="Important Date Categories"
+                description="Manage important date categories with colors for visual identification."
+                defaultOpen={false}
+              >
+                <ImportantDateSettings />
+              </Collapsible>
             </div>
           )}
 
@@ -579,7 +689,7 @@ export function SettingsView() {
             title="Danger Zone"
             description="These actions are irreversible. Please proceed with caution."
             icon={<AlertTriangle className="h-5 w-5" />}
-            className="border-destructive"
+            className="border-destructive glass-danger"
           >
             <div className="space-y-3 sm:space-y-4">
               <div>

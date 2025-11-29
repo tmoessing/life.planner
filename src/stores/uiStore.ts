@@ -25,3 +25,6 @@ export const roadmapPositionAtom = atomWithStorage<'top' | 'middle' | 'bottom'>(
 // Chart collapse states
 export const burndownCollapsedAtom = atomWithStorage<boolean>(STORAGE_KEYS.BURNDOWN_COLLAPSED, false);
 export const burnupCollapsedAtom = atomWithStorage<boolean>(STORAGE_KEYS.BURNUP_COLLAPSED, false);
+
+// Help modal state (not persisted - should close on page reload)
+export const helpModalOpenAtom = atom<boolean>(false);

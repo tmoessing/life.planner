@@ -78,7 +78,7 @@ export const parseCSVData = (csvContent: string) => {
       let sectionHeaders: string[] = [];
       switch (currentSection) {
         case 'important dates':
-          sectionHeaders = ['Title', 'Date', 'Created At', 'Updated At'];
+          sectionHeaders = ['Title', 'Date', 'Category', 'Created At', 'Updated At'];
           break;
         case 'traditions':
           sectionHeaders = ['Title', 'Description', 'Type', 'Created At', 'Updated At'];
@@ -331,6 +331,7 @@ const parseImportantDateData = (row: any) => ({
   id: generateId(),
   title: row['Title'] || '',
   date: row['Date'] || '',
+  category: row['Category'] || undefined,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });

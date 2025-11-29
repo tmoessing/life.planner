@@ -13,14 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Plus, 
   Trash2, 
-  Target,
-  Save,
-  X
+  Save
 } from 'lucide-react';
 import type { Goal } from '@/types';
 
@@ -51,7 +48,6 @@ const defaultGoal: GoalFormData = {
 };
 
 export function AddGoalsView() {
-  const [goals] = useAtom(goalsAtom);
   const [, addGoal] = useAtom(addGoalAtom);
   const [roles] = useAtom(rolesAtom);
   const [settings] = useAtom(settingsAtom);
@@ -65,7 +61,6 @@ export function AddGoalsView() {
   
   const [goalForms, setGoalForms] = useState<GoalFormData[]>([{ ...defaultGoal }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
   const fieldRefs = useRef<{ [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null }>({});
   
   // Default options for bulk editing
@@ -180,7 +175,6 @@ export function AddGoalsView() {
           e.stopPropagation();
           
           // Find which field we're on and move to the next one
-          const fieldOrder = ['title', 'description', 'category', 'goalType', 'goalCategory', 'priority', 'status', 'role', 'vision', 'project'];
           
           // Try to determine which field we're on based on the active element
           let currentField = 'category'; // default fallback

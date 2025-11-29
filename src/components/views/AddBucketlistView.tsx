@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { 
-  bucketlistAtom,
   addBucketlistItemAtom,
   rolesAtom,
   visionsAtom
@@ -16,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { getCitiesForState } from '@/utils/cityData';
-import { getAllCountries, getRegionsForCountry } from '@/utils/countryData';
+import { getAllCountries } from '@/utils/countryData';
 import { 
   Plus, 
   Trash2, 
@@ -74,7 +73,6 @@ export function AddBucketlistView() {
     category: bucketlistSettings.bucketlistCategories?.[0]?.name || ''
   }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
   const fieldRefs = useRef<{ [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null }>({});
   
   // Default options for bulk editing
@@ -268,9 +266,6 @@ export function AddBucketlistView() {
         if (activeElement && activeElement.closest('[role="combobox"]')) {
           e.preventDefault();
           e.stopPropagation();
-          
-          // Find which field we're on and move to the next one
-          const fieldOrder = ['title', 'description', 'bucketlistType', 'category', 'priority', 'status', 'roleId', 'visionId', 'dueDate', 'country', 'state', 'city', 'experienceCategory'];
           
           // Try to determine which field we're on based on the active element
           let currentField = 'bucketlistType'; // default fallback

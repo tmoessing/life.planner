@@ -44,6 +44,7 @@ export function usePlannerLogic(stories: Story[], settings: any) {
     
     return stories
       .filter(story => !story.deleted)
+      .filter(story => story.status !== 'done')
       .filter(story => brainWeights.includes(story.weight))
       .filter(story => story.size === filters.timeBucket)
       .filter(story => filters.priority === 'all' || story.priority === filters.priority)

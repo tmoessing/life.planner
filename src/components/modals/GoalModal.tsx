@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
-import type { Goal, StoryType, Priority } from '@/types';
+import type { Goal, Priority } from '@/types';
 
 interface GoalModalProps {
   isOpen: boolean;

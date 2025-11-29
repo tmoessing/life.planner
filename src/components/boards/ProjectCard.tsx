@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2 } from 'lucide-react';
+import { Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit, Snowflake, Layers, Circle, PlayCircle, CheckCircle2 } from 'lucide-react';
 import type { Project } from '@/types';
 import { useAtom } from 'jotai';
 import { storiesAtom, settingsAtom } from '@/stores/appStore';
@@ -207,7 +207,7 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
             <span className="text-muted-foreground">Progress</span>
             <span className="font-medium">{progressPercentage}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div 
               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}

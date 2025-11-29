@@ -7,14 +7,13 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import { traditionsAtom, settingsAtom } from '@/stores/appStore';
 import { useTraditionSettings } from '@/utils/settingsMirror';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
-import type { Tradition, TraditionTypeConfig } from '@/types';
+import type { TraditionTypeConfig } from '@/types';
 
 export function TraditionsSettings() {
-  const [traditions] = useAtom(traditionsAtom);
   const [settings, setSettings] = useAtom(settingsAtom);
   
   // Use settings mirror system for tradition settings
-  const traditionSettings = useTraditionSettings();
+  useTraditionSettings();
   
   // Tradition Types state
   const [isAddingType, setIsAddingType] = useState(false);

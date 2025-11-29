@@ -12,7 +12,7 @@ export function TaskCategoriesSettings() {
   const [editingType, setEditingType] = useState<string | null>(null);
   const [editColor, setEditColor] = useState('#6B7280');
   const [editName, setEditName] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [, setIsAdding] = useState(false);
   const [newType, setNewType] = useState({ name: '', color: '#6B7280' });
 
   // Ensure defaults are loaded if taskCategories is empty

@@ -12,7 +12,6 @@ import {
   storiesAtom, 
   addStoryToProjectAtom,
   removeStoryFromProjectAtom,
-  updateStoryAtom
 } from '@/stores/appStore';
 import { Search, X, Plus } from 'lucide-react';
 import type { Project, Story } from '@/types';
@@ -97,12 +96,12 @@ function ProjectStoriesSection({
       <div 
         ref={setNodeRef}
         className={`space-y-2 overflow-y-auto h-full min-h-[200px] border-2 border-dashed rounded-lg p-2 ${
-          isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'
+          isOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50'
         }`}
         style={{ minHeight: '200px' }}
       >
         {stories.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
             <p>No stories in this section</p>
           </div>
         ) : (
@@ -151,12 +150,12 @@ function AvailableStoriesSection({
       <div 
         ref={setNodeRef}
         className={`space-y-2 overflow-y-auto h-full min-h-[200px] border-2 border-dashed rounded-lg p-2 ${
-          isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'
+          isOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50'
         }`}
         style={{ minHeight: '200px' }}
       >
         {stories.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
             <p>No stories in this section</p>
           </div>
         ) : (
@@ -220,8 +219,7 @@ export function ProjectStoryManager({ project, onClose }: ProjectStoryManagerPro
     setActiveId(event.active.id as string);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
+  const handleDragOver = (_event: DragOverEvent) => {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {

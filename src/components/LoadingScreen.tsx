@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface LoadingScreenProps {
   isLoading: boolean;
@@ -91,7 +91,7 @@ export function LoadingScreen({ isLoading, onComplete }: LoadingScreenProps) {
         {[...Array(50)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white rounded-full animate-particle"
+            className="absolute w-1 h-1 bg-white dark:bg-gray-300 rounded-full animate-particle"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -295,7 +295,7 @@ export function LoadingScreen({ isLoading, onComplete }: LoadingScreenProps) {
 
         {/* Modern Progress Bar */}
         <div className="w-80 mx-auto mb-6">
-          <div className="relative h-3 bg-gray-800/50 rounded-full overflow-hidden backdrop-blur-sm border border-gray-700/50">
+          <div className="relative h-3 bg-gray-800/50 dark:bg-gray-700/50 rounded-full overflow-hidden backdrop-blur-sm border border-gray-700/50 dark:border-gray-600/50">
             {/* Animated Shimmer */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
             

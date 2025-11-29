@@ -9,7 +9,7 @@ import { Calendar, Clock, Repeat } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { addAssignmentAtom, updateAssignmentAtom, assignmentsAtom } from '@/stores/assignmentStore';
 import { classesAtom } from '@/stores/classStore';
-import type { Assignment, AssignmentType, AssignmentStatus, AssignmentRecurrencePattern, Class } from '@/types';
+import type { Assignment, AssignmentType, AssignmentStatus, AssignmentRecurrencePattern } from '@/types';
 
 interface AssignmentModalProps {
   isOpen: boolean;
@@ -23,9 +23,6 @@ export function AssignmentModal({ isOpen, onClose, assignment, classId, mode }: 
   const [, addAssignment] = useAtom(addAssignmentAtom);
   const [, updateAssignment] = useAtom(updateAssignmentAtom);
   const [classes] = useAtom(classesAtom);
-  const [assignments] = useAtom(assignmentsAtom);
-
-  const classItem = classes.find(c => c.id === classId);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -309,14 +306,14 @@ export function AssignmentModal({ isOpen, onClose, assignment, classId, mode }: 
             )}
 
             {(recurrenceType === 'weekly' || recurrenceType === 'biweekly') && (
-              <div className="space-y-3 border rounded-md p-3 bg-gray-50">
+              <div className="space-y-3 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 dark:border-gray-700">
                 <div className="space-y-2">
                   <Label className="text-xs">Days of Week</Label>
                   <div className="flex flex-wrap gap-2">
                     {dayOptions.map(day => (
                       <label
                         key={day.value}
-                        className="flex items-center space-x-1.5 cursor-pointer hover:bg-gray-100 px-2 py-1.5 rounded border border-gray-300 transition-colors"
+                        className="flex items-center space-x-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 transition-colors"
                       >
                         <input
                           type="checkbox"

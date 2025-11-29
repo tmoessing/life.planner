@@ -59,19 +59,6 @@ export function GoalKanbanView({
     };
   };
 
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'High Priority';
-      case 'medium':
-        return 'Medium Priority';
-      case 'low':
-        return 'Low Priority';
-      default:
-        return priority;
-    }
-  };
-
   // Helper function to get priority letter
   const getPriorityLetter = (priority: string) => {
     switch (priority) {

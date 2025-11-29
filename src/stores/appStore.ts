@@ -8,8 +8,12 @@ export * from './priorityStore';
 export * from './typeStore';
 export * from './statusStore';
 
-// Import utilities for recurring stories
-import { generateRecurrenceInstances } from '@/utils/recurrenceUtils';
+// Import atoms needed for import/export functions
+import { goalsAtom } from './goalStore';
+import { projectsAtom } from './projectStore';
+import { classesAtom } from './classStore';
+import { assignmentsAtom } from './assignmentStore';
+import { visionsAtom, bucketlistAtom, importantDatesAtom, traditionsAtom } from './settingsStore';
 
 // Export specific atoms from settingsStore to avoid circular dependencies
 export {
@@ -45,80 +49,31 @@ export {
   deleteTraditionalCategoryAtom
 } from './settingsStore';
 
-// Sprint and board specific atoms that weren't moved
+// Re-export sprint and board atoms from domain-specific stores
+export {
+  sprintsAtom,
+  safeSprintsAtom,
+  currentSprintAtom,
+  sprintStoriesByStatusAtom
+} from './sprintStore';
+
+export {
+  columnsAtom,
+  safeColumnsAtom,
+  boardsAtom,
+  storiesByColumnAtom
+} from './boardStore';
+
+// Import for use in this file
+import { sprintsAtom } from './sprintStore';
+import { columnsAtom, boardsAtom } from './boardStore';
+
+// Import utilities for remaining atoms
 import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
-import type { Sprint, Board, Column, Story } from '@/types';
-import { generateSprints, getCurrentWeek, createSprintId, filterStories } from '@/utils';
-import { DEFAULT_COLUMNS, DEFAULT_BOARD } from '@/constants/story';
-import { STORAGE_KEYS } from '@/constants/storage';
+import { filterStories } from '@/utils';
 import { storiesAtom } from './storyStore';
-import { rolesAtom, visionsAtom, bucketlistAtom, importantDatesAtom, traditionsAtom, settingsAtom } from './settingsStore';
-import { goalsAtom } from './goalStore';
-import { projectsAtom } from './projectStore';
-import { classesAtom } from './classStore';
-import { assignmentsAtom } from './assignmentStore';
-import { selectedSprintIdAtom, filterTextAtom, filterKeywordsAtom, filterDueSoonAtom } from './uiStore';
-
-// Initialize default data
-const defaultSprints = generateSprints(12);
-const defaultColumns = DEFAULT_COLUMNS;
-const defaultBoard: Board = DEFAULT_BOARD;
-
-// Get current week sprint ID for default selection
-const getCurrentWeekSprintId = () => {
-  const { isoWeek, year } = getCurrentWeek();
-  return createSprintId(isoWeek, year);
-};
-
-// Core data atoms with localStorage persistence
-export const sprintsAtom = atomWithStorage<Sprint[]>(STORAGE_KEYS.SPRINTS, defaultSprints);
-
-// Ensure sprints are never empty - add a fallback
-export const safeSprintsAtom = atom(
-  (get) => {
-    const sprints = get(sprintsAtom);
-    return sprints.length > 0 ? sprints : defaultSprints;
-  },
-  (_, set, newSprints: Sprint[]) => {
-    set(sprintsAtom, newSprints.length > 0 ? newSprints : defaultSprints);
-  }
-);
-
-export const columnsAtom = atomWithStorage<Column[]>(STORAGE_KEYS.COLUMNS, defaultColumns);
-
-// Ensure columns are never empty - add a fallback
-export const safeColumnsAtom = atom(
-  (get) => {
-    const columns = get(columnsAtom);
-    return columns.length > 0 ? columns : defaultColumns;
-  },
-  (_, set, newColumns: Column[]) => {
-    set(columnsAtom, newColumns.length > 0 ? newColumns : defaultColumns);
-  }
-);
-
-export const boardsAtom = atomWithStorage<Board[]>(STORAGE_KEYS.BOARDS, [defaultBoard]);
-
-// Derived atoms for computed values
-export const currentSprintAtom = atom(
-  (get) => {
-    const sprints = get(sprintsAtom);
-    const selectedId = get(selectedSprintIdAtom);
-    
-    // First try to find the selected sprint
-    let currentSprint = sprints.find(sprint => sprint.id === selectedId);
-    
-    // If not found, try to find the current week sprint
-    if (!currentSprint) {
-      const currentWeekId = getCurrentWeekSprintId();
-      currentSprint = sprints.find(sprint => sprint.id === currentWeekId);
-    }
-    
-    // Fallback to first sprint if still not found
-    return currentSprint || sprints[0];
-  }
-);
+import { rolesAtom, settingsAtom } from './settingsStore';
+import { filterTextAtom, filterKeywordsAtom, filterDueSoonAtom } from './uiStore';
 
 export const filteredStoriesAtom = atom(
   (get) => {
@@ -129,92 +84,6 @@ export const filteredStoriesAtom = atom(
     const roles = get(rolesAtom);
     
     return filterStories(stories, text, keywords, dueSoon, roles, []);
-  }
-);
-
-export const storiesByColumnAtom = atom(
-  (get) => {
-    const stories = get(storiesAtom);
-    const columns = get(columnsAtom);
-    const currentSprint = get(currentSprintAtom);
-    
-    const result: Record<string, Story[]> = {};
-    
-    columns.forEach(column => {
-      result[column.id] = column.storyIds
-        .map(id => stories.find(story => story.id === id))
-        .filter((story): story is Story => 
-          story !== undefined && 
-          !story.deleted && 
-          story.sprintId === currentSprint?.id
-        );
-    });
-    
-    return result;
-  }
-);
-
-// Sprint-specific stories by status atom (with recurring story expansion)
-export const sprintStoriesByStatusAtom = atom(
-  (get) => {
-    const stories = get(storiesAtom);
-    const selectedSprintId = get(selectedSprintIdAtom);
-    const currentSprint = get(currentSprintAtom);
-    const sprints = get(safeSprintsAtom);
-    
-    const statuses = ['icebox', 'backlog', 'todo', 'progress', 'review', 'done'];
-    const result: Record<string, Story[]> = {};
-    
-    // Get the target sprint for date range
-    const targetSprint = sprints.find(s => s.id === selectedSprintId) || currentSprint;
-    if (!targetSprint) return result;
-    
-    // Get all recurring stories (regardless of which sprint they're assigned to)
-    const recurringStories = stories.filter(story => 
-      !story.deleted && 
-      story.repeat && 
-      story.repeat.cadence !== 'none'
-    );
-    
-    // Get non-recurring stories for the selected sprint
-    const nonRecurringStories = stories.filter(story => 
-      !story.deleted && 
-      story.sprintId === selectedSprintId &&
-      (!story.repeat || story.repeat.cadence === 'none')
-    );
-    
-    // Expand recurring stories into virtual instances for the target sprint
-    const expandedStories: (Story & { _isRecurringInstance?: boolean; _instanceDate?: string; _originalId?: string })[] = [];
-    
-    // Add non-recurring stories
-    expandedStories.push(...nonRecurringStories);
-    
-    // Generate instances for recurring stories within the target sprint date range
-    recurringStories.forEach(story => {
-      const instances = generateRecurrenceInstances(
-        story,
-        new Date(targetSprint.startDate),
-        new Date(targetSprint.endDate)
-      );
-      
-      instances.forEach(instance => {
-        expandedStories.push({
-          ...story,
-          id: `${story.id}-${instance.date}`,
-          status: instance.status,
-          _isRecurringInstance: true,
-          _instanceDate: instance.date,
-          _originalId: story.id
-        });
-      });
-    });
-    
-    statuses.forEach(status => {
-      const statusStories = expandedStories.filter(story => story.status === status);
-      result[status] = statusStories;
-    });
-    
-    return result;
   }
 );
 
@@ -235,6 +104,8 @@ export const exportDataAtom = atom(
     };
   }
 );
+
+// Import sprint/board atoms for import/export (already imported above via re-exports)
 
 export const importDataAtom = atom(
   null,
@@ -336,7 +207,7 @@ export const importDataWithOptionsAtom = atom(
 // Bulk delete atoms for Settings
 export const deleteAllDataAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     // Clear all atoms
     set(storiesAtom, []);
     set(goalsAtom, []);

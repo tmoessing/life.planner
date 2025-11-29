@@ -10,7 +10,7 @@ interface InteractiveMapWrapperProps {
 }
 
 export function InteractiveMapWrapper({ items }: InteractiveMapWrapperProps) {
-  const [useRealMap, setUseRealMap] = React.useState(true);
+  const [useRealMap] = React.useState(true);
   const [hasError, setHasError] = React.useState(false);
 
   // Try to use real map first, fallback to simple map on error
@@ -21,7 +21,7 @@ export function InteractiveMapWrapper({ items }: InteractiveMapWrapperProps) {
           <div className="h-96 w-full rounded-lg overflow-hidden border shadow-lg bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin text-4xl mb-4">🗺️</div>
-              <p className="text-sm text-gray-600">Loading interactive map...</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading interactive map...</p>
             </div>
           </div>
         }

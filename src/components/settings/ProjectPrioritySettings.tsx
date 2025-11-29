@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Edit2, Check, X, RotateCcw } from 'lucide-react';
 import { settingsAtom } from '@/stores/settingsStore';
 

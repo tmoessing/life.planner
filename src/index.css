@@ -38,6 +38,13 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+
+    /* Glassmorphism surface tokens (light) */
+    --glass-surface: 0 0% 100%;
+    --glass-elevated: 210 40% 96%;
+    --glass-border-soft: 214.3 31.8% 86%;
+    --glass-border-strong: 221.2 83.2% 53.3%;
+    --glass-ring: 221.2 83.2% 53.3%;
   }
 
   .dark {
@@ -60,6 +67,13 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
+
+    /* Glassmorphism surface tokens (dark) */
+    --glass-surface: 222.2 84% 4.9%;
+    --glass-elevated: 217.2 32.6% 17.5%;
+    --glass-border-soft: 217.2 32.6% 24%;
+    --glass-border-strong: 217.2 91.2% 59.8%;
+    --glass-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -73,6 +87,71 @@
 }
 
 @layer utilities {
+  /* App shell gradient background */
+  .app-shell-bg {
+    background-image:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.18), transparent 55%),
+      radial-gradient(circle at top right, hsl(var(--accent) / 0.14), transparent 55%),
+      radial-gradient(circle at bottom, hsl(var(--secondary) / 0.16), transparent 55%);
+    background-color: hsl(var(--background));
+    background-attachment: fixed;
+  }
+
+  .dark .app-shell-bg {
+    background-image:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.26), transparent 55%),
+      radial-gradient(circle at top right, hsl(var(--accent) / 0.22), transparent 55%),
+      radial-gradient(circle at bottom, hsl(var(--secondary) / 0.2), transparent 55%);
+    background-color: hsl(var(--background));
+  }
+
+  /* Glass surfaces */
+  .glass-card {
+    background-color: hsl(var(--glass-surface) / 0.78);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid hsl(var(--glass-border-soft) / 0.7);
+    box-shadow:
+      0 18px 45px hsl(var(--background) / 0.28),
+      0 0 0 1px hsl(var(--border) / 0.2);
+  }
+
+  .glass-panel {
+    background-color: hsl(var(--glass-elevated) / 0.88);
+    backdrop-filter: blur(26px) saturate(170%);
+    -webkit-backdrop-filter: blur(26px) saturate(170%);
+    border: 1px solid hsl(var(--glass-border-soft) / 0.8);
+    box-shadow:
+      0 16px 40px hsl(var(--background) / 0.32),
+      0 0 0 1px hsl(var(--border) / 0.25);
+  }
+
+  .glass-modal {
+    background-color: hsl(var(--popover) / 0.92);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border-radius: 1.25rem;
+    border: 1px solid hsl(var(--glass-border-soft) / 0.85);
+    box-shadow:
+      0 28px 80px hsl(var(--background) / 0.55),
+      0 0 0 1px hsl(var(--border) / 0.3);
+  }
+
+  .glass-header {
+    background-color: hsl(var(--background) / 0.78);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    box-shadow: 0 10px 30px hsl(var(--background) / 0.32);
+  }
+
+  .glass-danger {
+    background-color: hsl(var(--destructive) / 0.08);
+    border-color: hsl(var(--destructive) / 0.5);
+    box-shadow:
+      0 16px 40px hsl(var(--destructive) / 0.45),
+      0 0 0 1px hsl(var(--destructive) / 0.35);
+  }
+
   /* Mobile-specific utilities */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;

@@ -1,55 +1,134 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Keyboard } from 'lucide-react';
+import { useMemo, memo } from 'react';
 
 interface HelpModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function HelpModal({ open, onOpenChange }: HelpModalProps) {
-  const shortcuts = [
-    { key: 'N', description: 'Add new Story' },
-    { key: 'F', description: 'Focus filter bar' },
-    { key: 'D', description: 'Toggle chart section' },
-    { key: 'R', description: 'Toggle roadmap section' },
-    { key: 'B', description: 'Toggle board section' },
-    { key: '?', description: 'Open this help modal' },
-    { key: '1-5', description: 'Switch views (Sprint, Story Boards, Importance, Planner, Settings)' },
-    { key: 'Esc', description: 'Close modals or clear selections' },
-    { key: 'Del', description: 'Delete selected stories' },
-    { key: 'Enter', description: 'Edit focused story' },
-    { key: '↑↓←→', description: 'Navigate stories and columns' },
-  ];
+interface ShortcutItemProps {
+  shortcut: { key: string; description: string; highlight?: boolean };
+}
 
-  const multiSelectShortcuts = [
-    { key: 'Ctrl/Cmd + Click', description: 'Select multiple stories' },
-    { key: 'Shift + Click', description: 'Select range of stories' },
-    { key: 'Drag selected', description: 'Move all selected stories' },
-  ];
+// Use a proper React component instead of a render function to avoid ref composition issues
+const ShortcutItem = memo(({ shortcut }: ShortcutItemProps) => (
+  <div className="flex items-start gap-3 py-1.5">
+    <Badge 
+      variant={shortcut.highlight ? "default" : "outline"} 
+      className="font-mono min-w-[80px] justify-center"
+    >
+      {shortcut.key}
+    </Badge>
+    <span className="text-sm text-muted-foreground flex-1">{shortcut.description}</span>
+  </div>
+));
+ShortcutItem.displayName = 'ShortcutItem';
+
+export function HelpModal({ open, onOpenChange }: HelpModalProps) {
+  const shortcuts = useMemo(() => ({
+    general: [
+      { key: '?', description: 'Open this help modal', highlight: true },
+      { key: 'F', description: 'Focus filter/search bar' },
+      { key: 'Esc', description: 'Close modals or clear selections' },
+    ],
+    view: [
+      { key: '1', description: 'Switch to Sprint View' },
+      { key: '2', description: 'Switch to Story Boards' },
+      { key: '3', description: 'Switch to Importance List' },
+      { key: '4', description: 'Switch to Planner' },
+    ],
+    section: [
+      { key: 'D', description: 'Toggle chart section' },
+      { key: 'R', description: 'Toggle roadmap section' },
+      { key: 'B', description: 'Toggle board section' },
+    ],
+    story: [
+      { key: 'Enter', description: 'Edit focused/selected story' },
+      { key: 'E', description: 'Edit selected story (when story is selected)' },
+      { key: 'C', description: 'Add selected story to Google Calendar' },
+      { key: 'Del / Backspace', description: 'Delete selected story' },
+      { key: '↑ ↓ ← →', description: 'Navigate between stories and columns' },
+    ],
+    multiSelect: [
+      { key: 'Ctrl/Cmd + Click', description: 'Select multiple stories' },
+      { key: 'Shift + Click', description: 'Select range of stories' },
+      { key: 'Drag selected', description: 'Move all selected stories together' },
+    ],
+    form: [
+      { key: 'Ctrl/Cmd + Enter', description: 'Submit form (in add/edit views)' },
+      { key: 'Tab', description: 'Navigate to next field' },
+      { key: 'Shift + Tab', description: 'Navigate to previous field' },
+    ],
+  }), []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts & Help</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Keyboard className="h-5 w-5" />
+            Keyboard Shortcuts & Help
+          </DialogTitle>
+          <DialogDescription>
+            Press <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">?</kbd> to open this help menu anytime. Use these shortcuts to navigate and interact with the app more efficiently.
+          </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* General Shortcuts */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">General Shortcuts</CardTitle>
+              <CardTitle className="text-base">General</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {shortcuts.map((shortcut) => (
-                  <div key={shortcut.key} className="flex items-center gap-3">
-                    <Badge variant="outline" className="font-mono">
-                      {shortcut.key}
-                    </Badge>
-                    <span className="text-sm">{shortcut.description}</span>
-                  </div>
+              <div className="space-y-1">
+                {shortcuts.general.map((shortcut) => (
+                  <ShortcutItem key={shortcut.key} shortcut={shortcut} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* View Navigation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">View Navigation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {shortcuts.view.map((shortcut) => (
+                  <ShortcutItem key={shortcut.key} shortcut={shortcut} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section Toggles */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Section Controls</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {shortcuts.section.map((shortcut) => (
+                  <ShortcutItem key={shortcut.key} shortcut={shortcut} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Story Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Story Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {shortcuts.story.map((shortcut) => (
+                  <ShortcutItem key={shortcut.key} shortcut={shortcut} />
                 ))}
               </div>
             </CardContent>
@@ -61,14 +140,23 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
               <CardTitle className="text-base">Multi-select & Navigation</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {multiSelectShortcuts.map((shortcut) => (
-                  <div key={shortcut.key} className="flex items-center gap-3">
-                    <Badge variant="outline" className="font-mono">
-                      {shortcut.key}
-                    </Badge>
-                    <span className="text-sm">{shortcut.description}</span>
-                  </div>
+              <div className="space-y-1">
+                {shortcuts.multiSelect.map((shortcut) => (
+                  <ShortcutItem key={shortcut.key} shortcut={shortcut} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Form Shortcuts */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Form Navigation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {shortcuts.form.map((shortcut) => (
+                  <ShortcutItem key={shortcut.key} shortcut={shortcut} />
                 ))}
               </div>
             </CardContent>

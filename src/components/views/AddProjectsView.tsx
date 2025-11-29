@@ -12,14 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Plus, 
   Trash2, 
-  FolderOpen,
-  Save,
-  X
+  Save
 } from 'lucide-react';
 import type { Project } from '@/types';
 
@@ -50,7 +47,6 @@ const defaultProject: ProjectFormData = {
 };
 
 export function AddProjectsView() {
-  const [projects] = useAtom(projectsAtom);
   const [, addProject] = useAtom(addProjectAtom);
   const [roles] = useAtom(rolesAtom);
   const [visions] = useAtom(visionsAtom);
@@ -59,7 +55,6 @@ export function AddProjectsView() {
   
   const [projectForms, setProjectForms] = useState<ProjectFormData[]>([{ ...defaultProject }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
   const fieldRefs = useRef<{ [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null }>({});
   
   // Default options for bulk editing
@@ -180,7 +175,6 @@ export function AddProjectsView() {
           e.stopPropagation();
           
           // Find which field we're on and move to the next one
-          const fieldOrder = ['name', 'description', 'status', 'priority', 'role', 'vision', 'startDate', 'endDate'];
           
           // Try to determine which field we're on based on the active element
           let currentField = 'status'; // default fallback

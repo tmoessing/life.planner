@@ -1,4 +1,3 @@
-import React from 'react';
 import { Calendar, CalendarPlus, Edit, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

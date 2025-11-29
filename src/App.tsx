@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { useSettingsMigration } from '@/hooks/useSettingsMigration';
 import { useTheme } from '@/hooks/useTheme';
 import { useViewManager } from '@/hooks/useViewManager';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 function AppContent() {
   // Handle settings migration
@@ -15,11 +16,14 @@ function AppContent() {
   // Apply theme
   useTheme();
 
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts();
+
   // Manage view state and rendering
   const { currentView, setCurrentView, renderView } = useViewManager();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background app-shell-bg">
       <Header currentView={currentView} setCurrentView={setCurrentView} />
       <main className="container mx-auto px-2 sm:px-4 pt-4 pb-20 sm:pt-6 sm:pb-6 safe-area-left safe-area-right smooth-scroll mobile-scroll">
         <ErrorBoundary>

@@ -7,13 +7,10 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import { settingsAtom } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
-import type { Role } from '@/types';
 
 export function RolesSettings() {
   const [settings, setSettings] = useAtom(settingsAtom);
   
-  // Use settings mirror system for roles
-  const storySettings = useStorySettings();
   
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

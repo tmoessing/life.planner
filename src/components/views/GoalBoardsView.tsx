@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GoalModal } from '@/components/modals/GoalModal';
-import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus, Search, ChevronLeft, ChevronRight, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2, Dumbbell, DollarSign, Shield } from 'lucide-react';
+import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus, Search, ChevronLeft, ChevronRight, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2, Dumbbell, DollarSign, Shield, Tag, Flag, Sparkles } from 'lucide-react';
 import type { Goal } from '@/types';
 
 type BoardType = 'Goal Type' | 'Category' | 'Priority' | 'Status' | 'Vision';
@@ -218,6 +218,24 @@ export function GoalBoardsView() {
     }
   };
 
+  // Helper function to get board type icon
+  const getBoardTypeIcon = (boardType: BoardType) => {
+    switch (boardType) {
+      case 'Goal Type':
+        return <Target className="h-4 w-4" />;
+      case 'Category':
+        return <Tag className="h-4 w-4" />;
+      case 'Priority':
+        return <Flag className="h-4 w-4" />;
+      case 'Status':
+        return <Layers className="h-4 w-4" />;
+      case 'Vision':
+        return <Sparkles className="h-4 w-4" />;
+      default:
+        return <Target className="h-4 w-4" />;
+    }
+  };
+
   // Get color for board based on type and value
   const getBoardColor = (boardId: string) => {
     switch (selectedBoardType) {
@@ -374,27 +392,65 @@ export function GoalBoardsView() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        {/* Board Type Selector - Left aligned */}
+        {/* Board Type Selector and View Toggle - Left aligned */}
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-muted-foreground" />
           <Select value={selectedBoardType} onValueChange={(value: BoardType) => {
             setSelectedBoardType(value);
             setCurrentMobileColumnIndex(0);
           }}>
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue />
+              <div className="flex items-center gap-2">
+                {getBoardTypeIcon(selectedBoardType)}
+                <SelectValue>
+                  {selectedBoardType}
+                </SelectValue>
+              </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Goal Type">Goal Type</SelectItem>
-              <SelectItem value="Category">Category</SelectItem>
-              <SelectItem value="Priority">Priority</SelectItem>
-              <SelectItem value="Status">Status</SelectItem>
-              <SelectItem value="Vision">Vision</SelectItem>
+              <SelectItem value="Goal Type" className="pl-12">
+                <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">{getBoardTypeIcon('Goal Type')}</span>
+                <span className="ml-6">Goal Type</span>
+              </SelectItem>
+              <SelectItem value="Category" className="pl-12">
+                <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">{getBoardTypeIcon('Category')}</span>
+                <span className="ml-6">Category</span>
+              </SelectItem>
+              <SelectItem value="Priority" className="pl-12">
+                <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">{getBoardTypeIcon('Priority')}</span>
+                <span className="ml-6">Priority</span>
+              </SelectItem>
+              <SelectItem value="Status" className="pl-12">
+                <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">{getBoardTypeIcon('Status')}</span>
+                <span className="ml-6">Status</span>
+              </SelectItem>
+              <SelectItem value="Vision" className="pl-12">
+                <span className="absolute left-10 flex items-center pointer-events-none" aria-hidden="true">{getBoardTypeIcon('Vision')}</span>
+                <span className="ml-6">Vision</span>
+              </SelectItem>
             </SelectContent>
           </Select>
+          {/* View Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setViewType(viewType === 'list' ? 'pie' : 'list')}
+            className="gap-2"
+          >
+            {viewType === 'list' ? (
+              <>
+                <List className="h-4 w-4" />
+                <span className="hidden sm:inline">List</span>
+              </>
+            ) : (
+              <>
+                <PieChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Chart</span>
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Search, Filter, Add Goal, and View Toggle - Right aligned */}
+        {/* Search, Filter, Add Goal - Right aligned */}
         <div className="flex items-center gap-2">
           <Button
             variant={showSearch ? "default" : "outline"}
@@ -403,7 +459,7 @@ export function GoalBoardsView() {
               setShowSearch(!showSearch);
               if (showSearch) setShowFilter(false);
             }}
-            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+            className={`gap-2 ${showSearch ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:border-gray-600'}`}
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Search</span>
@@ -415,7 +471,7 @@ export function GoalBoardsView() {
               setShowFilter(!showFilter);
               if (showFilter) setShowSearch(false);
             }}
-            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+            className={`gap-2 ${showFilter ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:border-gray-600'}`}
           >
             <Filter className="h-4 w-4" />
             <span className="hidden sm:inline">Filter</span>
@@ -429,27 +485,6 @@ export function GoalBoardsView() {
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Add Goal</span>
           </Button>
-          {/* View Toggle */}
-          <div className="flex border rounded-md">
-            <Button
-              variant={viewType === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewType('list')}
-              className="rounded-r-none"
-            >
-              <List className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">List</span>
-            </Button>
-            <Button
-              variant={viewType === 'pie' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewType('pie')}
-              className="rounded-l-none"
-            >
-              <PieChart className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Chart</span>
-            </Button>
-          </div>
         </div>
       </div>
 

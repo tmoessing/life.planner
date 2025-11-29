@@ -34,11 +34,11 @@ export { RoadmapSection } from './RoadmapSection';
 // View Components
 export { TodayView } from './views/TodayView';
 export { SprintView } from './views/SprintView';
-export { StoryBoardsView } from './views/StoryBoardsView';
+export { StoryBoardsViewRefactored as StoryBoardsView } from './views/StoryBoardsViewRefactored';
 export { ImportanceView } from './views/ImportanceView';
 export { GoalsView } from './views/GoalsView';
 export { BucketlistView } from './views/BucketlistView';
-export { PlannerView } from './views/PlannerView';
+export { PlannerViewRefactored as PlannerView } from './views/PlannerViewRefactored';
 export { SprintPlanningView } from './views/SprintPlanningView';
 export { ProjectView } from './views/ProjectView';
 export { ProjectsKanbanBoardsView } from './views/ProjectsKanbanBoardsView';

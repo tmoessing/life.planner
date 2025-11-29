@@ -131,16 +131,25 @@ export function StoryCard({
     handleTouchEnd(e, story.id);
   };
 
+  // Store sortable.setNodeRef in a ref to keep it stable
+  const sortableSetNodeRefRef = useRef(sortable.setNodeRef);
+  sortableSetNodeRefRef.current = sortable.setNodeRef;
+
   // Combine refs for sortable and our card ref
-  const setRefs = (node: HTMLDivElement | null) => {
-    if (draggable && sortable.setNodeRef) {
-      sortable.setNodeRef(node);
+  // Memoize to prevent infinite loops from ref callback recreation
+  const setRefs = useCallback((node: HTMLDivElement | null) => {
+    // Use ref to access latest setNodeRef without causing re-renders
+    if (draggable && sortableSetNodeRefRef.current) {
+      sortableSetNodeRefRef.current(node);
     }
+    // Always set cardRef
     if (cardRef) {
       (cardRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
     }
-  };
+  }, [draggable]);
 
+  // Don't memoize cardProps - spread sortable props directly to avoid dependency issues
+  // sortable.attributes and sortable.listeners are stable from the hook
   const cardProps = draggable ? {
     ref: setRefs,
     style: sortableStyle,
@@ -161,14 +170,15 @@ export function StoryCard({
       {...cardProps}
       tabIndex={isSelected ? 0 : -1}
       className={`
+        glass-card
         ${draggable ? 'cursor-grab' : 'cursor-pointer'} 
-        transition-all duration-200 hover:shadow-lg
-        ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20 outline-none' : ''}
+        transition-all duration-200 hover:shadow-xl
+        ${isSelected ? 'ring-2 ring-[hsl(var(--glass-ring))] outline-none shadow-[0_0_0_1px_hsl(var(--glass-ring)/0.5)]' : ''}
         ${isDragging ? 'opacity-50 scale-95' : ''}
         ${draggable && isDragging ? 'cursor-grabbing' : ''}
-        ${swipeDirection === 'right' && kanbanMode ? 'translate-x-4 bg-green-100' : ''}
-        ${swipeDirection === 'left' && kanbanMode ? '-translate-x-4 bg-green-100' : ''}
-        relative overflow-hidden
+        ${swipeDirection === 'right' && kanbanMode ? 'translate-x-4 shadow-[0_0_0_1px_rgba(34,197,94,0.45)]' : ''}
+        ${swipeDirection === 'left' && kanbanMode ? '-translate-x-4 shadow-[0_0_0_1px_rgba(34,197,94,0.45)]' : ''}
+        relative overflow-hidden rounded-2xl
         ${className}
       `}
       onClick={handleClick}

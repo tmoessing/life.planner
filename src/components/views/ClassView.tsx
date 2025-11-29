@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, Suspense, lazy } from 'react';
 import { useAtom } from 'jotai';
 import { ClassModal } from '@/components/modals/ClassModal';
 import { AssignmentModal } from '@/components/modals/AssignmentModal';
@@ -11,12 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { GraduationCap, Plus, Edit, FileText, Book, FileCheck, FolderKanban, ClipboardList, MoreHorizontal, Trash2, CheckCircle2, List, Grid, BarChart3, Weight } from 'lucide-react';
+import { GraduationCap, Plus, Edit, FileText, Book, FileCheck, FolderKanban, ClipboardList, MoreHorizontal, Trash2, CheckCircle2, List, Grid, BarChart3, Weight, Loader2 } from 'lucide-react';
 import type { Class, Assignment, AssignmentType } from '@/types';
 import { formatRecurrencePattern } from '@/utils/assignmentRecurrenceUtils';
 import { getWeightGradientColor } from '@/utils/color';
 import { getClassEndDate } from '@/utils/date';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+
+// Lazy load chart component to reduce initial bundle size
+const ClassAnalyticsCharts = lazy(() => import('@/components/charts/ClassAnalyticsCharts').then(m => ({ default: m.ClassAnalyticsCharts })));
 
 export function ClassView() {
   const [classes] = useAtom(classesAtom);
@@ -461,116 +463,29 @@ export function ClassView() {
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">By Class</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={assignmentsByClassData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {assignmentsByClassData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">By Class Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={assignmentsByClassTypeData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {assignmentsByClassTypeData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">By Assignment Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={assignmentsByTypeData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {assignmentsByTypeData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              {selectedClassForAnalytics && selectedClassForAnalytics !== 'all' && assignmentsByStatusData.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">
-                      Status - {classes.find(c => c.id === selectedClassForAnalytics)?.classCode || classes.find(c => c.id === selectedClassForAnalytics)?.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={assignmentsByStatusData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {assignmentsByStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
-              </div>
+              <Suspense fallback={
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map(i => (
+                    <Card key={i}>
+                      <CardContent className="h-[200px] flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              }>
+                <ClassAnalyticsCharts
+                  assignmentsByClassData={assignmentsByClassData}
+                  assignmentsByClassTypeData={assignmentsByClassTypeData}
+                  assignmentsByTypeData={assignmentsByTypeData}
+                  assignmentsByStatusData={assignmentsByStatusData}
+                  selectedClassForAnalytics={selectedClassForAnalytics}
+                  colors={COLORS}
+                  statusChartTitle={selectedClassForAnalytics && selectedClassForAnalytics !== 'all' 
+                    ? `Status - ${classes.find(c => c.id === selectedClassForAnalytics)?.classCode || classes.find(c => c.id === selectedClassForAnalytics)?.title}`
+                    : undefined}
+                />
+              </Suspense>
             </div>
           )}
 

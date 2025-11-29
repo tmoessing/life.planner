@@ -504,13 +504,7 @@ export function ProjectProductManagementView() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              Manage which stories belong to your project
-            </p>
-          </div>
-          
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Project Selector */}
           <div className="flex items-center gap-2">
             <FolderOpen className="h-4 w-4 text-muted-foreground" />
@@ -544,19 +538,19 @@ export function ProjectProductManagementView() {
                 )}
               </SelectContent>
             </Select>
+            <Button
+              onClick={() => setIsAddStoryModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Story
+            </Button>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setIsAddStoryModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Story
-          </Button>
           {selectedStories.length > 0 && (
             <>
             <Button
@@ -603,12 +597,7 @@ export function ProjectProductManagementView() {
               <span>{availableStories.length} unassigned stories available</span>
               <span>Status: {currentProject?.status}</span>
             </div>
-            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded">
-              💡 Each story can only be assigned to one project at a time
-            </div>
-            <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 px-2 py-1 rounded">
-              🖱️ Multi-select: Ctrl/Cmd + click for individual selection, Shift + click for range selection, Ctrl+Shift + click for toggle selection
-            </div>
+            
           </div>
 
           {/* Two Column Layout */}

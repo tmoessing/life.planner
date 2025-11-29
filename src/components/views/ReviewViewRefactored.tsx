@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAtom } from 'jotai';
 import { storiesAtom, updateStoryAtom, rolesAtom, labelsAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
 import { useReviewLogic } from '@/hooks/useReviewLogic';

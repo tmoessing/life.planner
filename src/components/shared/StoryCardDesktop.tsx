@@ -1,4 +1,3 @@
-import React from 'react';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,7 @@ import {
   Brain,
   Dumbbell
 } from 'lucide-react';
-import type { Story, Priority, StoryType } from '@/types';
+import type { Story } from '@/types';
 import { 
   getRoleName, 
   getVisionName, 

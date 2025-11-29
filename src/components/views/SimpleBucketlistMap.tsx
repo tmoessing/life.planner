@@ -131,13 +131,13 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
         {/* Map Grid Lines */}
         <div className="absolute inset-0 opacity-10">
           {/* Horizontal lines */}
-          <div className="absolute top-1/4 left-0 right-0 h-px bg-gray-400"></div>
-          <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-400"></div>
-          <div className="absolute top-3/4 left-0 right-0 h-px bg-gray-400"></div>
+          <div className="absolute top-1/4 left-0 right-0 h-px bg-gray-400 dark:bg-gray-600"></div>
+          <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-400 dark:bg-gray-600"></div>
+          <div className="absolute top-3/4 left-0 right-0 h-px bg-gray-400 dark:bg-gray-600"></div>
           {/* Vertical lines */}
-          <div className="absolute left-1/4 top-0 bottom-0 w-px bg-gray-400"></div>
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400"></div>
-          <div className="absolute left-3/4 top-0 bottom-0 w-px bg-gray-400"></div>
+          <div className="absolute left-1/4 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
+          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
+          <div className="absolute left-3/4 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
         </div>
         
         {/* Location markers positioned on the map */}

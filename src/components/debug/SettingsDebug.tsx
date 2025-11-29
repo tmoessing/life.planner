@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAtom } from 'jotai';
 import { settingsAtom } from '@/stores/settingsStore';
 import { useProjectSettings } from '@/utils/settingsMirror';

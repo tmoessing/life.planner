@@ -376,7 +376,7 @@ export const generateTestData = () => {
   }));
 
   // Generate Important Dates
-  const importantDates: ImportantDate[] = Array.from({ length: 12 }, (_, i) => ({
+  const importantDates: ImportantDate[] = Array.from({ length: 12 }, () => ({
     id: generateId('important-date'),
     title: getRandomItem(importantDateTitles),
     date: getRandomDate(now, futureDate),
@@ -385,7 +385,7 @@ export const generateTestData = () => {
   }));
 
   // Generate Traditions
-  const traditions: Tradition[] = Array.from({ length: 10 }, (_, i) => ({
+  const traditions: Tradition[] = Array.from({ length: 10 }, () => ({
     id: generateId('tradition'),
     title: getRandomItem(traditionTitles),
     description: `A meaningful tradition that brings ${getRandomItem(['joy', 'connection', 'reflection', 'celebration'])}`,
@@ -423,7 +423,7 @@ export const generateTestData = () => {
   });
 
   // Generate Classes
-  const classes: Class[] = Array.from({ length: 6 }, (_, i) => {
+  const classes: Class[] = Array.from({ length: 6 }, () => {
     const semester = getRandomItem(['Fall', 'Winter', 'Spring', 'Summer'] as const) as 'Fall' | 'Winter' | 'Spring' | 'Summer';
     const year = now.getFullYear();
     const classCode = getRandomItem(classCodes);
@@ -464,10 +464,10 @@ export const generateTestData = () => {
 
   // Generate Assignments (linked to classes)
   const assignments: Assignment[] = [];
-  classes.forEach((cls, classIndex) => {
+  classes.forEach((cls) => {
     // Each class gets 3-8 assignments
     const assignmentCount = Math.floor(Math.random() * 6) + 3;
-    const classAssignments = Array.from({ length: assignmentCount }, (_, i) => {
+    const classAssignments = Array.from({ length: assignmentCount }, () => {
       const assignmentId = generateId('assignment');
       const assignmentType = getRandomItem(assignmentTypes) as AssignmentType;
       const dueDate = getRandomDate(now, futureDate);

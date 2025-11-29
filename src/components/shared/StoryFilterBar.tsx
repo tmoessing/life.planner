@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -33,7 +32,6 @@ export function StoryFilterBar({
   visions,
   goals,
   projects,
-  labels,
   settings,
   className = ''
 }: StoryFilterBarProps) {

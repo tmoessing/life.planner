@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Target, Plus } from 'lucide-react';
 import { visionsAtom, addVisionAtom, updateVisionAtom, settingsAtom } from '@/stores/appStore';
-import { useStorySettings } from '@/utils/settingsMirror';
 import type { Vision } from '@/types';
 
 interface ImportanceModalProps {

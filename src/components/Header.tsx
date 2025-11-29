@@ -3,6 +3,7 @@ import { AddDropdown } from '@/components/AddDropdown';
 import { NavigationDropdown } from '@/components/NavigationDropdown';
 import { Settings, Calendar } from 'lucide-react';
 import { ViewType } from '@/constants/views';
+import { useViewPrefetch } from '@/hooks/useViewPrefetch';
 
 interface HeaderProps {
   currentView: ViewType;
@@ -33,16 +34,17 @@ function getViewDisplayName(view: ViewType): string | null {
     'important-dates': 'Important Dates',
     'traditions': 'Traditions',
     'goal-boards': 'Goal Boards',
-    'settings': null, // Don't show for settings
+    'settings': 'Settings',
   };
   return viewNames[view] || null;
 }
 
 export function Header({ currentView, setCurrentView }: HeaderProps) {
   const viewName = getViewDisplayName(currentView);
+  const { prefetchView } = useViewPrefetch();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-top">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/50 glass-header safe-area-top">
       <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-2 md:px-4 safe-area-left safe-area-right">
         {/* Left side - Title and Navigation */}
         <div className="flex items-center space-x-1 md:space-x-3 min-w-0 flex-1">
@@ -65,6 +67,8 @@ export function Header({ currentView, setCurrentView }: HeaderProps) {
             variant="ghost"
             className="hidden md:flex gap-1 md:gap-2 text-xs md:text-sm touch-target h-11 w-11 md:h-auto md:w-auto md:px-3"
             onClick={() => setCurrentView('today')}
+            onMouseEnter={() => prefetchView('today')}
+            onFocus={() => prefetchView('today')}
             title="Today"
           >
             <Calendar className="h-4 w-4" />
@@ -76,6 +80,8 @@ export function Header({ currentView, setCurrentView }: HeaderProps) {
             variant="ghost"
             className="gap-1 md:gap-2 text-xs md:text-sm touch-target h-11 w-11 md:h-auto md:w-auto md:px-3"
             onClick={() => setCurrentView('settings')}
+            onMouseEnter={() => prefetchView('settings')}
+            onFocus={() => prefetchView('settings')}
             title="Settings"
           >
             <Settings className="h-4 w-4" />

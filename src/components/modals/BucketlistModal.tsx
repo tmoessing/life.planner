@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getCitiesForState } from '@/utils/cityData';
-import { getAllCountries, getRegionsForCountry } from '@/utils/countryData';
+import { getAllCountries } from '@/utils/countryData';
 import { Plus, Save, X } from 'lucide-react';
 import type { BucketlistItem } from '@/types';
 

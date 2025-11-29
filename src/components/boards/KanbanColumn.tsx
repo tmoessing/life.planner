@@ -3,7 +3,6 @@ import { useAtom } from 'jotai';
 import { useDroppable } from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { StoryCard } from '@/components/shared/StoryCard';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { currentSprintAtom } from '@/stores/appStore';
@@ -24,9 +23,10 @@ interface KanbanColumnProps {
   // Kanban board context for swipe-to-move
   allColumnIds?: string[];
   onMoveToColumn?: (storyId: string, targetColumnId: string) => void;
+  columnColor?: string; // Optional color override (e.g., from project settings)
 }
 
-export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, activeStory, isDragOver, activeStoryId, allColumnIds, onMoveToColumn }: KanbanColumnProps) {
+export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, activeStory, allColumnIds, onMoveToColumn, columnColor: propColumnColor }: KanbanColumnProps) {
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [currentSprint] = useAtom(currentSprintAtom);
   const storySettings = useStorySettings();
@@ -38,14 +38,16 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
   });
 
   const getColumnColor = () => {
-    // Use column ID directly since it already matches the status key
-    const statusColor = storySettings.getStatusColor(column.id);
+    // Use provided color if available, otherwise get from story settings
+    const statusColor = propColumnColor || storySettings.getStatusColor(column.id);
     return {
       backgroundColor: `${statusColor}20`,
       borderColor: `${statusColor}40`,
       color: statusColor
     };
   };
+
+  const columnColor = getColumnColor();
 
   // Check if we're dragging from Review to Done
   const isDraggingFromReviewToDone = () => {
@@ -67,13 +69,16 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
             ? 'ring-2 ring-red-500 ring-opacity-75 bg-red-50 border-red-300 shadow-lg' 
             : ''
         } h-fit sm:h-auto transition-all duration-200`}
-        style={getColumnColor()}
+        style={columnColor}
       >
         <CardHeader className="pb-2 sm:pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className={`text-xs sm:text-sm font-medium truncate ${
-              isDraggingFromReviewToDoneValue ? 'text-red-600 font-bold' : ''
-            }`}>
+            <CardTitle 
+              className={`text-xs sm:text-sm font-medium truncate ${
+                isDraggingFromReviewToDoneValue ? 'text-red-600 font-bold' : ''
+              }`}
+              style={!isDraggingFromReviewToDoneValue ? { color: columnColor.color } : undefined}
+            >
               {column.name} {stories.length}
               {isDraggingFromReviewToDoneValue && (
                 <span className="ml-2 text-xs text-red-500">⚠️ Complete Retro</span>

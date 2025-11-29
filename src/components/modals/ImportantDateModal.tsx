@@ -24,7 +24,7 @@ export function ImportantDateModal({
   mode, 
   importantDate 
 }: ImportantDateModalProps) {
-  const [importantDates, setImportantDates] = useAtom(importantDatesAtom);
+  const [, setImportantDates] = useAtom(importantDatesAtom);
   const importantDateSettings = useImportantDateSettings();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');

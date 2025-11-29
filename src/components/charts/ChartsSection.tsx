@@ -1,10 +1,20 @@
+import { Suspense, lazy } from 'react';
 import { useAtom } from 'jotai';
 import { burndownCollapsedAtom, burnupCollapsedAtom } from '@/stores/appStore';
-import { BurndownChart } from '@/components/charts/BurndownChart';
-import { BurnupChart } from '@/components/charts/BurnupChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import { ChevronDown, ChevronUp, BarChart3, Loader2 } from 'lucide-react';
+
+// Lazy load chart components to reduce initial bundle size
+const BurndownChart = lazy(() => import('@/components/charts/BurndownChart').then(m => ({ default: m.BurndownChart })));
+const BurnupChart = lazy(() => import('@/components/charts/BurnupChart').then(m => ({ default: m.BurnupChart })));
+
+// Loading fallback for charts
+const ChartLoadingFallback = () => (
+  <div className="h-64 flex items-center justify-center">
+    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+  </div>
+);
 
 export function ChartsSection() {
   const [burndownCollapsed, setBurndownCollapsed] = useAtom(burndownCollapsedAtom);
@@ -39,7 +49,9 @@ export function ChartsSection() {
           </CardHeader>
           {!burndownCollapsed && (
             <CardContent>
-              <BurndownChart />
+              <Suspense fallback={<ChartLoadingFallback />}>
+                <BurndownChart />
+              </Suspense>
             </CardContent>
           )}
         </Card>
@@ -65,7 +77,9 @@ export function ChartsSection() {
           </CardHeader>
           {!burnupCollapsed && (
             <CardContent>
-              <BurnupChart />
+              <Suspense fallback={<ChartLoadingFallback />}>
+                <BurnupChart />
+              </Suspense>
             </CardContent>
           )}
         </Card>

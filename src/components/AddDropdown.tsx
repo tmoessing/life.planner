@@ -10,6 +10,7 @@ import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { Plus, ChevronDown, FileText, Target, FolderOpen, GraduationCap, List, Layers } from 'lucide-react';
 import { ViewType } from '@/constants/views';
 import { settingsAtom } from '@/stores/settingsStore';
+import { useViewPrefetch } from '@/hooks/useViewPrefetch';
 
 interface AddDropdownProps {
   setCurrentView: (view: ViewType) => void;
@@ -17,6 +18,7 @@ interface AddDropdownProps {
 
 export function AddDropdown({ setCurrentView }: AddDropdownProps) {
   const [settings] = useAtom(settingsAtom);
+  const { prefetchView } = useViewPrefetch();
   const [isOpen, setIsOpen] = useState(false);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
@@ -215,7 +217,12 @@ export function AddDropdown({ setCurrentView }: AddDropdownProps) {
                   <button
                     className="w-full px-3 py-3 sm:px-3 sm:py-2 text-left text-xs sm:text-sm hover:bg-muted active:bg-muted flex items-center gap-2 rounded touch-target min-h-[44px] sm:min-h-0"
                     onClick={() => handleItemClick(() => setCurrentView('add-stories'))}
-                    onTouchStart={() => handleItemClick(() => setCurrentView('add-stories'))}
+                    onMouseEnter={() => prefetchView('add-stories')}
+                    onFocus={() => prefetchView('add-stories')}
+                    onTouchStart={() => {
+                      prefetchView('add-stories');
+                      handleItemClick(() => setCurrentView('add-stories'));
+                    }}
                   >
                     <Layers className="h-4 w-4 flex-shrink-0" />
                     Stories
@@ -223,7 +230,12 @@ export function AddDropdown({ setCurrentView }: AddDropdownProps) {
                   <button
                     className="w-full px-3 py-3 sm:px-3 sm:py-2 text-left text-xs sm:text-sm hover:bg-muted active:bg-muted flex items-center gap-2 rounded touch-target min-h-[44px] sm:min-h-0"
                     onClick={() => handleItemClick(() => setCurrentView('add-goals'))}
-                    onTouchStart={() => handleItemClick(() => setCurrentView('add-goals'))}
+                    onMouseEnter={() => prefetchView('add-goals')}
+                    onFocus={() => prefetchView('add-goals')}
+                    onTouchStart={() => {
+                      prefetchView('add-goals');
+                      handleItemClick(() => setCurrentView('add-goals'));
+                    }}
                   >
                     <Layers className="h-4 w-4 flex-shrink-0" />
                     Goals
@@ -231,7 +243,12 @@ export function AddDropdown({ setCurrentView }: AddDropdownProps) {
                   <button
                     className="w-full px-3 py-3 sm:px-3 sm:py-2 text-left text-xs sm:text-sm hover:bg-muted active:bg-muted flex items-center gap-2 rounded touch-target min-h-[44px] sm:min-h-0"
                     onClick={() => handleItemClick(() => setCurrentView('add-projects'))}
-                    onTouchStart={() => handleItemClick(() => setCurrentView('add-projects'))}
+                    onMouseEnter={() => prefetchView('add-projects')}
+                    onFocus={() => prefetchView('add-projects')}
+                    onTouchStart={() => {
+                      prefetchView('add-projects');
+                      handleItemClick(() => setCurrentView('add-projects'));
+                    }}
                   >
                     <Layers className="h-4 w-4 flex-shrink-0" />
                     Projects
@@ -239,7 +256,12 @@ export function AddDropdown({ setCurrentView }: AddDropdownProps) {
                   <button
                     className="w-full px-3 py-3 sm:px-3 sm:py-2 text-left text-xs sm:text-sm hover:bg-muted active:bg-muted flex items-center gap-2 rounded touch-target min-h-[44px] sm:min-h-0"
                     onClick={() => handleItemClick(() => setCurrentView('add-bucketlist'))}
-                    onTouchStart={() => handleItemClick(() => setCurrentView('add-bucketlist'))}
+                    onMouseEnter={() => prefetchView('add-bucketlist')}
+                    onFocus={() => prefetchView('add-bucketlist')}
+                    onTouchStart={() => {
+                      prefetchView('add-bucketlist');
+                      handleItemClick(() => setCurrentView('add-bucketlist'));
+                    }}
                   >
                     <Layers className="h-4 w-4 flex-shrink-0" />
                     Bucketlist

@@ -1,11 +1,15 @@
 import { useEffect, useCallback } from 'react';
+import { Suspense } from 'react';
 import { useAtom } from 'jotai';
 import { currentViewAtom } from '@/stores/uiStore';
 import { settingsAtom } from '@/stores/settingsStore';
-import { VIEW_COMPONENTS, type ViewType } from '@/constants/views';
+import { getViewComponent } from '@/registry/viewRegistry';
+import { ViewLoadingFallback } from '@/components/shared/ViewLoadingFallback';
+import type { ViewType } from '@/constants/views';
 
 /**
  * Hook for managing view state and rendering
+ * Uses lazy-loaded components for code splitting
  */
 export function useViewManager() {
   const [currentView, setCurrentViewAtom] = useAtom(currentViewAtom);
@@ -24,8 +28,12 @@ export function useViewManager() {
   }, [currentView, settings.layout.sections.classes, setCurrentView]);
 
   const renderView = () => {
-    const ViewComponent = VIEW_COMPONENTS[currentView] || VIEW_COMPONENTS['today'];
-    return <ViewComponent />;
+    const ViewComponent = getViewComponent(currentView);
+    return (
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <ViewComponent />
+      </Suspense>
+    );
   };
 
   return {

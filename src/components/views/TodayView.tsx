@@ -95,6 +95,8 @@ export function TodayView() {
   
   // State for view mode toggle (today vs week)
   const [viewMode, setViewMode] = useState<'today' | 'week'>('week');
+  const [isDraggingWeek, setIsDraggingWeek] = useState(false);
+  const [isDraggingToday, setIsDraggingToday] = useState(false);
   
   // Use goal settings mirror for proper colors and types
   const goalSettings = useGoalSettings();
@@ -443,18 +445,22 @@ export function TodayView() {
     <div className="space-y-3 sm:space-y-4">
       {/* Header */}
       <div className="flex flex-col gap-2 sm:gap-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+        <div className="flex flex-row items-center justify-between gap-2 sm:gap-0">
           <div>
             <p className="text-xs text-muted-foreground">
-              {viewMode === 'today' ? (
-                new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })
-              ) : (
-                <>Week {isoWeek}, {year} • {currentSprint?.startDate ? new Date(currentSprint.startDate).toLocaleDateString() : ''}</>
-              )}
+              {viewMode === 'today'
+                ? new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : `Week ${isoWeek}, ${year} • ${new Date(startDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })} – ${new Date(endDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}`}
             </p>
           </div>
           <div className="flex items-center space-x-1.5">
@@ -477,13 +483,55 @@ export function TodayView() {
           </div>
         </div>
         
-        {/* View Mode Toggle */}
-        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'today' | 'week')} className="w-full sm:w-auto">
-          <TabsList className="grid w-full sm:w-auto grid-cols-2">
-            <TabsTrigger value="today" className="text-xs sm:text-sm">
+        {/* View Mode Toggle - Liquid glass with subtle drag interaction (drag Week onto Today) */}
+        <Tabs
+          value={viewMode}
+          onValueChange={(value) => setViewMode(value as 'today' | 'week')}
+          className="w-full sm:w-auto"
+        >
+          <TabsList
+            className="grid w-full sm:w-auto grid-cols-2 rounded-full bg-white/10 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
+          >
+            <TabsTrigger
+              value="today"
+              className="text-xs sm:text-sm rounded-full cursor-grab active:cursor-grabbing data-[state=active]:bg-white/80 data-[state=active]:text-slate-900 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white transition-colors"
+              draggable
+              onDragStart={() => setIsDraggingToday(true)}
+              onDragEnd={() => setIsDraggingToday(false)}
+              onDragOver={(e) => {
+                if (isDraggingWeek) {
+                  e.preventDefault();
+                }
+              }}
+              onDrop={(e) => {
+                if (isDraggingWeek) {
+                  e.preventDefault();
+                  setViewMode('today');
+                  setIsDraggingWeek(false);
+                }
+              }}
+            >
               Today
             </TabsTrigger>
-            <TabsTrigger value="week" className="text-xs sm:text-sm">
+            <TabsTrigger
+              value="week"
+              className="text-xs sm:text-sm rounded-full cursor-grab active:cursor-grabbing"
+              draggable
+              onDragStart={() => setIsDraggingWeek(true)}
+              onDragEnd={() => setIsDraggingWeek(false)}
+              onDragOver={(e) => {
+                if (isDraggingToday) {
+                  e.preventDefault();
+                }
+              }}
+              onDrop={(e) => {
+                if (isDraggingToday) {
+                  e.preventDefault();
+                  setViewMode('week');
+                  setIsDraggingToday(false);
+                }
+              }}
+            >
               Week
             </TabsTrigger>
           </TabsList>
@@ -1120,7 +1168,7 @@ export function TodayView() {
                   <span>{progress.completedWeight}</span>
                   <span className="text-muted-foreground">/ {progress.totalWeight}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-1 sm:h-1.5">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 sm:h-1.5">
                   <div 
                     className="bg-blue-600 h-1 sm:h-1.5 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercentage}%` }}

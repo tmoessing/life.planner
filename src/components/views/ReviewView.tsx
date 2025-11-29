@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { storiesAtom, updateStoryAtom, rolesAtom, labelsAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

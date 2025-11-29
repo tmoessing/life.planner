@@ -97,7 +97,7 @@ export function EditTraditionModal({
               <SelectContent>
                 <SelectItem value="none">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-gray-400" />
+                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
                     None
                   </div>
                 </SelectItem>
@@ -124,7 +124,7 @@ export function EditTraditionModal({
               <SelectContent>
                 <SelectItem value="none">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-gray-400" />
+                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
                     None
                   </div>
                 </SelectItem>

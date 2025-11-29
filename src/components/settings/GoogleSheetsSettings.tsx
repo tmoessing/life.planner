@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { settingsAtom } from '@/stores/settingsStore';
 import { googleSheetsService } from '@/services/googleSheetsService';

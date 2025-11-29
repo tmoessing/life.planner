@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, GripVertical, Target, Edit2, Trash2, Check, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X } from 'lucide-react';
 import { ImportanceModal } from '@/components/modals/ImportanceModal';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -75,25 +75,21 @@ function SortableVision({
       style={style}
       className={`${isDragging ? 'opacity-50' : ''}`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Combined Drag Handle and Ranking Number */}
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing touch-manipulation select-none p-2 -m-2 rounded hover:bg-gray-100 active:bg-gray-200"
+            className={`cursor-grab active:cursor-grabbing touch-manipulation select-none flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-white text-xs sm:text-sm font-bold hover:opacity-80 active:opacity-70 ${
+              vision.type === 'Spiritual' ? 'bg-purple-600' :
+              vision.type === 'Physical' ? 'bg-red-600' :
+              vision.type === 'Intellectual' ? 'bg-blue-600' :
+              vision.type === 'Social' ? 'bg-green-600' :
+              'bg-gray-600'
+            }`}
             style={{ touchAction: 'none' }}
           >
-            <GripVertical className="h-5 w-5 text-muted-foreground" />
-          </div>
-          
-          {/* Ranking Number */}
-          <div className={`flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold ${
-            vision.type === 'Spiritual' ? 'bg-purple-600' :
-            vision.type === 'Physical' ? 'bg-red-600' :
-            vision.type === 'Intellectual' ? 'bg-blue-600' :
-            vision.type === 'Social' ? 'bg-green-600' :
-            'bg-gray-600'
-          }`}>
             {index + 1}
           </div>
 
@@ -142,13 +138,13 @@ function SortableVision({
               </div>
             ) : (
               <div>
-                <h3 className="font-medium">{vision.title}</h3>
+                <h3 className="font-medium text-sm sm:text-base">{vision.title}</h3>
                 {vision.description && (
-                  <p className="text-sm text-muted-foreground mt-1">{vision.description}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{vision.description}</p>
                 )}
                 <Badge 
                   variant="outline" 
-                  className="mt-1"
+                  className="mt-1 text-xs"
                   style={{ 
                     borderColor: getVisionTypeColor(vision.type),
                     color: getVisionTypeColor(vision.type)
@@ -258,18 +254,10 @@ export function ImportanceView() {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              Order your visions by importance. 
-              <span className="hidden sm:inline"> Drag to reorder.</span>
-              <span className="sm:hidden"> Touch and hold the grip icon to reorder.</span>
-            </p>
-          </div>
-          
           <div className="flex items-center gap-2">
             <Button
               onClick={handleAddVision}
@@ -277,7 +265,8 @@ export function ImportanceView() {
               size="sm"
             >
               <Plus className="h-4 w-4" />
-              Add New Importance
+              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">Add New Importance</span>
             </Button>
           </div>
         </div>
@@ -285,7 +274,10 @@ export function ImportanceView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your Importances</CardTitle>
+          <CardTitle>
+            <span className="sm:hidden">Importances</span>
+            <span className="hidden sm:inline">Your Importances</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <DndContext
@@ -294,7 +286,7 @@ export function ImportanceView() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext items={visions.map(v => v.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {visions
                   .sort((a, b) => a.order - b.order)
                   .map((vision, index) => (
@@ -309,11 +301,11 @@ export function ImportanceView() {
                   ))}
                 
                 {/* Add New Importance Button - styled like an importance item */}
-                <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Plus className="h-4 w-4 text-gray-500" />
+                <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 dark:text-gray-400" />
                       </div>
                       
                       <div className="flex-1">
@@ -323,8 +315,11 @@ export function ImportanceView() {
                           className="w-full justify-start p-0 h-auto text-left hover:bg-transparent"
                         >
                           <div className="text-gray-500 hover:text-gray-700">
-                            <h3 className="font-medium">Add New Importance</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Click to add a new importance to your list</p>
+                            <h3 className="font-medium">
+                              <span className="sm:hidden">Add</span>
+                              <span className="hidden sm:inline">Add New Importance</span>
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1 hidden sm:block">Click to add a new importance to your list</p>
                           </div>
                         </Button>
                       </div>

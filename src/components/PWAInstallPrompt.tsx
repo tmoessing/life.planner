@@ -11,7 +11,7 @@ export function PWAInstallPrompt() {
   useEffect(() => {
     // Show install prompt after a delay if not already shown and not dismissed
     const timer = setTimeout(() => {
-      const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
+      sessionStorage.getItem('pwa-install-dismissed');
       
       // Check if we're on mobile
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

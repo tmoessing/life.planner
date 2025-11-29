@@ -130,7 +130,7 @@ export function BucketlistCategoriesSettings() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div 
-                      className="w-4 h-4 rounded-full border-2 border-gray-300" 
+                      className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600" 
                       style={{ backgroundColor: category.color }}
                     ></div>
                     <span className="font-medium">{category.name}</span>

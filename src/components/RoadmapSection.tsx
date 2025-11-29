@@ -111,11 +111,11 @@ export function RoadmapSection() {
               <span>Scheduled</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
+              <div className="w-2 h-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded"></div>
               <span>Available</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded opacity-50"></div>
+              <div className="w-2 h-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded opacity-50"></div>
               <span className="hidden sm:inline">Story scheduled elsewhere</span>
               <span className="sm:hidden">Elsewhere</span>
             </div>
@@ -193,7 +193,7 @@ export function RoadmapSection() {
                   >
                     {isStoryScheduledOnDate(story.id, day.date) ? (
                       <div className="flex items-center justify-center">
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white dark:bg-gray-300 rounded-full"></div>
                       </div>
                     ) : (
                       <div className="w-2 h-2 sm:w-3 sm:h-3"></div>

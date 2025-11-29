@@ -23,11 +23,9 @@ interface StatusSettingsProps {
 
 export function StatusSettings({ category }: StatusSettingsProps) {
   const [storyStatuses] = useAtom(storyStatusesAtom);
-  const [goalStatuses] = useAtom(goalStatusesAtom);
   const [projectStatuses] = useAtom(projectStatusesAtom);
   const [bucketlistStatuses] = useAtom(bucketlistStatusesAtom);
   const [, updateStoryStatuses] = useAtom(updateStoryStatusesAtom);
-  const [, updateGoalStatuses] = useAtom(updateGoalStatusesAtom);
   const [, updateProjectStatuses] = useAtom(updateProjectStatusesAtom);
   const [, updateBucketlistStatuses] = useAtom(updateBucketlistStatusesAtom);
   const [settings, setSettings] = useAtom(settingsAtom);

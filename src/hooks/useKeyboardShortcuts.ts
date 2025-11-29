@@ -71,13 +71,6 @@ export function useKeyboardShortcuts() {
           }
           break;
 
-        case '?':
-          if (!isCtrlOrCmd && !isShift) {
-            event.preventDefault();
-            // Open help modal
-          }
-          break;
-
         case '1':
           if (!isCtrlOrCmd && !isShift) {
             event.preventDefault();

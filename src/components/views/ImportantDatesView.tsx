@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -366,10 +366,10 @@ export function ImportantDatesView() {
           filteredDates.map((date) => {
             const status = getDateStatus(date.date);
             const statusColors = {
-              past: `border-gray-200 bg-gray-50`,
-              today: `border-red-200 bg-red-50`,
-              upcoming: `border-yellow-200 bg-yellow-50`,
-              future: `border-blue-200 bg-blue-50`
+              past: `border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50`,
+              today: `border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20`,
+              upcoming: `border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20`,
+              future: `border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20`
             };
 
             // Get category color
