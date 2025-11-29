@@ -1,4 +1,4 @@
-import type { Story, Priority, StoryType, Role, Label, Vision, Goal, Project, RecurrenceEditMode } from '@/types';
+import type { Story, Priority, StoryType, RecurrenceEditMode } from '@/types';
 
 export interface StoryFilters {
   priority: Priority | 'all';

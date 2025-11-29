@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import { goalsAtom, settingsAtom, updateGoalAtom, visionsAtom } from '@/stores/appStore';
+import { goalsAtom, updateGoalAtom, visionsAtom } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { useSettingsMigration } from '@/hooks/useSettingsMigration';
 import { FilterBar } from '@/components/forms/FilterBar';
@@ -19,7 +19,6 @@ export function GoalBoardsView() {
   const [goals] = useAtom(goalsAtom);
   const [visions] = useAtom(visionsAtom);
   const [, updateGoal] = useAtom(updateGoalAtom);
-  const [settings] = useAtom(settingsAtom);
 
   // Use settings mirror system for goal settings
   const goalSettings = useGoalSettings();
@@ -30,7 +29,7 @@ export function GoalBoardsView() {
   
   const [selectedBoardType, setSelectedBoardType] = useState<BoardType>('Goal Type');
   const [viewType, setViewType] = useState<ViewType>('list');
-  const [draggedGoalId, setDraggedGoalId] = useState<string | null>(null);
+  const [, setDraggedGoalId] = useState<string | null>(null);
   const [dragOverBoardId, setDragOverBoardId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);

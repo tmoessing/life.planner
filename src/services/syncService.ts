@@ -1,13 +1,5 @@
 import { googleSheetsService, type SheetData } from './googleSheetsService';
 import type { 
-  Story, 
-  Goal, 
-  Project, 
-  Vision, 
-  BucketlistItem, 
-  ImportantDate, 
-  Tradition, 
-  Sprint,
   Settings,
   SyncStatus,
   SyncConflict,

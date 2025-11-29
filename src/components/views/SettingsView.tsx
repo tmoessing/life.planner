@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, Tag, Target, FolderOpen, Sparkles, ListChecks, CheckSquare, BookOpen, Trophy, Eye, FileText, Zap, Star, Calendar, Heart, Gift, GraduationCap, Moon, Monitor } from 'lucide-react';
+import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, FolderOpen, ListChecks, BookOpen, Trophy, Eye, Zap, Calendar, Heart, GraduationCap, Moon, Monitor } from 'lucide-react';
 import { settingsAtom } from '@/stores/settingsStore';
 import { ImportModal } from '@/components/modals/ImportModal';
 import { RolesSettings } from '@/components/settings/RolesSettings';
@@ -65,8 +65,8 @@ export function SettingsView() {
   const [labels] = useAtom(labelsAtom);
   const [importantDates, setImportantDates] = useAtom(importantDatesAtom);
   const [traditions, setTraditions] = useAtom(traditionsAtom);
-  const [classes, setClasses] = useAtom(classesAtom);
-  const [assignments, setAssignments] = useAtom(assignmentsAtom);
+  const [, setClasses] = useAtom(classesAtom);
+  const [, setAssignments] = useAtom(assignmentsAtom);
 
   const handleDeleteAll = () => {
     setShowDeleteModal(true);
@@ -745,7 +745,6 @@ function DeleteAllModal({ onConfirm, onCancel }: DeleteAllModalProps) {
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   const requiredText = 'DELETE ALL DATA';
-  const isTextValid = confirmationText === requiredText;
 
   const handleTextChange = (value: string) => {
     setConfirmationText(value);

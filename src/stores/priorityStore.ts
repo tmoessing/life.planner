@@ -22,21 +22,21 @@ export const bucketlistPrioritiesAtom = atom<Array<{id: string, name: string, co
 
 export const updateStoryPrioritiesAtom = atom(
   null,
-  (get, set, priorities: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, priorities: Array<{id: string, name: string, color: string, description: string}>) => {
     set(storyPrioritiesAtom, priorities);
   }
 );
 
 export const updateGoalPrioritiesAtom = atom(
   null,
-  (get, set, priorities: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, priorities: Array<{id: string, name: string, color: string, description: string}>) => {
     set(goalPrioritiesAtom, priorities);
   }
 );
 
 export const updateBucketlistPrioritiesAtom = atom(
   null,
-  (get, set, priorities: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, priorities: Array<{id: string, name: string, color: string, description: string}>) => {
     set(bucketlistPrioritiesAtom, priorities);
   }
 );

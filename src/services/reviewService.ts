@@ -2,9 +2,6 @@ import type { Story, Priority, StoryType } from '@/types';
 import {
   isStoryCompleted,
   getCompletedStories,
-  getStoryCompletionPercentage,
-  getStoryAge,
-  getCompletionTime,
   searchStories,
   filterStoriesByDateRange,
   calculateReviewStats,
@@ -177,7 +174,6 @@ export class ReviewService {
    * Get completion analysis
    */
   static getCompletionAnalysis(stories: Story[]) {
-    const completedStories = getCompletedStories(stories);
     const stats = this.getReviewStats(stories);
     
     // Analyze completion patterns

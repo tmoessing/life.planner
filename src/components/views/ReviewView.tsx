@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import { storiesAtom, updateStoryAtom, rolesAtom, labelsAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
+import { storiesAtom, rolesAtom, labelsAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -14,11 +14,9 @@ import {
   Weight
 } from 'lucide-react';
 import { getWeightGradientColor } from '@/utils';
-import type { Story } from '@/types';
 
 export function ReviewView() {
   const [stories] = useAtom(storiesAtom);
-  const [, updateStory] = useAtom(updateStoryAtom);
   const [roles] = useAtom(rolesAtom);
   const [labels] = useAtom(labelsAtom);
   const [visions] = useAtom(visionsAtom);

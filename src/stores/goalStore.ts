@@ -83,7 +83,7 @@ export const removeStoryFromGoalAtom = atom(
 // Bulk delete atoms
 export const deleteAllGoalsAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(goalsAtom, []);
   }
 );

@@ -25,21 +25,21 @@ export const projectTypesAtom = atom<Array<{id: string, name: string, color: str
 
 export const updateStoryTypesAtom = atom(
   null,
-  (get, set, types: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, types: Array<{id: string, name: string, color: string, description: string}>) => {
     set(storyTypesAtom, types);
   }
 );
 
 export const updateGoalTypesAtom = atom(
   null,
-  (get, set, types: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, types: Array<{id: string, name: string, color: string, description: string}>) => {
     set(goalTypesAtom, types);
   }
 );
 
 export const updateProjectTypesAtom = atom(
   null,
-  (get, set, types: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, types: Array<{id: string, name: string, color: string, description: string}>) => {
     set(projectTypesAtom, types);
   }
 );

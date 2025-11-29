@@ -49,14 +49,14 @@ export const bucketlistStatusesAtom = atom<Array<{id: string, name: string, colo
 
 export const updateStoryStatusesAtom = atom(
   null,
-  (get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
     set(storyStatusesAtom, statuses);
   }
 );
 
 export const updateGoalStatusesAtom = atom(
   null,
-  (get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, _set, _statuses: Array<{id: string, name: string, color: string, description: string}>) => {
     // This is a write-only atom, we don't need to set goalStatusesAtom directly
     // The goalStatusesAtom is derived from settingsAtom
   }
@@ -64,14 +64,14 @@ export const updateGoalStatusesAtom = atom(
 
 export const updateProjectStatusesAtom = atom(
   null,
-  (get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
     set(projectStatusesAtom, statuses);
   }
 );
 
 export const updateBucketlistStatusesAtom = atom(
   null,
-  (get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
+  (_get, set, statuses: Array<{id: string, name: string, color: string, description: string}>) => {
     set(bucketlistStatusesAtom, statuses);
   }
 );

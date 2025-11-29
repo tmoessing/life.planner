@@ -63,7 +63,7 @@ export const deleteClassAtom = atom(
 // Bulk delete atoms
 export const deleteAllClassesAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(classesAtom, []);
   }
 );

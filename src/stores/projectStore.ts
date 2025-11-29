@@ -82,7 +82,7 @@ export const removeStoryFromProjectAtom = atom(
 // Bulk delete atoms
 export const deleteAllProjectsAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(projectsAtom, []);
   }
 );

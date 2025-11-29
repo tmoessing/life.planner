@@ -79,8 +79,8 @@ export function StoryCard({
 
   // Handle Google Calendar integration
   const handleAddToGoogleCalendar = useCallback(() => {
-    // Update story status to "progress" (In Progress)
-    moveStory(story.id, 'progress');
+    // Update story status to "todo" (To Do)
+    moveStory(story.id, 'todo');
     // Open Google Calendar
     openStoryInGoogleCalendar(story);
   }, [story, moveStory]);

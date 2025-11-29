@@ -1,20 +1,13 @@
 import { useAtom } from 'jotai';
-import { storiesAtom, updateStoryAtom, rolesAtom, labelsAtom, visionsAtom, settingsAtom } from '@/stores/appStore';
+import { storiesAtom, settingsAtom } from '@/stores/appStore';
 import { useReviewLogic } from '@/hooks/useReviewLogic';
 import { ReviewService } from '@/services/reviewService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CheckCircle, 
-  Calendar, 
-  User, 
-  Star, 
-  MapPin, 
-  Tag, 
-  Weight,
   TrendingUp,
   Clock,
   Target,
@@ -22,19 +15,11 @@ import {
   Search
 } from 'lucide-react';
 import { StoryCard } from '@/components/shared/StoryCard';
-import { useStorySettings } from '@/utils/settingsMirror';
-import { usePerformanceOptimization } from '@/utils/performanceUtils';
 import type { Priority, StoryType } from '@/types';
 
 export function ReviewViewRefactored() {
   const [stories] = useAtom(storiesAtom);
-  const [, updateStory] = useAtom(updateStoryAtom);
-  const [roles] = useAtom(rolesAtom);
-  const [labels] = useAtom(labelsAtom);
-  const [visions] = useAtom(visionsAtom);
   const [settings] = useAtom(settingsAtom);
-  
-  const storySettings = useStorySettings();
   
   // Use the review logic hook
   const {
@@ -42,17 +27,8 @@ export function ReviewViewRefactored() {
     updateFilter,
     resetFilters,
     filteredStories,
-    stats,
-    getTaskCategoryColor,
-    getPriorityColor,
-    getTypeColor,
-    getCompletionPercentage,
-    getStoryAge,
-    getCompletionTime
+    stats
   } = useReviewLogic(stories, settings);
-
-  // Get review service data
-  const reviewData = ReviewService.getDashboardData(stories);
   const insights = ReviewService.getAdvancedInsights(stories);
   const recommendations = ReviewService.getImprovementRecommendations(stories);
 

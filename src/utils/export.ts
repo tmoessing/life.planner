@@ -171,6 +171,11 @@ export const exportToExcel = (data: {
         goal.status || '',
         goal.targetDate || '',
         goal.storyIds?.join('; ') || '',
+        goal.order || 0,
+        goal.visionId || '',
+        goal.roleId || '',
+        goal.projectId || '',
+        goal.completed ? 'true' : 'false',
         goal.createdAt || '',
         goal.updatedAt || ''
       ])

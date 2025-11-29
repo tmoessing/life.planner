@@ -5,8 +5,7 @@ import {
   filterStoriesByTimeBucket,
   sortStoriesByPriorityAndWeight,
   calculatePlannerStats,
-  getOptimalPlannerSettings,
-  getPlannerRecommendations
+  getOptimalPlannerSettings
 } from '@/utils/plannerUtils';
 
 export interface PlannerFilters {
@@ -64,7 +63,6 @@ export class PlannerService {
   static getRecommendations(stories: Story[]): PlannerRecommendation[] {
     const recommendations: PlannerRecommendation[] = [];
     const stats = this.getPlannerStats(stories);
-    const optimalSettings = this.getOptimalSettings(stories);
     
     // Brain level recommendations
     if (stats.brainLevelDistribution.high > stats.brainLevelDistribution.low + stats.brainLevelDistribution.moderate) {

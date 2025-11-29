@@ -696,14 +696,14 @@ export const deleteBucketlistItemAtom = atom(
 // Bulk delete atoms
 export const deleteAllVisionsAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(visionsAtom, []);
   }
 );
 
 export const deleteAllBucketlistAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(bucketlistAtom, []);
   }
 );

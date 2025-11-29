@@ -1,6 +1,6 @@
 import { parseISO, isValid } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
-import type { Story, Sprint, Priority, Role, Label, Vision, Settings } from '@/types';
+import type { Story, Sprint, Role, Label, Vision, Settings } from '@/types';
 import { getCurrentWeek, getWeekDates, createSprintId } from './date';
 
 // Re-export organized utilities

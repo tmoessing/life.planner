@@ -7,7 +7,6 @@ import {
   visionsAtom, 
   safeSprintsAtom, 
   settingsAtom, 
-  updateStoryAtom, 
   deleteStoryAtom,
   goalsAtom,
   projectsAtom
@@ -26,19 +25,9 @@ import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { 
   Plus, 
-  Target, 
-  Calendar, 
-  Grid, 
-  Edit, 
-  Weight, 
-  Users, 
-  Star, 
   List, 
-  PieChart, 
-  Filter, 
-  X 
+  PieChart
 } from 'lucide-react';
-import { StoryService } from '@/services/storyService';
 import { 
   groupStoriesByPriority, 
   groupStoriesByStatus, 
@@ -65,7 +54,6 @@ export function StoryBoardsViewRefactored() {
   const [projects] = useAtom(projectsAtom);
   const [sprints] = useAtom(safeSprintsAtom);
   const [settings] = useAtom(settingsAtom);
-  const [, updateStory] = useAtom(updateStoryAtom);
   const [, deleteStory] = useAtom(deleteStoryAtom);
 
   // Use settings mirror system
@@ -82,7 +70,6 @@ export function StoryBoardsViewRefactored() {
   
   const {
     selectedStoryIds,
-    toggleSelection,
     selectAll,
     clearSelection,
     isSelected,
@@ -91,13 +78,7 @@ export function StoryBoardsViewRefactored() {
   } = useStorySelection();
   
   const {
-    dragState,
-    startDrag,
-    handleDragOver,
-    handleDragLeave,
-    endDrag,
     isDragging,
-    isDragOver,
     getDragOverClasses
   } = useStoryDragAndDrop();
 
@@ -107,7 +88,6 @@ export function StoryBoardsViewRefactored() {
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('all');
   const [selectedBoardType, setSelectedBoardType] = useState<BoardType>('Priority');
-  const [selectedPriority, setSelectedPriority] = useState<Priority>('Q4');
   const [viewType, setViewType] = useState<ViewType>('list');
   const [showFilters, setShowFilters] = useState(false);
 
@@ -200,7 +180,6 @@ export function StoryBoardsViewRefactored() {
           color: goalColor
         };
       case 'Project':
-        const project = projects.find(p => p.id === boardId);
         // Projects don't have a type property, use a default color
         const projectColor = '#6B7280';
         return {
@@ -258,29 +237,9 @@ export function StoryBoardsViewRefactored() {
     handleMultiSelect(storyId, index, filteredStories, event);
   };
 
-  const handleDragStart = (storyId: string) => {
-    startDrag(storyId);
-  };
-
-  const handleLocalDragOver = (targetId: string, targetType: 'sprint' | 'board' | 'column') => {
-    handleDragOver(targetId, targetType);
-  };
-
-  const handleDragEnd = () => {
-    endDrag();
-  };
-
   const handleBulkDelete = () => {
     const selectedStories = getSelectedStories(filteredStories);
     selectedStories.forEach(story => deleteStory(story.id));
-    clearSelection();
-  };
-
-  const handleBulkMove = (targetSprintId: string) => {
-    const selectedStories = getSelectedStories(filteredStories);
-    selectedStories.forEach(story => {
-      updateStory(story.id, { sprintId: targetSprintId });
-    });
     clearSelection();
   };
 

@@ -68,7 +68,7 @@ export const moveStoryAtom = atom(
 // Bulk delete atoms
 export const deleteAllStoriesAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(storiesAtom, []);
   }
 );

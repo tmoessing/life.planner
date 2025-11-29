@@ -117,7 +117,7 @@ export const removeAssignmentFromClassAtom = atom(
 // Bulk delete atoms
 export const deleteAllAssignmentsAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(assignmentsAtom, []);
   }
 );

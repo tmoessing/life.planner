@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { googleSheetsService } from '@/services/googleSheetsService';
 import { syncService } from '@/services/syncService';
 import { applyDataMerge, type MergeOptions } from './dataMerge';
@@ -56,13 +55,11 @@ export const parseCSVData = (csvContent: string) => {
   };
 
   let currentSection = '';
-  let headers: string[] = [];
 
   for (const line of lines) {
     if (line.startsWith('=== ')) {
       // New section - handle both uppercase and lowercase
       currentSection = line.replace('=== ', '').replace(' ===', '').toLowerCase().trim();
-      headers = [];
     } else if (line.includes(',')) {
       const values = parseCSVLine(line);
       
@@ -93,7 +90,7 @@ export const parseCSVData = (csvContent: string) => {
           sectionHeaders = ['Title', 'Description', 'Priority', 'Type', 'Size', 'Weight', 'Status', 'SprintId', 'RoleId', 'VisionId', 'ProjectId', 'GoalId', 'Labels', 'Task Categories', 'Due Date', 'Scheduled Date', 'Location', 'Created At', 'Updated At'];
           break;
         case 'goals':
-          sectionHeaders = ['Title', 'Description', 'Category', 'Type', 'Priority', 'Status', 'Target Date', 'Story Ids', 'Created At', 'Updated At'];
+          sectionHeaders = ['Title', 'Description', 'Category', 'Type', 'Priority', 'Status', 'Target Date', 'Story Ids', 'Order', 'Vision Id', 'Role Id', 'Project Id', 'Completed', 'Created At', 'Updated At'];
           break;
         case 'projects':
           sectionHeaders = ['Name', 'Description', 'Status', 'Priority', 'Start Date', 'End Date', 'Story Ids', 'Created At', 'Updated At'];
@@ -255,13 +252,18 @@ const parseStoryData = (row: any) => ({
 const parseGoalData = (row: any) => ({
   id: generateId(),
   title: row['Title'] || '',
+  name: row['Title'] || '', // alias for title
   description: row['Description'] || '',
   category: row['Category'] || 'target',
-  type: row['Type'] || 'Spiritual',
+  goalType: row['Type'] || 'Spiritual',
   priority: row['Priority'] || 'medium',
   status: row['Status'] || 'backlog',
-  targetDate: row['Target Date'] || undefined,
+  order: parseIntSafe(row['Order'], 0),
   storyIds: parseStringArray(row['Story Ids']),
+  visionId: row['Vision Id'] || undefined,
+  roleId: row['Role Id'] || undefined,
+  projectId: row['Project Id'] || undefined,
+  completed: parseBoolean(row['Completed']),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });

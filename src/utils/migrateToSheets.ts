@@ -1,5 +1,4 @@
 import { googleSheetsService } from '@/services/googleSheetsService';
-import { syncService } from '@/services/syncService';
 import type { SheetData } from '@/services/googleSheetsService';
 
 export interface MigrationResult {
@@ -66,7 +65,7 @@ class MigrationService {
   private createBackup(): string {
     const backup: Record<string, any> = {};
     
-    Object.entries(this.STORAGE_KEYS).forEach(([name, key]) => {
+    Object.entries(this.STORAGE_KEYS).forEach(([_name, key]) => {
       try {
         const data = localStorage.getItem(key);
         if (data) {
@@ -189,10 +188,9 @@ class MigrationService {
       }
 
       // Create backup if requested
-      let backupKey: string | null = null;
       if (createBackup) {
         onProgress?.(10, 'Creating backup...');
-        backupKey = this.createBackup();
+        this.createBackup();
         result.backupCreated = true;
       }
 
@@ -239,7 +237,6 @@ class MigrationService {
       onProgress?.(85, 'Updating settings...');
       const settings = this.getSettings();
       if (settings) {
-        const sheetId = googleSheetsService.getSheetId();
         const updatedSettings = {
           ...settings,
           googleSheets: {

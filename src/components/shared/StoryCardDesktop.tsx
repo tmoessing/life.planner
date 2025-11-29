@@ -139,8 +139,15 @@ export function StoryCardDesktop({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 w-6 sm:h-5 sm:w-5 p-0 text-blue-500 hover:text-blue-700 touch-manipulation"
-                onClick={onAddToGoogleCalendar}
+                className={`h-6 w-6 sm:h-5 sm:w-5 p-0 touch-manipulation ${
+                  story.status === 'progress' || story.status === 'in-progress'
+                    ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-950/50'
+                    : 'text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToGoogleCalendar();
+                }}
                 title="Add to Google Calendar and move to In Progress (C)"
               >
                 <CalendarPlus className="h-3 w-3 sm:h-2.5 sm:w-2.5" />

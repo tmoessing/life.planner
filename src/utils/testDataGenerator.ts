@@ -7,8 +7,6 @@ import type {
   ImportantDate, 
   Tradition,
   Sprint,
-  Role,
-  Label,
   Class,
   Assignment,
   AssignmentType,

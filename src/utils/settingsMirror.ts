@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import { settingsAtom } from '@/stores/settingsStore';
 import { bucketlistStatusesAtom, storyStatusesAtom } from '@/stores/statusStore';
-import type { Settings, Priority, StoryType } from '@/types';
+import type { Priority } from '@/types';
 
 /**
  * Settings Mirror System - Single Source of Truth
