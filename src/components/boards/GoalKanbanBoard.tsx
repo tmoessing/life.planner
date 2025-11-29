@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { storiesAtom } from '@/stores/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, ArrowLeft } from 'lucide-react';
+import { Target, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import type { Goal, Story } from '@/types';
@@ -15,6 +16,7 @@ interface GoalKanbanBoardProps {
 export function GoalKanbanBoard({ goal, onBack }: GoalKanbanBoardProps) {
   const [stories] = useAtom(storiesAtom);
   const goalSettings = useGoalSettings();
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   // Get stories assigned to this goal
   const goalStories = stories.filter(story => 
@@ -83,13 +85,92 @@ export function GoalKanbanBoard({ goal, onBack }: GoalKanbanBoardProps) {
         </CardContent>
       </Card>
 
+      {/* Column Header Row - Desktop */}
+      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
+        {Object.entries(storiesByStatus).map(([status, statusStories]) => {
+          const statusColor = goalSettings.getStatusColor(status);
+          return (
+            <div
+              key={status}
+              onClick={() => {
+                const columnElement = document.querySelector(`[data-column-id="${status}"]`);
+                if (columnElement) {
+                  columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+              }}
+              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ backgroundColor: `${statusColor}20` }}
+            >
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: statusColor }}
+              />
+              <span className="text-sm font-medium" style={{ color: statusColor }}>
+                {getStatusText(status)} {statusStories.length}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Column Header Row with Navigation Arrows - Mobile */}
+      <div className="sm:hidden mb-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
+            disabled={currentMobileColumnIndex === 0}
+            className="flex-shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 grid grid-cols-3 gap-1.5">
+            {Object.entries(storiesByStatus).map(([status, statusStories], index) => {
+              const statusColor = goalSettings.getStatusColor(status);
+              const isActive = index === currentMobileColumnIndex;
+              return (
+                <div
+                  key={status}
+                  onClick={() => setCurrentMobileColumnIndex(index)}
+                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                    isActive ? 'ring-2 ring-offset-1' : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: `${statusColor}20`,
+                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
+                  }}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: statusColor }}
+                  />
+                  <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
+                    {getStatusText(status)} {statusStories.length}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentMobileColumnIndex(prev => Math.min(Object.keys(storiesByStatus).length - 1, prev + 1))}
+            disabled={currentMobileColumnIndex === Object.keys(storiesByStatus).length - 1}
+            className="flex-shrink-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.entries(storiesByStatus).map(([status, stories]) => (
-          <Card key={status}>
+          <Card key={status} data-column-id={status}>
             <CardHeader className="pb-2">
               <CardTitle className={`text-sm font-medium ${getStatusColor(status)}`}>
-                {getStatusText(status)} ({stories.length})
+                {getStatusText(status)} {stories.length}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">

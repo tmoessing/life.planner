@@ -58,10 +58,7 @@ function ProjectKanbanColumn({
     <div className="flex-1 flex flex-col">
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-lg">{column.name}</h3>
-          <Badge variant="outline" className="text-xs">
-            {projects.length} projects
-          </Badge>
+          <h3 className="font-semibold text-lg">{column.name} {projects.length}</h3>
         </div>
       </div>
       
@@ -370,10 +367,11 @@ export function ProjectKanbanView({
                   key={column.id}
                   onClick={() => setCurrentMobileColumnIndex(index)}
                   className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                    isActive ? `ring-2 ring-offset-1 ring-[${statusColor}]` : ''
+                    isActive ? 'ring-2 ring-offset-1' : ''
                   }`}
                   style={{ 
-                    backgroundColor: `${statusColor}20`
+                    backgroundColor: `${statusColor}20`,
+                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
                   }}
                 >
                   <div

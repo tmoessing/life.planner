@@ -6,7 +6,8 @@ import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { StoryCard } from '@/components/shared/StoryCard';
 import { Button } from '@/components/ui/button';
-import { Undo } from 'lucide-react';
+import { Undo, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useStorySettings } from '@/utils/settingsMirror';
 import type { Story } from '@/types';
 
 export function KanbanBoard() {
@@ -16,12 +17,14 @@ export function KanbanBoard() {
   const [, deleteStory] = useAtom(deleteStoryAtom);
   const [, addStory] = useAtom(addStoryAtom);
   const [, updateStory] = useAtom(updateStoryAtom);
+  const storySettings = useStorySettings();
   
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
   const [undoStack, setUndoStack] = useState<Array<{
     type: 'delete' | 'move';
     storyId: string;
@@ -268,6 +271,87 @@ export function KanbanBoard() {
           )}
         </div>
       </div>
+
+      {/* Column Header Row - Desktop */}
+      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
+        {columns.map((column) => {
+          const columnStories = storiesByColumn[column.id] || [];
+          const statusColor = storySettings.getStatusColor(column.id);
+          return (
+            <div
+              key={column.id}
+              onClick={() => {
+                const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
+                if (columnElement) {
+                  columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+              }}
+              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ backgroundColor: `${statusColor}20` }}
+            >
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: statusColor }}
+              />
+              <span className="text-sm font-medium" style={{ color: statusColor }}>
+                {column.name} {columnStories.length}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Column Header Row with Navigation Arrows - Mobile */}
+      <div className="sm:hidden mb-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
+            disabled={currentMobileColumnIndex === 0}
+            className="flex-shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 grid grid-cols-3 gap-1.5">
+            {columns.map((column, index) => {
+              const columnStories = storiesByColumn[column.id] || [];
+              const statusColor = storySettings.getStatusColor(column.id);
+              const isActive = columns[currentMobileColumnIndex]?.id === column.id;
+              return (
+                <div
+                  key={column.id}
+                  onClick={() => setCurrentMobileColumnIndex(index)}
+                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                    isActive ? 'ring-2 ring-offset-1' : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: `${statusColor}20`,
+                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
+                  }}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: statusColor }}
+                  />
+                  <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
+                    {column.name} {columnStories.length}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentMobileColumnIndex(prev => Math.min(columns.length - 1, prev + 1))}
+            disabled={currentMobileColumnIndex === columns.length - 1}
+            className="flex-shrink-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       
       <DndContext
         sensors={sensors}
@@ -278,7 +362,7 @@ export function KanbanBoard() {
         <div className="overflow-x-auto pb-4 mobile-scroll">
           <div className="flex gap-4 min-w-max sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 sm:min-w-0">
             {columns.map((column) => (
-              <div key={column.id} className="w-72 sm:w-auto flex-shrink-0 sm:flex-shrink">
+              <div key={column.id} className="w-72 sm:w-auto flex-shrink-0 sm:flex-shrink" data-column-id={column.id}>
                 <KanbanColumn
                   column={column}
                   stories={storiesByColumn[column.id] || []}

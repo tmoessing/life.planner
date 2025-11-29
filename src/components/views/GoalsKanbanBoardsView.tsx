@@ -381,10 +381,7 @@ export function GoalsKanbanBoardsView() {
                     style={{ backgroundColor: status.color }}
                   />
                   <span className="text-sm font-medium" style={{ color: status.color }}>
-                    {status.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {columnStories.length}
+                    {status.name} {columnStories.length}
                   </span>
                 </div>
               );
@@ -412,10 +409,11 @@ export function GoalsKanbanBoardsView() {
                       key={status.id}
                       onClick={() => setCurrentMobileColumnIndex(index)}
                       className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                        isActive ? `ring-2 ring-offset-1 ring-[${status.color}]` : ''
+                        isActive ? 'ring-2 ring-offset-1' : ''
                       }`}
                       style={{ 
-                        backgroundColor: `${status.color}20`
+                        backgroundColor: `${status.color}20`,
+                        ...(isActive && { '--tw-ring-color': status.color } as React.CSSProperties)
                       }}
                     >
                       <div
@@ -423,10 +421,7 @@ export function GoalsKanbanBoardsView() {
                         style={{ backgroundColor: status.color }}
                       />
                       <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: status.color }}>
-                        {status.name}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                        {columnStories.length}
+                        {status.name} {columnStories.length}
                       </span>
                     </div>
                   );

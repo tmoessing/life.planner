@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/forms/FilterBar';
-import { Plus, Target, Edit, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Target, Edit, Search, Filter, ChevronLeft, ChevronRight, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2, Heart, Users, Brain, Dumbbell, DollarSign, Shield, Trophy } from 'lucide-react';
 import { 
   goalsAtom, 
   updateGoalAtom
@@ -47,7 +47,7 @@ function DraggableGoalCard({ goal, onEdit }: {
   };
 
   const getGoalTypeColor = (goalType: string) => {
-    const goalTypeColor = goalSettings.getCategoryColor(goalType);
+    const goalTypeColor = goalSettings.getTypeColor(goalType);
     return {
       backgroundColor: `${goalTypeColor}20`,
       color: goalTypeColor,
@@ -83,6 +83,60 @@ function DraggableGoalCard({ goal, onEdit }: {
     }
   };
 
+  // Helper function to get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'icebox':
+        return <Snowflake className="h-3 w-3" />;
+      case 'backlog':
+        return <Layers className="h-3 w-3" />;
+      case 'todo':
+        return <Circle className="h-3 w-3" />;
+      case 'in-progress':
+        return <PlayCircle className="h-3 w-3" />;
+      case 'review':
+        return <Eye className="h-3 w-3" />;
+      case 'done':
+        return <CheckCircle2 className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  // Helper function to get goal type icon
+  const getGoalTypeIcon = (goalType: string) => {
+    switch (goalType) {
+      case 'Spiritual':
+        return <Heart className="h-3 w-3" />;
+      case 'Social':
+        return <Users className="h-3 w-3" />;
+      case 'Intellectual':
+        return <Brain className="h-3 w-3" />;
+      case 'Physical':
+        return <Dumbbell className="h-3 w-3" />;
+      case 'Financial':
+        return <DollarSign className="h-3 w-3" />;
+      case 'Protector':
+        return <Shield className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  // Helper function to get priority letter
+  const getPriorityLetter = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'H';
+      case 'medium':
+        return 'M';
+      case 'low':
+        return 'L';
+      default:
+        return priority.charAt(0).toUpperCase();
+    }
+  };
+
 
   return (
     <Card 
@@ -99,12 +153,16 @@ function DraggableGoalCard({ goal, onEdit }: {
           {goal.title}
         </span>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap" style={getStatusColor(goal.status)}>
-            {getStatusText(goal.status).substring(0, 4)}
+          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5" style={getGoalTypeColor(goal.goalType)}>
+            {getGoalTypeIcon(goal.goalType)}
+          </Badge>
+          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5" style={getStatusColor(goal.status)}>
+            {getStatusIcon(goal.status) || getStatusText(goal.status).substring(0, 4)}
           </Badge>
           {goal.priority && (
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap" style={getPriorityColor(goal.priority)}>
-              {goal.priority}
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5" style={getPriorityColor(goal.priority)}>
+              <Trophy className="h-3 w-3" />
+              {getPriorityLetter(goal.priority)}
             </Badge>
           )}
           <Button
@@ -145,12 +203,16 @@ function DraggableGoalCard({ goal, onEdit }: {
         <CardContent className="space-y-0.5 px-2 pb-1.5">
         {/* Badges - compact */}
         <div className="flex flex-wrap gap-0.5">
-          <Badge variant="outline" className="text-[9px] px-1 py-0" style={getStatusColor(goal.status)}>
-            {getStatusText(goal.status).substring(0, 4)}
+          <Badge variant="outline" className="text-[9px] px-1 py-0 flex items-center gap-0.5" style={getGoalTypeColor(goal.goalType)}>
+            {getGoalTypeIcon(goal.goalType)}
+          </Badge>
+          <Badge variant="outline" className="text-[9px] px-1 py-0 flex items-center gap-0.5" style={getStatusColor(goal.status)}>
+            {getStatusIcon(goal.status) || getStatusText(goal.status).substring(0, 4)}
           </Badge>
           {goal.priority && (
-            <Badge variant="outline" className="text-[9px] px-1 py-0" style={getPriorityColor(goal.priority)}>
-              {goal.priority}
+            <Badge variant="outline" className="text-[9px] px-1 py-0 flex items-center gap-0.5" style={getPriorityColor(goal.priority)}>
+              <Trophy className="h-2.5 w-2.5" />
+              {getPriorityLetter(goal.priority)}
             </Badge>
           )}
         </div>
@@ -189,10 +251,7 @@ function DroppableColumn({
     <div className="flex-1 flex flex-col">
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-lg">{status.name}</h3>
-          <Badge variant="outline" className="text-xs">
-            {goals.length} goals
-          </Badge>
+          <h3 className="font-semibold text-lg">{status.name} {goals.length}</h3>
         </div>
       </div>
       
@@ -371,10 +430,7 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
                 style={{ backgroundColor: statusColor }}
               />
               <span className="text-sm font-medium" style={{ color: statusColor }}>
-                {column.name}
-              </span>
-              <span className="text-xs text-muted-foreground ml-auto">
-                {goalCount}
+                {column.name} {goalCount}
               </span>
             </div>
           );
@@ -403,10 +459,11 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
                   key={column.id}
                   onClick={() => setCurrentMobileColumnIndex(index)}
                   className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                    isActive ? `ring-2 ring-offset-1 ring-[${statusColor}]` : ''
+                    isActive ? 'ring-2 ring-offset-1' : ''
                   }`}
                   style={{ 
-                    backgroundColor: `${statusColor}20`
+                    backgroundColor: `${statusColor}20`,
+                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
                   }}
                 >
                   <div
@@ -414,10 +471,7 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal, onDeleteGoal }: All
                     style={{ backgroundColor: statusColor }}
                   />
                   <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
-                    {column.name}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                    {goalCount}
+                    {column.name} {goalCount}
                   </span>
                 </div>
               );

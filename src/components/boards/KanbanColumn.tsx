@@ -74,15 +74,12 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
             <CardTitle className={`text-xs sm:text-sm font-medium truncate ${
               isDraggingFromReviewToDoneValue ? 'text-red-600 font-bold' : ''
             }`}>
-              {column.name}
+              {column.name} {stories.length}
               {isDraggingFromReviewToDoneValue && (
                 <span className="ml-2 text-xs text-red-500">⚠️ Complete Retro</span>
               )}
             </CardTitle>
             <div className="flex items-center gap-1.5">
-              <Badge variant="secondary" className="text-xs">
-                {stories.length}
-              </Badge>
               {(() => {
                 const totalWeight = stories.reduce((sum, story) => sum + (story.weight || 0), 0);
                 return totalWeight > 0 ? (

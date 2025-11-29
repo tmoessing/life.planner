@@ -6,6 +6,28 @@ import { getCoordinates, getItemsInSameLocation, calculateOffsetCoordinates } fr
 import { formatLocationDisplay } from '@/utils/formatting';
 import 'leaflet/dist/leaflet.css';
 
+// Hook to detect dark mode
+const useDarkMode = () => {
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+};
+
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -79,6 +101,8 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
   selectedItem: BucketlistItem | null, 
   setSelectedItem: (item: BucketlistItem | null) => void 
 }) {
+  const isDark = useDarkMode();
+  
   return (
     <MapContainer
       center={[20, 0]}
@@ -91,8 +115,11 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
       dragging={true}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url={isDark 
+          ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        }
       />
       
       {/* Fit bounds to show all markers */}
@@ -120,15 +147,15 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
             }}
           >
             <Popup>
-              <div className="p-2 max-w-sm">
+              <div className="p-2 max-w-sm bg-background text-foreground">
                 {/* Location header */}
                 {(item.city || item.state || item.country) && (
-                  <div className="mb-3 pb-2 border-b">
-                    <h2 className="font-bold text-lg text-gray-800">
+                  <div className="mb-3 pb-2 border-b border-border">
+                    <h2 className="font-bold text-lg text-foreground">
                       📍 {formatLocationDisplay(item.city, item.state, item.country)}
                     </h2>
                     {totalInLocation > 1 && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {totalInLocation} {totalInLocation === 1 ? 'item' : 'items'} in this location
                       </p>
                     )}
@@ -139,27 +166,29 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
                 <div className="space-y-3">
                   {itemsInSameLocation.map((locationItem, idx) => (
                     <div key={locationItem.id} className={`p-2 rounded-lg border ${
-                      locationItem.completed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+                      locationItem.completed 
+                        ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
+                        : 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
                     }`}>
                       <div className="flex items-start gap-2">
                         <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
                           locationItem.completed ? 'bg-green-500' : 'bg-yellow-500'
                         }`}></div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm mb-1 truncate">{locationItem.title}</h3>
+                          <h3 className="font-semibold text-sm mb-1 truncate text-foreground">{locationItem.title}</h3>
                           {locationItem.description && (
-                            <p className="text-xs text-gray-600 mb-1 line-clamp-2">{locationItem.description}</p>
+                            <p className="text-xs text-muted-foreground mb-1 line-clamp-2">{locationItem.description}</p>
                           )}
                           <div className="flex items-center gap-2">
                             <span className={`text-xs px-2 py-1 rounded-full ${
                               locationItem.completed 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' 
+                                : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
                             }`}>
                               {locationItem.completed ? 'Completed' : 'In Progress'}
                             </span>
                             {locationItem.priority && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 {locationItem.priority}
                               </span>
                             )}
@@ -235,18 +264,18 @@ export function RealBucketlistMap({ items }: RealBucketlistMapProps) {
     return (
       <div className="space-y-4">
         {/* Demo Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="text-blue-600">ℹ️</div>
-            <h3 className="text-sm font-semibold text-blue-800">Demo Mode</h3>
+            <div className="text-blue-600 dark:text-blue-400">ℹ️</div>
+            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200">Demo Mode</h3>
           </div>
-          <p className="text-xs text-blue-700">
+          <p className="text-xs text-blue-700 dark:text-blue-300">
             Showing sample locations. Add your own location-type bucketlist items to see them on the map!
           </p>
         </div>
         
         {/* Real Interactive Map */}
-        <div className="h-96 w-full rounded-lg overflow-hidden border shadow-lg">
+        <div className="h-96 w-full rounded-lg overflow-hidden border border-border shadow-lg">
           <MapComponent 
             items={displayItems} 
             selectedItem={selectedItem} 
@@ -260,7 +289,7 @@ export function RealBucketlistMap({ items }: RealBucketlistMapProps) {
   return (
     <div className="space-y-4">
       {/* Real Interactive Map */}
-      <div className="h-96 w-full rounded-lg overflow-hidden border shadow-lg">
+      <div className="h-96 w-full rounded-lg overflow-hidden border border-border shadow-lg">
         <MapComponent 
           items={displayItems} 
           selectedItem={selectedItem} 
@@ -270,9 +299,9 @@ export function RealBucketlistMap({ items }: RealBucketlistMapProps) {
       
       {/* Selected Item Details */}
       {selectedItem && (
-        <div className="bg-white rounded-lg border p-4 shadow-sm">
+        <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-lg">{selectedItem.title}</h3>
+            <h3 className="font-semibold text-lg text-foreground">{selectedItem.title}</h3>
             <button
               onClick={() => setSelectedItem(null)}
               className="text-muted-foreground hover:text-foreground"
@@ -285,7 +314,7 @@ export function RealBucketlistMap({ items }: RealBucketlistMapProps) {
           )}
           <div className="flex items-center gap-2 mb-3">
             <div className={`w-3 h-3 rounded-full ${selectedItem.completed ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-foreground">
               {selectedItem.completed ? 'Completed' : 'In Progress'}
             </span>
           </div>

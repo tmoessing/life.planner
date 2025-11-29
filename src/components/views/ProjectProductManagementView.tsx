@@ -110,7 +110,7 @@ function DraggableAvailableStoryCard({
       style={style}
       className={`cursor-grab hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50 cursor-grabbing' : ''
-      } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+      } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''}`}
       {...attributes}
       {...listeners}
       onClick={(e) => {
@@ -183,7 +183,7 @@ function DraggableProjectStoryCard({
       style={style}
       className={`cursor-grab hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50 cursor-grabbing' : ''
-      } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+      } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''}`}
       {...attributes}
       {...listeners}
       onClick={(e) => {
@@ -241,24 +241,26 @@ function ProjectStoriesSection({
   });
 
   return (
-    <div className="flex-1 border-r p-4">
+    <div className="flex-1 border-r border-border p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Project Stories ({stories.length})</h3>
+        <h3 className="font-semibold text-foreground">Project Stories ({stories.length})</h3>
         <Badge variant="outline">Drag to remove</Badge>
       </div>
       <div 
         ref={setNodeRef}
         className={`space-y-2 overflow-y-auto h-full min-h-[400px] border-2 border-dashed rounded-lg p-2 ${
-          isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'
+          isOver 
+            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30' 
+            : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'
         }`}
         style={{ minHeight: '400px' }}
       >
         {stories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-4">
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-4">
             <p>No stories in this project</p>
             <Button
               onClick={onAddStory}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
               size="sm"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -305,18 +307,20 @@ function AvailableStoriesSection({
   return (
     <div className="flex-1 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Available Stories ({stories.length})</h3>
+        <h3 className="font-semibold text-foreground">Available Stories ({stories.length})</h3>
         <Badge variant="outline">Drag to add</Badge>
       </div>
       <div 
         ref={setNodeRef}
         className={`space-y-2 overflow-y-auto h-full min-h-[400px] border-2 border-dashed rounded-lg p-2 ${
-          isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'
+          isOver 
+            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30' 
+            : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'
         }`}
         style={{ minHeight: '400px' }}
       >
         {stories.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             <p>No available stories</p>
           </div>
         ) : (
@@ -592,23 +596,23 @@ export function ProjectProductManagementView() {
         <div className="space-y-4">
           {/* Project Info */}
           <div className="p-3 bg-muted/50 rounded-lg">
-            <h3 className="font-semibold">{currentProject?.name}</h3>
+            <h3 className="font-semibold text-foreground">{currentProject?.name}</h3>
             <p className="text-sm text-muted-foreground">{currentProject?.description}</p>
             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
               <span>{projectStories.length} stories assigned to this project</span>
               <span>{availableStories.length} unassigned stories available</span>
               <span>Status: {currentProject?.status}</span>
             </div>
-            <div className="mt-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded">
               💡 Each story can only be assigned to one project at a time
             </div>
-            <div className="mt-1 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+            <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 px-2 py-1 rounded">
               🖱️ Multi-select: Ctrl/Cmd + click for individual selection, Shift + click for range selection, Ctrl+Shift + click for toggle selection
             </div>
           </div>
 
           {/* Two Column Layout */}
-          <div className="flex h-[600px] border rounded-lg overflow-hidden">
+          <div className="flex h-[600px] border border-border rounded-lg overflow-hidden">
             <DndContext 
               onDragStart={handleDragStart} 
               onDragEnd={handleDragEnd}

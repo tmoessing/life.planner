@@ -415,10 +415,11 @@ export function ProjectsKanbanBoardsView() {
                       key={status.id}
                       onClick={() => setCurrentMobileColumnIndex(index)}
                       className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                        isActive ? `ring-2 ring-offset-1 ring-[${status.color}]` : ''
+                        isActive ? 'ring-2 ring-offset-1' : ''
                       }`}
                       style={{ 
-                        backgroundColor: `${status.color}20`
+                        backgroundColor: `${status.color}20`,
+                        ...(isActive && { '--tw-ring-color': status.color } as React.CSSProperties)
                       }}
                     >
                       <div

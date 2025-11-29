@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map, Plane, Sparkles, GraduationCap, Award, Mountain } from 'lucide-react';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -27,6 +27,19 @@ import type { BucketlistItem, Priority } from '@/types';
 
 type AttributeType = 'priority' | 'category' | 'type' | 'status';
 type ViewMode = 'boards' | 'list' | 'chart';
+
+// Helper function to get category icon
+const getCategoryIcon = (category: string) => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower === 'travel') return Plane;
+  if (categoryLower === 'experience') return Sparkles;
+  if (categoryLower === 'adventure') return Mountain;
+  if (categoryLower === 'learning' || categoryLower === 'learn') return GraduationCap;
+  if (categoryLower === 'achievement') return Award;
+  if (categoryLower === 'personal') return User;
+  // Default fallback
+  return Star;
+};
 
 // Droppable Group Component
 interface DroppableGroupProps {
@@ -466,6 +479,7 @@ function SortableItem({
             {/* Show category badge if not grouping by category */}
             {selectedAttribute !== 'category' && item.category && (() => {
               const categoryColor = bucketlistSettings.getCategoryColor(item.category);
+              const IconComponent = getCategoryIcon(item.category);
               return (
               <Badge 
                 variant="outline"
@@ -476,7 +490,7 @@ function SortableItem({
                   color: categoryColor
                 }}
               >
-                {item.category.substring(0, 6)}
+                <IconComponent className="h-2.5 w-2.5" />
               </Badge>
               );
             })()}

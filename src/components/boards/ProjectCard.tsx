@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit } from 'lucide-react';
+import { MoreHorizontal, Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2 } from 'lucide-react';
 import type { Project } from '@/types';
 import { useAtom } from 'jotai';
 import { storiesAtom, settingsAtom } from '@/stores/appStore';
@@ -92,6 +92,28 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
     };
   };
 
+  // Helper function to get status icon
+  const getStatusIcon = (status: Project['status']) => {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'icebox':
+        return <Snowflake className="h-3 w-3" />;
+      case 'backlog':
+        return <Layers className="h-3 w-3" />;
+      case 'to do':
+      case 'todo':
+        return <Circle className="h-3 w-3" />;
+      case 'in progress':
+      case 'in-progress':
+      case 'progress':
+        return <PlayCircle className="h-3 w-3" />;
+      case 'done':
+        return <CheckCircle2 className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
   const statusColors = getStatusColor(project.status);
 
   return (
@@ -118,10 +140,10 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
         <div className="flex items-center gap-1 flex-shrink-0">
           <Badge 
             variant="outline" 
-            className="text-[9px] px-1 py-0 h-4 whitespace-nowrap"
+            className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5"
             style={statusColors}
           >
-            {project.status.substring(0, 4)}
+            {getStatusIcon(project.status) || project.status.substring(0, 4)}
           </Badge>
           <span className="text-[9px] text-muted-foreground whitespace-nowrap">
             {progressPercentage}%
@@ -172,10 +194,10 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
           <div className="flex items-center gap-2">
             <Badge 
               variant="outline" 
-              className="text-xs px-2 py-1"
+              className="text-xs px-2 py-1 flex items-center gap-0.5"
               style={statusColors}
             >
-              {project.status}
+              {getStatusIcon(project.status) || project.status}
             </Badge>
           </div>
 

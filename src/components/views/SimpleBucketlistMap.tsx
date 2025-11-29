@@ -70,10 +70,10 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
   
   if (isLoading) {
     return (
-      <div className="h-96 w-full rounded-lg overflow-hidden border shadow-lg bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
+      <div className="h-96 w-full rounded-lg overflow-hidden border border-border shadow-lg bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin text-4xl mb-4">🗺️</div>
-          <p className="text-sm text-gray-600">Loading map...</p>
+          <p className="text-sm text-muted-foreground">Loading map...</p>
         </div>
       </div>
     );
@@ -83,19 +83,19 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
     <div className="space-y-4">
       {/* Demo Notice - only show if using demo data */}
       {locationItems.length === 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="text-blue-600">ℹ️</div>
-            <h3 className="text-sm font-semibold text-blue-800">Demo Mode</h3>
+            <div className="text-blue-600 dark:text-blue-400">ℹ️</div>
+            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200">Demo Mode</h3>
           </div>
-          <p className="text-xs text-blue-700">
+          <p className="text-xs text-blue-700 dark:text-blue-300">
             Showing sample locations. Add your own location-type bucketlist items to see them on the map!
           </p>
         </div>
       )}
       
       {/* Interactive Map with Real Map Background */}
-      <div className="h-96 w-full rounded-lg overflow-hidden border shadow-lg relative bg-gradient-to-br from-blue-100 via-blue-50 to-green-100">
+      <div className="h-96 w-full rounded-lg overflow-hidden border border-border shadow-lg relative bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 dark:from-blue-950/50 dark:via-blue-900/30 dark:to-green-950/50">
         {/* World Map Background */}
         <div className="absolute inset-0 opacity-30">
           {/* Simplified world map using SVG */}
@@ -192,8 +192,8 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
         </div>
         
         {/* Map Legend */}
-        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-          <div className="flex items-center gap-4 text-xs">
+        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
+          <div className="flex items-center gap-4 text-xs text-foreground">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
               <span>In Progress</span>
@@ -206,9 +206,9 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
         </div>
         
         {/* Map Title */}
-        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-          <h3 className="text-sm font-semibold text-gray-700">Bucketlist Locations</h3>
-          <p className="text-xs text-gray-600">
+        <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
+          <h3 className="text-sm font-semibold text-foreground">Bucketlist Locations</h3>
+          <p className="text-xs text-muted-foreground">
             {displayItems.length} location{displayItems.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -220,10 +220,10 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
         const itemsInSameLocation = getItemsInSameLocation(displayItems, selectedItem);
         
         return (
-          <div className="bg-white rounded-lg border p-4 shadow-sm">
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <h3 className="font-semibold text-lg">
+                <h3 className="font-semibold text-lg text-foreground">
                   📍 {formatLocationDisplay(selectedItem.city, selectedItem.state, selectedItem.country)}
                 </h3>
                 {itemsInSameLocation.length > 1 && (
@@ -244,22 +244,24 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
             <div className="space-y-3">
               {itemsInSameLocation.map((item) => (
                 <div key={item.id} className={`p-3 rounded-lg border ${
-                  item.completed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+                  item.completed 
+                    ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
+                    : 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
                 }`}>
                   <div className="flex items-start gap-2">
                     <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
                       item.completed ? 'bg-green-500' : 'bg-yellow-500'
                     }`}></div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                      <h4 className="font-semibold text-sm mb-1 text-foreground">{item.title}</h4>
                       {item.description && (
                         <p className="text-xs text-muted-foreground mb-2">{item.description}</p>
                       )}
                       <div className="flex items-center gap-2">
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           item.completed 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' 
+                            : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
                         }`}>
                           {item.completed ? 'Completed' : 'In Progress'}
                         </span>

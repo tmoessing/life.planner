@@ -22,11 +22,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { getCitiesForState } from '@/utils/cityData';
-import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, Grid3X3, Trophy } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, Grid3X3, Trophy, Plane, Sparkles, GraduationCap, Award, Mountain, BookOpen } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistMapView } from './BucketlistMapView';
 import type { BucketlistItem, Priority } from '@/types';
+
+// Helper function to get category icon
+const getCategoryIcon = (category: string) => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower === 'travel') return Plane;
+  if (categoryLower === 'experience') return Sparkles;
+  if (categoryLower === 'adventure') return Mountain;
+  if (categoryLower === 'learning' || categoryLower === 'learn') return GraduationCap;
+  if (categoryLower === 'achievement') return Award;
+  if (categoryLower === 'personal') return User;
+  // Default fallback
+  return Star;
+};
 
 export function BucketlistView() {
   const [bucketlistItems] = useAtom(bucketlistAtom);
@@ -971,6 +984,7 @@ export function BucketlistView() {
                     
                     {item.category && (() => {
                       const categoryColor = bucketlistSettings.getCategoryColor(item.category);
+                      const IconComponent = getCategoryIcon(item.category);
                       return (
                       <Badge 
                         variant="outline"
@@ -981,7 +995,7 @@ export function BucketlistView() {
                           color: categoryColor
                         }}
                       >
-                        {item.category.substring(0, 6)}
+                        <IconComponent className="h-2.5 w-2.5" />
                       </Badge>
                       );
                     })()}
@@ -1227,6 +1241,7 @@ export function BucketlistView() {
                     
                     {item.category && (() => {
                       const categoryColor = bucketlistSettings.getCategoryColor(item.category);
+                      const IconComponent = getCategoryIcon(item.category);
                       return (
                       <Badge 
                         variant="outline"
@@ -1237,7 +1252,7 @@ export function BucketlistView() {
                           color: categoryColor
                         }}
                       >
-                        {item.category.substring(0, 6)}
+                        <IconComponent className="h-2.5 w-2.5" />
                       </Badge>
                       );
                     })()}

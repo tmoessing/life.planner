@@ -166,7 +166,7 @@ export const exportToExcel = (data: {
         goal.title || '',
         goal.description || '',
         goal.category || '',
-        goal.type || '',
+        goal.goalType || '',
         goal.priority || '',
         goal.status || '',
         goal.targetDate || '',

@@ -287,10 +287,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
                   style={{ backgroundColor: statusColor }}
                 />
                 <span className="text-sm font-medium" style={{ color: statusColor }}>
-                  {column.name}
-                </span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {columnStories.length}
+                  {column.name} {columnStories.length}
                 </span>
               </div>
             );
@@ -319,10 +316,11 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
                     key={column.id}
                     onClick={() => setCurrentMobileColumnIndex(index)}
                     className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                      isActive ? `ring-2 ring-offset-1 ring-[${statusColor}]` : ''
+                      isActive ? 'ring-2 ring-offset-1' : ''
                     }`}
                     style={{ 
-                      backgroundColor: `${statusColor}20`
+                      backgroundColor: `${statusColor}20`,
+                      ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
                     }}
                   >
                     <div
@@ -330,10 +328,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
                       style={{ backgroundColor: statusColor }}
                     />
                     <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
-                      {column.name}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                      {columnStories.length}
+                      {column.name} {columnStories.length}
                     </span>
                   </div>
                 );

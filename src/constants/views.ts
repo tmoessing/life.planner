@@ -1,14 +1,14 @@
 import { TodayView } from '@/components/views/TodayView';
 import { SprintView } from '@/components/views/SprintView';
-import { StoryBoardsView } from '@/components/views/StoryBoardsView';
+import { StoryBoardsViewRefactored as StoryBoardsView } from '@/components/views/StoryBoardsViewRefactored';
 import { ImportanceView } from '@/components/views/ImportanceView';
 import { GoalsView } from '@/components/views/GoalsView';
 import { GoalsKanbanBoardsView } from '@/components/views/GoalsKanbanBoardsView';
 import { BucketlistView } from '@/components/views/BucketlistView';
 import { BucketlistBoardsView } from '@/components/views/BucketlistBoardsView';
-import { PlannerView } from '@/components/views/PlannerView';
+import { PlannerViewRefactored as PlannerView } from '@/components/views/PlannerViewRefactored';
 import { SprintPlanningView } from '@/components/views/SprintPlanningView';
-import { AddStoriesView } from '@/components/views/AddStoriesView';
+import { AddStoriesViewRefactored as AddStoriesView } from '@/components/views/AddStoriesViewRefactored';
 import { AddGoalsView } from '@/components/views/AddGoalsView';
 import { AddProjectsView } from '@/components/views/AddProjectsView';
 import { AddBucketlistView } from '@/components/views/AddBucketlistView';

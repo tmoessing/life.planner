@@ -245,11 +245,11 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
 
   return (
     <div className="relative overflow-visible w-full">
-      <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 overflow-visible w-full">
+      <div className="flex flex-wrap items-center justify-between sm:justify-evenly gap-1 sm:gap-2 overflow-visible w-full">
         {visibleGroups.map((group) => (
           <div
             key={group.label}
-            className="relative"
+            className="relative flex-1 min-w-0"
             data-navigation-group
             onMouseEnter={() => handleMouseEnter(group.label)}
             onMouseLeave={handleMouseLeave}
@@ -261,7 +261,7 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
               }}
               variant={currentGroup.label === group.label ? "default" : "ghost"}
               size="sm"
-              className="flex flex-col items-center gap-0.5 text-xs h-auto min-h-[44px] px-2 sm:px-3 touch-target min-w-0 py-2"
+              className="flex flex-col items-center gap-0.5 text-xs h-auto min-h-[44px] px-2 sm:px-3 touch-target w-full py-2"
               onClick={(e) => handleTouchStart(group.label, e)}
             >
               <group.icon className="h-4 w-4 flex-shrink-0" />

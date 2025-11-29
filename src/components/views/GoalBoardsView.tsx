@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GoalModal } from '@/components/modals/GoalModal';
-import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus, Search, ChevronLeft, ChevronRight, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2, Dumbbell, DollarSign, Shield } from 'lucide-react';
 import type { Goal } from '@/types';
 
 type BoardType = 'Goal Type' | 'Category' | 'Priority' | 'Status' | 'Vision';
@@ -166,6 +166,56 @@ export function GoalBoardsView() {
       borderColor: `${statusColor}40`,
       color: statusColor
     };
+  };
+
+  // Helper function to get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'icebox':
+        return <Snowflake className="h-3 w-3" />;
+      case 'backlog':
+        return <Layers className="h-3 w-3" />;
+      case 'todo':
+        return <Circle className="h-3 w-3" />;
+      case 'in-progress':
+        return <PlayCircle className="h-3 w-3" />;
+      case 'review':
+        return <Eye className="h-3 w-3" />;
+      case 'done':
+        return <CheckCircle2 className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  // Helper function to get goal type color
+  const getGoalTypeColor = (goalType: string) => {
+    const goalTypeColor = goalSettings.getTypeColor(goalType);
+    return {
+      backgroundColor: `${goalTypeColor}20`,
+      borderColor: `${goalTypeColor}40`,
+      color: goalTypeColor
+    };
+  };
+
+  // Helper function to get goal type icon
+  const getGoalTypeIcon = (goalType: string) => {
+    switch (goalType) {
+      case 'Spiritual':
+        return <Heart className="h-3 w-3" />;
+      case 'Social':
+        return <Users className="h-3 w-3" />;
+      case 'Intellectual':
+        return <Brain className="h-3 w-3" />;
+      case 'Physical':
+        return <Dumbbell className="h-3 w-3" />;
+      case 'Financial':
+        return <DollarSign className="h-3 w-3" />;
+      case 'Protector':
+        return <Shield className="h-3 w-3" />;
+      default:
+        return null;
+    }
   };
 
   // Get color for board based on type and value
@@ -442,10 +492,7 @@ export function GoalBoardsView() {
                     style={{ backgroundColor: boardColor.color }}
                   />
                   <span className="text-sm font-medium" style={{ color: boardColor.color }}>
-                    {board.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {goalsForBoard.length}
+                    {board.label} {goalsForBoard.length}
                   </span>
                 </div>
               );
@@ -474,10 +521,11 @@ export function GoalBoardsView() {
                       key={board.id}
                       onClick={() => setCurrentMobileColumnIndex(index)}
                       className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                        isActive ? `ring-2 ring-offset-1 ring-[${boardColor.color}]` : ''
+                        isActive ? 'ring-2 ring-offset-1' : ''
                       }`}
                       style={{ 
-                        backgroundColor: `${boardColor.color}20`
+                        backgroundColor: `${boardColor.color}20`,
+                        ...(isActive && { '--tw-ring-color': boardColor.color } as React.CSSProperties)
                       }}
                     >
                       <div
@@ -485,10 +533,7 @@ export function GoalBoardsView() {
                         style={{ backgroundColor: boardColor.color }}
                       />
                       <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: boardColor.color }}>
-                        {board.label}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                        {goalsForBoard.length}
+                        {board.label} {goalsForBoard.length}
                       </span>
                     </div>
                   );
@@ -551,12 +596,21 @@ export function GoalBoardsView() {
                             >
                               <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                                 <h3 className="font-medium text-xs sm:text-sm leading-tight line-clamp-1">{goal.title}</h3>
-                                <Badge 
-                                  variant="secondary" 
-                                  className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${getStatusColor(goal.status)}`}
-                                >
-                                  {goal.status.replace('-', ' ')}
-                                </Badge>
+                                <div className="flex items-center gap-1">
+                                  <Badge 
+                                    variant="secondary" 
+                                    className="text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5"
+                                    style={getGoalTypeColor(goal.goalType)}
+                                  >
+                                    {getGoalTypeIcon(goal.goalType) || goal.goalType}
+                                  </Badge>
+                                  <Badge 
+                                    variant="secondary" 
+                                    className={`text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5 ${getStatusColor(goal.status)}`}
+                                  >
+                                    {getStatusIcon(goal.status) || goal.status.replace('-', ' ')}
+                                  </Badge>
+                                </div>
                               </div>
                               
                               {goal.description && (
@@ -625,12 +679,21 @@ export function GoalBoardsView() {
                         >
                           <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                             <h3 className="font-medium text-xs sm:text-sm leading-tight line-clamp-1">{goal.title}</h3>
-                            <Badge 
-                              variant="secondary" 
-                              className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${getStatusColor(goal.status)}`}
-                            >
-                              {goal.status.replace('-', ' ')}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Badge 
+                                variant="secondary" 
+                                className="text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5"
+                                style={getGoalTypeColor(goal.goalType)}
+                              >
+                                {getGoalTypeIcon(goal.goalType) || goal.goalType}
+                              </Badge>
+                              <Badge 
+                                variant="secondary" 
+                                className={`text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5 ${getStatusColor(goal.status)}`}
+                              >
+                                {getStatusIcon(goal.status) || goal.status.replace('-', ' ')}
+                              </Badge>
+                            </div>
                           </div>
                           
                           {goal.description && (

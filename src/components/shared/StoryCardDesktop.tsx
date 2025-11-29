@@ -15,7 +15,17 @@ import {
   Clock,
   Repeat,
   MoreHorizontal,
-  CalendarPlus
+  CalendarPlus,
+  Snowflake,
+  Layers,
+  Circle,
+  PlayCircle,
+  Eye,
+  CheckCircle2,
+  Heart,
+  Users,
+  Brain,
+  Dumbbell
 } from 'lucide-react';
 import type { Story, Priority, StoryType } from '@/types';
 import { 
@@ -32,6 +42,43 @@ import {
   getWeightColorStyle 
 } from '@/utils/storyCardColors';
 import type { Role, Vision, Goal, Project, Label } from '@/types';
+
+// Helper function to get status icon
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'icebox':
+      return <Snowflake className="h-2.5 w-2.5" />;
+    case 'backlog':
+      return <Layers className="h-2.5 w-2.5" />;
+    case 'todo':
+      return <Circle className="h-2.5 w-2.5" />;
+    case 'progress':
+    case 'in-progress':
+      return <PlayCircle className="h-2.5 w-2.5" />;
+    case 'review':
+      return <Eye className="h-2.5 w-2.5" />;
+    case 'done':
+      return <CheckCircle2 className="h-2.5 w-2.5" />;
+    default:
+      return null;
+  }
+};
+
+// Helper function to get type icon
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'Spiritual':
+      return <Heart className="h-2.5 w-2.5" />;
+    case 'Social':
+      return <Users className="h-2.5 w-2.5" />;
+    case 'Intellectual':
+      return <Brain className="h-2.5 w-2.5" />;
+    case 'Physical':
+      return <Dumbbell className="h-2.5 w-2.5" />;
+    default:
+      return null;
+  }
+};
 
 interface StoryCardDesktopProps {
   story: Story;
@@ -164,10 +211,10 @@ export function StoryCardDesktop({
           </Badge>
           <Badge 
             variant="outline"
-            className="text-[10px] px-1 py-0"
+            className="text-[10px] px-1 py-0 flex items-center gap-0.5"
             style={getTypeColorStyle(story.type, storySettings)}
           >
-            {story.type}
+            {getTypeIcon(story.type) || story.type}
           </Badge>
           <Badge 
             variant="outline"
@@ -189,9 +236,9 @@ export function StoryCardDesktop({
               backgroundColor: getStatusColor(story.status),
               color: 'white'
             }}
-            className="text-[10px] px-1 py-0"
+            className="text-[10px] px-1 py-0 flex items-center gap-0.5"
           >
-            {story.status}
+            {getStatusIcon(story.status) || story.status}
           </Badge>
           {(story as any)._isRecurringInstance && (
             <Badge 

@@ -1,9 +1,30 @@
 import React from 'react';
-import { Calendar, CalendarPlus, Edit } from 'lucide-react';
+import { Calendar, CalendarPlus, Edit, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getWeightGradientColor } from '@/utils/color';
 import type { Story } from '@/types';
+
+// Helper function to get status icon
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'icebox':
+      return <Snowflake className="h-3 w-3" />;
+    case 'backlog':
+      return <Layers className="h-3 w-3" />;
+    case 'todo':
+      return <Circle className="h-3 w-3" />;
+    case 'progress':
+    case 'in-progress':
+      return <PlayCircle className="h-3 w-3" />;
+    case 'review':
+      return <Eye className="h-3 w-3" />;
+    case 'done':
+      return <CheckCircle2 className="h-3 w-3" />;
+    default:
+      return null;
+  }
+};
 
 interface StoryCardMobileProps {
   story: Story;
@@ -52,9 +73,9 @@ export function StoryCardMobile({
             backgroundColor: getStatusColor(story.status),
             color: 'white'
           }}
-          className="text-[9px] px-1 py-0 h-4"
+          className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5"
         >
-          {story.status.substring(0, 4)}
+          {getStatusIcon(story.status) || story.status.substring(0, 4)}
         </Badge>
         <span 
           className="text-[9px] font-medium whitespace-nowrap"
