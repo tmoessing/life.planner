@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit, Snowflake, Layers, Circle, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { Calendar, FolderOpen, Target, Weight, Clock, LayoutDashboard, BarChart3, Edit, Snowflake, Layers, Circle, PlayCircle, CheckCircle2, MoreHorizontal, Plus, List } from 'lucide-react';
 import type { Project } from '@/types';
 import { useAtom } from 'jotai';
 import { storiesAtom, settingsAtom } from '@/stores/appStore';
@@ -17,14 +17,31 @@ interface ProjectCardProps {
   onEdit?: (project: Project) => void;
   onOpenKanban?: (project: Project) => void;
   onOpenStoryManager?: (project: Project) => void;
+  onAddStory?: (project: Project) => void;
 }
 
-export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOpenKanban, onOpenStoryManager }: ProjectCardProps) {
+export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOpenKanban, onOpenStoryManager, onAddStory }: ProjectCardProps) {
   const [stories] = useAtom(storiesAtom);
   const [settings] = useAtom(settingsAtom);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Use settings mirror system for project settings
   const projectSettings = useProjectSettings();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
 
   const {
     attributes,
@@ -132,34 +149,73 @@ export function ProjectCard({ project, isSelected = false, onClick, onEdit, onOp
       }}
     >
       {/* Mobile: Single row layout */}
-      <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
+      <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px] relative">
         <FolderOpen className="h-3 w-3 text-blue-600 flex-shrink-0" />
-        <span className="text-xs font-medium truncate flex-1 min-w-0">
-          {project.name}
-        </span>
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-medium truncate block">
+            {project.name}
+          </span>
+          <span className="text-[9px] text-muted-foreground truncate block" style={{ color: statusColors.color }}>
+            {project.status} {projectStories.length}
+          </span>
+        </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <Badge 
-            variant="outline" 
-            className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5"
-            style={statusColors}
-          >
-            {getStatusIcon(project.status) || project.status.substring(0, 4)}
-          </Badge>
           <span className="text-[9px] text-muted-foreground whitespace-nowrap">
             {progressPercentage}%
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit?.(project);
-            }}
-            title="Edit Project"
-          >
-            <Edit className="h-3.5 w-3.5" />
-          </Button>
+          <div className="relative" ref={dropdownRef}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDropdown(!showDropdown);
+              }}
+              title="Project Actions"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+            {showDropdown && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
+                <div className="py-1">
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDropdown(false);
+                      onOpenStoryManager?.(project);
+                    }}
+                  >
+                    <List className="h-4 w-4" />
+                    <span>View Stories ({projectStories.length})</span>
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDropdown(false);
+                      onAddStory?.(project);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add Story</span>
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDropdown(false);
+                      onEdit?.(project);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Project</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

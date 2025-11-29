@@ -292,7 +292,6 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal }: AllGoalsKanbanBoa
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -307,6 +306,14 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal }: AllGoalsKanbanBoa
     id: status.name.toLowerCase().replace(' ', '-'),
     name: status.name
   }));
+  
+  // Initialize to "In Progress" column if it exists, otherwise default to first column
+  const inProgressIndex = statusColumns.findIndex(col => 
+    col.id === 'in-progress' || col.name.toLowerCase() === 'in progress'
+  );
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(
+    inProgressIndex >= 0 ? inProgressIndex : 0
+  );
 
   // Group goals by status
   const goalsByStatus = statusColumns.reduce((acc, status) => {

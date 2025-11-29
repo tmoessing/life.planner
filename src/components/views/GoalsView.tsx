@@ -20,7 +20,7 @@ export function GoalsView() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteGoal = (goalId: string) => {
+  const handleDeleteGoal = () => {
     // Delete is handled directly in AllGoalsKanbanBoard
   };
 

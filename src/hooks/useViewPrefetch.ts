@@ -6,7 +6,7 @@ const prefetchedViews = new Set<ViewType>();
 
 // Map view types to their import paths
 const viewImportMap: Record<ViewType, () => Promise<any>> = {
-  'today': () => import('@/components/views/TodayView'),
+  'today': () => import('@/components/views/FocusView'),
   'sprint': () => import('@/components/views/SprintView'),
   'story-boards': () => import('@/components/views/StoryBoardsViewRefactored'),
   'importance': () => import('@/components/views/ImportanceView'),
@@ -34,7 +34,7 @@ const viewImportMap: Record<ViewType, () => Promise<any>> = {
  * Hook for prefetching view components on hover/focus
  * This makes views load instantly when clicked
  */
-export function useViewPrefetch() {
+function useViewPrefetch() {
   const prefetchView = useCallback((viewType: ViewType) => {
     // Skip if already prefetched
     if (prefetchedViews.has(viewType)) {
@@ -58,4 +58,6 @@ export function useViewPrefetch() {
 
   return { prefetchView };
 }
+
+export { useViewPrefetch };
 

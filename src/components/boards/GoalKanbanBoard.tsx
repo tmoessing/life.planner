@@ -16,7 +16,6 @@ interface GoalKanbanBoardProps {
 export function GoalKanbanBoard({ goal, onBack }: GoalKanbanBoardProps) {
   const [stories] = useAtom(storiesAtom);
   const goalSettings = useGoalSettings();
-  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   // Get stories assigned to this goal
   const goalStories = stories.filter(story => 
@@ -25,6 +24,14 @@ export function GoalKanbanBoard({ goal, onBack }: GoalKanbanBoardProps) {
 
   // Group stories by status using goal statuses from settings
   const goalStatuses = goalSettings.goalStatuses;
+  
+  // Initialize to "In Progress" column if it exists, otherwise default to first column
+  const inProgressIndex = goalStatuses.findIndex(status => 
+    status.name.toLowerCase() === 'in progress'
+  );
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(
+    inProgressIndex >= 0 ? inProgressIndex : 0
+  );
   const storiesByStatus = goalStatuses.reduce((acc, status) => {
     const statusId = status.name.toLowerCase().replace(' ', '-');
     acc[statusId] = goalStories.filter(story => story.status === statusId);

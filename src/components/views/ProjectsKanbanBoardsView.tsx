@@ -46,6 +46,13 @@ export function ProjectsKanbanBoardsView() {
       setSelectedProjectId(projects[0].id);
     }
   }, [projects, selectedProjectId]);
+
+  // Reset to Backlog column when project selection changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      setCurrentMobileColumnIndex(1); // Backlog is at index 1
+    }
+  }, [selectedProjectId]);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
@@ -57,7 +64,7 @@ export function ProjectsKanbanBoardsView() {
   }>>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(1); // Default to Backlog (index 1)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -261,17 +268,24 @@ export function ProjectsKanbanBoardsView() {
                   No projects available
                 </SelectItem>
               ) : (
-                projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      <span>{project.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({project.storyIds?.length || 0} stories)
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))
+                projects.map((project) => {
+                  // Get status color for the project - getStatusColor handles both formats
+                  const statusColor = projectSettings.getStatusColor(project.status);
+                  return (
+                    <SelectItem key={project.id} value={project.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: statusColor }}
+                        />
+                        <span>{project.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({project.storyIds?.length || 0} stories)
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                })
               )}
             </SelectContent>
           </Select>

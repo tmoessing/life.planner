@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Clock } from 'lucide-react';
 import { useAtom } from 'jotai';
-import { addClassAtom, updateClassAtom, deleteClassAtom, classesAtom } from '@/stores/classStore';
+import { addClassAtom, updateClassAtom, deleteClassAtom } from '@/stores/classStore';
 import type { Class } from '@/types';
 
 interface ClassModalProps {

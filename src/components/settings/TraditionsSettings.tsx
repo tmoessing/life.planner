@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ColorPicker } from '@/components/ui/color-picker';
-import { traditionsAtom, settingsAtom } from '@/stores/appStore';
+import { settingsAtom } from '@/stores/appStore';
 import { useTraditionSettings } from '@/utils/settingsMirror';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
-import type { TraditionTypeConfig } from '@/types';
 
 export function TraditionsSettings() {
   const [settings, setSettings] = useAtom(settingsAtom);

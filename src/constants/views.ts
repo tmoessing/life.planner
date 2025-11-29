@@ -1,4 +1,4 @@
-import { TodayView } from '@/components/views/TodayView';
+import { FocusView } from '@/components/views/FocusView';
 import { SprintView } from '@/components/views/SprintView';
 import { StoryBoardsViewRefactored as StoryBoardsView } from '@/components/views/StoryBoardsViewRefactored';
 import { ImportanceView } from '@/components/views/ImportanceView';
@@ -49,7 +49,7 @@ export const VIEW_TYPES = [
 export type ViewType = typeof VIEW_TYPES[number];
 
 export const VIEW_COMPONENTS = {
-  'today': TodayView,
+  'today': FocusView,
   'sprint': SprintView,
   'story-boards': StoryBoardsView,
   'importance': ImportanceView,

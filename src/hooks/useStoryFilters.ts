@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { Story, Priority, StoryType } from '@/types';
 
 export interface StoryFilters {
@@ -36,18 +36,18 @@ export const defaultFilters: StoryFilters = {
 export function useStoryFilters() {
   const [filters, setFilters] = useState<StoryFilters>(defaultFilters);
 
-  const updateFilter = <K extends keyof StoryFilters>(
+  const updateFilter = useCallback(<K extends keyof StoryFilters>(
     key: K,
     value: StoryFilters[K]
   ) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
-  };
+  }, []);
 
-  const applyFilters = (stories: Story[]) => {
+  const applyFilters = useCallback((stories: Story[]) => {
     return stories.filter(story => {
       if (story.deleted) return false;
       
@@ -118,7 +118,7 @@ export function useStoryFilters() {
       
       return true;
     });
-  };
+  }, [filters]);
 
   const hasActiveFilters = useMemo(() => {
     return Object.entries(filters).some(([key, value]) => 

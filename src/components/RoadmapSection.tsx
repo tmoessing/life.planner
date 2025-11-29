@@ -123,13 +123,6 @@ export function RoadmapSection() {
         </div>
       </CardHeader>
       <CardContent>
-        {/* Mobile Instructions */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg sm:hidden">
-          <p className="text-sm text-blue-800">
-            <strong>Tip:</strong> Scroll horizontally to see all days. Tap cells to schedule stories.
-          </p>
-        </div>
-        
         <div className="overflow-x-auto">
           <div className="min-w-full">
             {/* Header with days - Responsive */}

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { 
-  goalsAtom,
   addGoalAtom,
   rolesAtom,
   settingsAtom,

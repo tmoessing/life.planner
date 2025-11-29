@@ -3,6 +3,7 @@ import { ProjectModal } from '@/components/modals/ProjectModal';
 import { ProjectKanbanBoard } from '@/components/boards/ProjectKanbanBoard';
 import { ProjectStoryManager } from '@/components/ProjectStoryManager';
 import { ProjectKanbanView } from '@/components/boards/ProjectKanbanView';
+import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import type { Project } from '@/types';
 
 export function ProjectView() {
@@ -11,6 +12,8 @@ export function ProjectView() {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [showKanban, setShowKanban] = useState(false);
   const [showStoryManager, setShowStoryManager] = useState(false);
+  const [showAddStoryModal, setShowAddStoryModal] = useState(false);
+  const [projectForStory, setProjectForStory] = useState<Project | null>(null);
 
 
   const handleAddProject = () => {
@@ -35,6 +38,11 @@ export function ProjectView() {
     setShowStoryManager(true);
   };
 
+  const handleAddStory = (project: Project) => {
+    setProjectForStory(project);
+    setShowAddStoryModal(true);
+  };
+
 
 
   return (
@@ -44,6 +52,7 @@ export function ProjectView() {
         onEditProject={handleEditProject}
         onOpenKanban={handleOpenKanban}
         onOpenStoryManager={handleOpenStoryManager}
+        onAddStory={handleAddStory}
       />
 
       {/* Project Modal */}
@@ -69,6 +78,13 @@ export function ProjectView() {
           onClose={() => setShowStoryManager(false)}
         />
       )}
+
+      {/* Add Story Modal */}
+      <AddStoryModal
+        open={showAddStoryModal}
+        onOpenChange={setShowAddStoryModal}
+        initialData={projectForStory ? { projectId: projectForStory.id } : undefined}
+      />
     </div>
   );
 }

@@ -227,12 +227,6 @@ export function ImportanceView() {
     setIsModalOpen(true);
   };
 
-  const handleEditVision = (vision: any) => {
-    setModalMode('edit');
-    setEditingVision(vision);
-    setIsModalOpen(true);
-  };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingVision(null);

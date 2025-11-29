@@ -370,7 +370,7 @@ export function ProjectStoryManager({ project, onClose }: ProjectStoryManagerPro
 
           <DragOverlay>
             {activeStory ? (
-              <div className="opacity-50">
+              <div className="opacity-50 max-w-sm sm:max-w-md">
                 <StoryCard story={activeStory} />
               </div>
             ) : null}

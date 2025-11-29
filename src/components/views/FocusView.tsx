@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAtom } from 'jotai';
 import { 
   goalsAtom, 
@@ -7,7 +7,8 @@ import {
   rolesAtom,
   currentViewAtom,
   updateGoalAtom,
-  deleteGoalAtom
+  deleteGoalAtom,
+  updateStoryAtom
 } from '@/stores/appStore';
 import { todayViewModeAtom } from '@/stores/uiStore';
 import type { ViewType } from '@/types';
@@ -28,7 +29,6 @@ import {
   Circle,
   Clock,
   Users,
-  BookOpen,
   Heart,
   Dumbbell,
   Brain,
@@ -54,6 +54,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCurrentWeek, getWeekDates } from '@/utils/date';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { ChartsSection } from '@/components/charts/ChartsSection';
+import { StoryCard } from '@/components/shared/StoryCard';
+import { EditStoryModal } from '@/components/modals/EditStoryModal';
+import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import type { Goal, Story, Assignment, AssignmentType, Class } from '@/types';
 
 const goalTypeIcons = {
@@ -75,6 +78,7 @@ export function FocusView() {
   const [, setCurrentView] = useAtom(currentViewAtom);
   const [, updateGoal] = useAtom(updateGoalAtom);
   const [, deleteGoal] = useAtom(deleteGoalAtom);
+  const [, updateStory] = useAtom(updateStoryAtom);
   
   // State for goal selection modal
   const [isGoalSelectionOpen, setIsGoalSelectionOpen] = useState(false);
@@ -91,11 +95,51 @@ export function FocusView() {
   // State for section expand/collapse
   const [isGoalsExpanded, setIsGoalsExpanded] = useState(true);
   const [isStoriesExpanded, setIsStoriesExpanded] = useState(true);
-  const [isProgressExpanded, setIsProgressExpanded] = useState(true);
   const [isSchoolExpanded, setIsSchoolExpanded] = useState(true);
   
   // State for section dropdowns
   const [openSectionDropdown, setOpenSectionDropdown] = useState<string | null>(null);
+  
+  // State for story editing
+  const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [showEditStoryModal, setShowEditStoryModal] = useState(false);
+  const [showAddStoryModal, setShowAddStoryModal] = useState(false);
+  const [showScheduleStoriesModal, setShowScheduleStoriesModal] = useState(false);
+  
+  const handleEditStory = (story: Story) => {
+    setEditingStory(story);
+    setShowEditStoryModal(true);
+  };
+  
+  const handleCloseEditStoryModal = () => {
+    setShowEditStoryModal(false);
+    setEditingStory(null);
+  };
+  
+  // Get today's date string (ISO format)
+  const todayDateString = new Date().toISOString().split('T')[0];
+
+  // Get sprint stories for scheduling modal
+  const sprintStories = stories.filter(story => 
+    !story.deleted && 
+    story.sprintId === currentSprint?.id && 
+    ['todo', 'progress', 'review'].includes(story.status)
+  );
+
+  const handleScheduleStory = (storyId: string) => {
+    const story = sprintStories.find(s => s.id === storyId);
+    if (!story) return;
+    
+    // Toggle: if already scheduled for today, unschedule it; otherwise schedule it
+    const newScheduledDate = (story.scheduledDate === todayDateString || story.scheduled === todayDateString) 
+      ? undefined 
+      : todayDateString;
+    
+    updateStory(storyId, { 
+      scheduledDate: newScheduledDate,
+      scheduled: newScheduledDate 
+    });
+  };
   
   // State for view mode toggle (today vs week) - using shared atom
   const [viewMode, setViewMode] = useAtom(todayViewModeAtom);
@@ -113,9 +157,6 @@ export function FocusView() {
   // Get current week info
   const { isoWeek, year } = getCurrentWeek();
   const { startDate, endDate } = getWeekDates(isoWeek, year);
-  
-  // Get today's date string (ISO format)
-  const todayDateString = new Date().toISOString().split('T')[0];
 
   // Filter goals for the four main categories (show all except done)
   const activeGoals = goals.filter(goal => 
@@ -124,19 +165,24 @@ export function FocusView() {
   );
 
   // Filter stories based on view mode
+  // Only show stories from current sprint in to do, in progress, or review stages
   const filteredStories = stories.filter(story => {
     if (story.deleted) return false;
     
+    // Only show stories from current sprint
+    if (story.sprintId !== currentSprint?.id) return false;
+    
+    // Only show stories in to do, in progress, or review stages
+    const activeStatuses = ['todo', 'progress', 'review'];
+    if (!activeStatuses.includes(story.status)) return false;
+    
     if (viewMode === 'today') {
-      // Today mode: show stories due today, scheduled today, or active stories in current sprint
-      const isDueToday = story.dueDate === todayDateString;
-      const isScheduledToday = story.scheduledDate === todayDateString || story.scheduled === todayDateString;
-      const isActiveInSprint = story.sprintId === currentSprint?.id && story.status !== 'done';
-      
-      return isDueToday || isScheduledToday || isActiveInSprint;
+      // Today mode: show stories that have been scheduled for today via the roadmap
+      const isScheduledToday = story.scheduled === todayDateString || story.scheduledDate === todayDateString;
+      return isScheduledToday;
     } else {
-      // Week mode: show all stories in current sprint
-      return story.sprintId === currentSprint?.id;
+      // Week mode: show all active stories in current sprint (already filtered above)
+      return true;
     }
   });
 
@@ -171,12 +217,6 @@ export function FocusView() {
     if (!roleId) return 'No Role';
     const role = roles.find(r => r.id === roleId);
     return role?.name || 'Unknown Role';
-  };
-
-  // Get class name by ID
-  const getClassName = (classId: string) => {
-    const classItem = classes.find(c => c.id === classId);
-    return classItem?.title || 'Unknown Class';
   };
 
   // Get class by ID
@@ -362,7 +402,7 @@ export function FocusView() {
   };
 
   // Handler for selecting a goal (they're already in-progress, just close the dialog)
-  const handleSelectGoal = (goalId: string) => {
+  const handleSelectGoal = () => {
     setIsGoalSelectionOpen(false);
     setSelectedGoalType('');
   };
@@ -913,90 +953,73 @@ export function FocusView() {
               </Button>
             </div>
           </div>
-          {filteredStories.length > 0 && (
+          {viewMode === 'today' && filteredStories.length > 0 && (
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setCurrentView('story-boards')}
+              onClick={() => setShowScheduleStoriesModal(true)}
               className="gap-1.5 w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0 text-xs h-8"
             >
               <Target className="h-3.5 w-3.5" />
-              View All
+              View All Stories
             </Button>
           )}
         </div>
         {isStoriesExpanded && (
           <>
-            {filteredStories.filter(story => story.status !== 'done').length === 0 ? (
+            {filteredStories.length === 0 ? (
               <Card>
                 <CardContent className="py-4 sm:py-6 text-center">
                   <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs sm:text-sm text-muted-foreground mb-3">
                     {viewMode === 'today' ? 'No active stories for today' : 'No active stories for this week'}
                   </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCurrentView('story-boards')}
-                    className="gap-1.5 text-xs h-8"
-                  >
-                    <Target className="h-3.5 w-3.5" />
-                    View All Stories
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button 
+                      variant="default" 
+                      onClick={() => setShowAddStoryModal(true)}
+                      className="gap-1.5 text-xs h-8"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Story
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setCurrentView('story-boards')}
+                      className="gap-1.5 text-xs h-8"
+                    >
+                      <Target className="h-3.5 w-3.5" />
+                      View All Stories
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                {filteredStories.filter(story => story.status !== 'done').map((story) => (
-                  <Card key={story.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2 pt-3 px-3">
-                      <div className="flex items-start justify-between gap-1.5">
-                        <CardTitle className="text-xs sm:text-sm font-medium line-clamp-2">
-                          {story.title}
-                        </CardTitle>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-[10px] px-1.5 py-0 h-5 ${
-                            story.status === 'progress' ? 'border-blue-200 text-blue-800 bg-blue-50' :
-                            story.status === 'todo' ? 'border-gray-200 text-gray-800 bg-gray-50' :
-                            story.status === 'review' ? 'border-yellow-200 text-yellow-800 bg-yellow-50' :
-                            'border-gray-200 text-gray-800 bg-gray-50'
-                          }`}
-                        >
-                          {story.status}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0 px-3 pb-3">
-                      <div className="space-y-1.5">
-                        {story.description && (
-                          <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">
-                            {story.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
-                          <span>{getRoleName(story.roleId)}</span>
-                          <span>•</span>
-                          <span>{story.size}</span>
-                          <span>•</span>
-                          <span>W:{story.weight}</span>
-                        </div>
-
-                        {story.checklist.length > 0 && (
-                          <div className="pt-1.5 border-t">
-                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                              <CheckCircle2 className="h-2.5 w-2.5" />
-                              <span>
-                                {story.checklist.filter(item => item.done).length}/{story.checklist.length}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                  {filteredStories.map((story, index) => (
+                    <StoryCard
+                      key={story.id}
+                      story={story}
+                      index={index}
+                      onEdit={handleEditStory}
+                      showActions={true}
+                      className="transition-all duration-200 hover:shadow-md"
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddStoryModal(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Story
+                  </Button>
+                </div>
+              </>
             )}
           </>
         )}
@@ -1257,7 +1280,7 @@ export function FocusView() {
                     <Card 
                       key={goal.id} 
                       className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => handleSelectGoal(goal.id)}
+                      onClick={() => handleSelectGoal()}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-2">
@@ -1299,6 +1322,104 @@ export function FocusView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Story Modal */}
+      {showEditStoryModal && editingStory && (
+        <EditStoryModal
+          story={editingStory}
+          open={showEditStoryModal}
+          onOpenChange={handleCloseEditStoryModal}
+        />
+      )}
+
+      {/* Add Story Modal */}
+      <AddStoryModal
+        key={`add-story-${currentSprint?.id || 'no-sprint'}`}
+        open={showAddStoryModal}
+        onOpenChange={setShowAddStoryModal}
+        initialData={useMemo(() => ({
+          sprintId: currentSprint?.id,
+          status: 'todo' as const
+        }), [currentSprint?.id])}
+      />
+
+      {/* Schedule Stories Modal */}
+      <Dialog open={showScheduleStoriesModal} onOpenChange={setShowScheduleStoriesModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Schedule Stories for Today</DialogTitle>
+            <DialogDescription>
+              Click on stories to schedule them for today. Stories already scheduled for today will be unscheduled when clicked.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-4">
+            {sprintStories.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <p className="text-sm text-muted-foreground">No stories available to schedule</p>
+                </CardContent>
+              </Card>
+            ) : (
+              sprintStories.map((story) => {
+                const isScheduledToday = story.scheduledDate === todayDateString || story.scheduled === todayDateString;
+                return (
+                  <Card 
+                    key={story.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      isScheduledToday ? 'ring-2 ring-primary bg-primary/5' : ''
+                    }`}
+                    onClick={() => handleScheduleStory(story.id)}
+                  >
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className={`mt-1 ${isScheduledToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                              {isScheduledToday ? (
+                                <CheckCircle2 className="h-5 w-5" />
+                              ) : (
+                                <Circle className="h-5 w-5" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-sm sm:text-base mb-1">{story.title}</h3>
+                              {story.description && (
+                                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2">
+                                  {story.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
+                                  {story.status}
+                                </Badge>
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                                  {getRoleName(story.roleId)}
+                                </span>
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                                  • W:{story.weight}
+                                </span>
+                                {isScheduledToday && (
+                                  <Badge variant="default" className="text-[10px] px-1.5 py-0 h-5">
+                                    Scheduled
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+// Export alias for backward compatibility
+export { FocusView as TodayView };

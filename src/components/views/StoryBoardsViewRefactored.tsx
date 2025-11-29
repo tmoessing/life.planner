@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { MouseEvent } from 'react';
 import { useAtom } from 'jotai';
 import { 
   storiesAtom, 
@@ -51,7 +52,7 @@ import {
   groupStoriesByLocation,
   groupStoriesByTaskCategory
 } from '@/utils/storyUtils';
-import type { Story, Priority, StoryType } from '@/types';
+import type { Story, Priority } from '@/types';
 
 type BoardType = 'Priority' | 'Role' | 'Type' | 'Vision' | 'Goal' | 'Weight' | 'Size' | 'Status' | 'Project' | 'Task Categories' | 'Location';
 type ViewType = 'list' | 'pie';
@@ -111,7 +112,7 @@ export function StoryBoardsViewRefactored() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Update sprint filter when selectedSprintId changes
-  React.useEffect(() => {
+  useEffect(() => {
     updateFilter('sprintId', selectedSprintId);
   }, [selectedSprintId, updateFilter]);
 
@@ -253,7 +254,7 @@ export function StoryBoardsViewRefactored() {
     deleteStory(storyId);
   };
 
-  const handleStorySelect = (storyId: string, index: number, event: React.MouseEvent) => {
+  const handleStorySelect = (storyId: string, index: number, event: MouseEvent) => {
     handleMultiSelect(storyId, index, filteredStories, event);
   };
 

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { settingsAtom } from '@/stores/appStore';
-import { useStorySettings } from '@/utils/settingsMirror';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 
 export function LabelsSettings() {

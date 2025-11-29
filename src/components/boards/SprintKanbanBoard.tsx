@@ -65,7 +65,29 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     previousColumnId?: string;
     story?: Story;
   }>>([]);
-  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
+  // Initialize to "Backlog" column if showing all sprints, otherwise "To Do" for specific sprint
+  const backlogIndex = statusColumns.findIndex(col => col.id === 'backlog');
+  const todoIndex = statusColumns.findIndex(col => col.id === 'todo');
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(
+    showAllSprints 
+      ? (backlogIndex >= 0 ? backlogIndex : 0)
+      : (todoIndex >= 0 ? todoIndex : 0)
+  );
+
+  // Update mobile column index when showAllSprints changes
+  useEffect(() => {
+    if (showAllSprints) {
+      const backlogIdx = statusColumns.findIndex(col => col.id === 'backlog');
+      if (backlogIdx >= 0) {
+        setCurrentMobileColumnIndex(backlogIdx);
+      }
+    } else {
+      const todoIdx = statusColumns.findIndex(col => col.id === 'todo');
+      if (todoIdx >= 0) {
+        setCurrentMobileColumnIndex(todoIdx);
+      }
+    }
+  }, [showAllSprints, statusColumns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

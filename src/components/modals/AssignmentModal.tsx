@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Calendar, Clock, Repeat } from 'lucide-react';
 import { useAtom } from 'jotai';
-import { addAssignmentAtom, updateAssignmentAtom, assignmentsAtom } from '@/stores/assignmentStore';
-import { classesAtom } from '@/stores/classStore';
+import { addAssignmentAtom, updateAssignmentAtom } from '@/stores/assignmentStore';
 import type { Assignment, AssignmentType, AssignmentStatus, AssignmentRecurrencePattern } from '@/types';
 
 interface AssignmentModalProps {
@@ -22,7 +21,6 @@ interface AssignmentModalProps {
 export function AssignmentModal({ isOpen, onClose, assignment, classId, mode }: AssignmentModalProps) {
   const [, addAssignment] = useAtom(addAssignmentAtom);
   const [, updateAssignment] = useAtom(updateAssignmentAtom);
-  const [classes] = useAtom(classesAtom);
 
   const [formData, setFormData] = useState({
     title: '',

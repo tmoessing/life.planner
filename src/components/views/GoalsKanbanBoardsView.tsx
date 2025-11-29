@@ -47,7 +47,8 @@ export function GoalsKanbanBoardsView() {
   }>>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
+  // Initialize to "In Progress" column (index 3)
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(3);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -258,17 +259,26 @@ export function GoalsKanbanBoardsView() {
                   No goals available
                 </SelectItem>
               ) : (
-                goals.map((goal) => (
-                  <SelectItem key={goal.id} value={goal.id}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                      <span>{goal.title}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({goalStories.length} stories)
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))
+                goals.map((goal) => {
+                  const statusColor = goalSettings.getStatusColor(goal.status);
+                  const goalStoriesCount = stories.filter(story => 
+                    story.goalId === goal.id && !story.deleted
+                  ).length;
+                  return (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: statusColor }}
+                        />
+                        <span>{goal.title}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({goalStoriesCount} stories)
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                })
               )}
             </SelectContent>
           </Select>

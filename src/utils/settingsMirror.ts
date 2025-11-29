@@ -1,6 +1,6 @@
 import { useAtom } from 'jotai';
 import { settingsAtom } from '@/stores/settingsStore';
-import { bucketlistStatusesAtom } from '@/stores/statusStore';
+import { bucketlistStatusesAtom, storyStatusesAtom } from '@/stores/statusStore';
 import type { Settings, Priority, StoryType } from '@/types';
 
 /**
@@ -318,15 +318,37 @@ export const useBucketlistSettings = () => {
 
 export const useProjectSettings = () => {
   const [settings] = useAtom(settingsAtom);
+  const [storyStatuses] = useAtom(storyStatusesAtom);
+  
+  // Create a map of story status IDs to colors from storyStatusesAtom
+  const storyStatusColorMap = storyStatuses.reduce((acc, status) => {
+    acc[status.id] = status.color;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  // Map project status IDs to story status IDs
+  const projectToStoryStatusMap: Record<string, string> = {
+    'icebox': 'icebox',
+    'backlog': 'backlog',
+    'to-do': 'todo',
+    'in-progress': 'progress',
+    'done': 'done',
+    // Handle actual project status values
+    'Icebox': 'icebox',
+    'Backlog': 'backlog',
+    'To do': 'todo',
+    'In Progress': 'progress',
+    'Done': 'done'
+  };
   
   return {
-    // Status colors for projects - using story status colors
+    // Status colors for projects - using story status colors from storyStatusesAtom
     statusColors: {
-      'icebox': settings.statusColors?.icebox || '#6B7280',
-      'backlog': settings.statusColors?.backlog || '#3B82F6',
-      'to-do': settings.statusColors?.todo || '#F59E0B',
-      'in-progress': settings.statusColors?.progress || '#F97316',
-      'done': settings.statusColors?.done || '#10B981'
+      'icebox': storyStatusColorMap['icebox'] || '#6B7280',
+      'backlog': storyStatusColorMap['backlog'] || '#3B82F6',
+      'to-do': storyStatusColorMap['todo'] || '#F59E0B',
+      'in-progress': storyStatusColorMap['progress'] || '#F97316',
+      'done': storyStatusColorMap['done'] || '#10B981'
     },
     
     // Priority colors for projects
@@ -357,23 +379,14 @@ export const useProjectSettings = () => {
     // Roles from settings
     roles: settings.roles,
     
-    // Get color for specific attributes
+    // Get color for specific attributes - using story status colors from storyStatusesAtom
     getStatusColor: (status: string) => {
-      const statusMap: Record<string, string> = {
-        // Handle lowercase keys used by ProjectKanbanView
-        'icebox': settings.statusColors?.icebox || '#6B7280',
-        'backlog': settings.statusColors?.backlog || '#3B82F6',
-        'to-do': settings.statusColors?.todo || '#F59E0B',
-        'in-progress': settings.statusColors?.progress || '#F97316',
-        'done': settings.statusColors?.done || '#10B981',
-        // Handle actual project status values
-        'Icebox': settings.statusColors?.icebox || '#6B7280',
-        'Backlog': settings.statusColors?.backlog || '#3B82F6',
-        'To do': settings.statusColors?.todo || '#F59E0B',
-        'In Progress': settings.statusColors?.progress || '#F97316',
-        'Done': settings.statusColors?.done || '#10B981'
-      };
-      return statusMap[status] || '#6B7280';
+      const storyStatusId = projectToStoryStatusMap[status];
+      if (storyStatusId && storyStatusColorMap[storyStatusId]) {
+        return storyStatusColorMap[storyStatusId];
+      }
+      // Fallback to settings.statusColors if story status not found
+      return settings.statusColors?.[storyStatusId || status] || '#6B7280';
     },
     getPriorityColor: (priority: string) => {
       const priorityMap: Record<string, string> = {

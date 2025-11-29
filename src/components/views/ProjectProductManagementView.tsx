@@ -1,30 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverEvent, useDroppable, useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import { StoryCard } from '@/components/shared/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   projectsAtom, 
   storiesAtom, 
   addStoryToProjectAtom,
   removeStoryFromProjectAtom,
-  updateStoryAtom,
-  rolesAtom,
-  labelsAtom,
-  visionsAtom,
-  settingsAtom,
   selectedProjectIdAtom
 } from '@/stores/appStore';
-import { useStorySettings } from '@/utils/settingsMirror';
-import { FolderOpen, Plus, Weight, MoreHorizontal } from 'lucide-react';
-import type { Project, Story, Priority } from '@/types';
-import { getWeightGradientColor } from '@/utils';
+import { FolderOpen, Plus, CheckCircle2, X } from 'lucide-react';
+import type { Story } from '@/types';
 
 // Simple Story Card Component for Available Stories (not assigned to any project)
 function AvailableStoryCard({ 
@@ -54,14 +44,12 @@ function ProjectStoryCard({
   story, 
   isSelected, 
   onClick,
-  onEdit,
-  projectName
+  onEdit
 }: { 
   story: Story; 
   isSelected: boolean; 
   onClick: (e: React.MouseEvent) => void;
   onEdit: (story: Story) => void;
-  projectName: string;
 }) {
   return (
     <StoryCard
@@ -74,186 +62,96 @@ function ProjectStoryCard({
   );
 }
 
-// Draggable Story Card Component for Available Stories
-function DraggableAvailableStoryCard({ 
-  story, 
-  isSelected, 
-  onClick,
-  onEdit
-}: { 
-  story: Story; 
-  isSelected: boolean; 
-  onClick: (e: React.MouseEvent) => void;
-  onEdit: (story: Story) => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({
-    id: story.id,
-    data: {
-      type: 'story',
-      story,
-    },
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`cursor-grab hover:shadow-md transition-shadow ${
-        isDragging ? 'opacity-50 cursor-grabbing' : ''
-      } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''}`}
-      {...attributes}
-      {...listeners}
-      onClick={(e) => {
-        // Only handle click if not dragging and not a drag operation
-        if (!isDragging) {
-          onClick(e);
-        }
-      }}
-      onMouseDown={(e) => {
-        // Prevent drag from starting on certain elements
-        if (e.target instanceof HTMLElement) {
-          const isButton = e.target.closest('button');
-          const isInput = e.target.closest('input');
-          if (isButton || isInput) {
-            e.stopPropagation();
-          }
-        }
-        
-        // Special handling for Ctrl+Shift to prevent drag interference
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-          e.stopPropagation();
-        }
-      }}
-      onKeyDown={(e) => {
-        // Handle keyboard combinations
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-        }
-      }}
-    >
-      <AvailableStoryCard story={story} isSelected={isSelected} onEdit={onEdit} onClick={() => {}} />
-    </div>
-  );
-}
-
-// Draggable Story Card Component for Project Stories
-function DraggableProjectStoryCard({ 
+// Story Card Component for Available Stories with Add Button
+function AvailableStoryCardWithAdd({ 
   story, 
   isSelected, 
   onClick,
   onEdit,
-  projectName
+  onAdd
 }: { 
   story: Story; 
   isSelected: boolean; 
   onClick: (e: React.MouseEvent) => void;
   onEdit: (story: Story) => void;
-  projectName: string;
+  onAdd: (storyId: string) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({
-    id: story.id,
-    data: {
-      type: 'story',
-      story,
-    },
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-  };
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`cursor-grab hover:shadow-md transition-shadow ${
-        isDragging ? 'opacity-50 cursor-grabbing' : ''
-      } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''}`}
-      {...attributes}
-      {...listeners}
-      onClick={(e) => {
-        // Only handle click if not dragging and not a drag operation
-        if (!isDragging) {
-          onClick(e);
-        }
-      }}
-      onMouseDown={(e) => {
-        // Prevent drag from starting on certain elements
-        if (e.target instanceof HTMLElement) {
-          const isButton = e.target.closest('button');
-          const isInput = e.target.closest('input');
-          if (isButton || isInput) {
-            e.stopPropagation();
-          }
-        }
-        
-        // Special handling for Ctrl+Shift to prevent drag interference
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+    <div className={`relative ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''}`}>
+      <AvailableStoryCard story={story} isSelected={isSelected} onEdit={onEdit} onClick={onClick} />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-2 right-2 h-8 w-8 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full"
+        onClick={(e) => {
           e.stopPropagation();
-        }
-      }}
-      onKeyDown={(e) => {
-        // Handle keyboard combinations
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-        }
-      }}
-    >
-      <ProjectStoryCard story={story} isSelected={isSelected} onEdit={onEdit} projectName={projectName} onClick={() => {}} />
+          onAdd(story.id);
+        }}
+        title="Add to project"
+      >
+        <CheckCircle2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
 
-// Project Stories Section with Droppable Zone
+// Story Card Component for Project Stories with Remove Button
+function ProjectStoryCardWithRemove({ 
+  story, 
+  isSelected, 
+  onClick,
+  onEdit,
+  onRemove
+}: { 
+  story: Story; 
+  isSelected: boolean; 
+  onClick: (e: React.MouseEvent) => void;
+  onEdit: (story: Story) => void;
+  onRemove: (storyId: string) => void;
+}) {
+  return (
+    <div className={`relative ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''}`}>
+      <ProjectStoryCard story={story} isSelected={isSelected} onEdit={onEdit} onClick={onClick} />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-2 right-2 h-8 w-8 p-0 bg-red-500 hover:bg-red-600 text-white rounded-full"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(story.id);
+        }}
+        title="Remove from project"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// Project Stories Section
 function ProjectStoriesSection({ 
   stories, 
   selectedStories, 
   onStoryToggle,
   onEditStory,
-  onAddStory
+  onAddStory,
+  onRemoveStory
 }: { 
   stories: Story[]; 
   selectedStories: string[]; 
   onStoryToggle: (storyId: string, event: React.MouseEvent) => void;
   onEditStory: (story: Story) => void;
   onAddStory: () => void;
+  onRemoveStory: (storyId: string) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: 'project-stories',
-    data: {
-      type: 'drop-zone',
-      zone: 'project'
-    }
-  });
-
   return (
-    <div className="flex-1 border-r border-border p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Project Stories ({stories.length})</h3>
-        <Badge variant="outline">Drag to remove</Badge>
+    <div className="flex-1 border-b sm:border-b-0 sm:border-r border-border p-2 sm:p-4">
+      <div className="flex items-center justify-between mb-2 sm:mb-4">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground">Project Stories ({stories.length})</h3>
       </div>
       <div 
-        ref={setNodeRef}
-        className={`space-y-2 overflow-y-auto h-full min-h-[400px] border-2 border-dashed rounded-lg p-2 ${
-          isOver 
-            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30' 
-            : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'
-        }`}
-        style={{ minHeight: '400px' }}
+        className="space-y-2 overflow-y-auto h-full min-h-[200px] sm:min-h-[400px] border-2 border-dashed rounded-lg p-2 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50"
+        style={{ minHeight: '200px' }}
       >
         {stories.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-4">
@@ -269,13 +167,13 @@ function ProjectStoriesSection({
           </div>
         ) : (
           stories.map((story) => (
-            <DraggableProjectStoryCard
+            <ProjectStoryCardWithRemove
               key={story.id}
               story={story}
               isSelected={selectedStories.includes(story.id)}
               onClick={(e) => onStoryToggle(story.id, e)}
               onEdit={onEditStory}
-              projectName="this project"
+              onRemove={onRemoveStory}
             />
           ))
         )}
@@ -284,40 +182,28 @@ function ProjectStoriesSection({
   );
 }
 
-// Available Stories Section with Droppable Zone
+// Available Stories Section
 function AvailableStoriesSection({ 
   stories, 
   selectedStories, 
   onStoryToggle,
-  onEditStory
+  onEditStory,
+  onAddStory
 }: { 
   stories: Story[]; 
   selectedStories: string[]; 
   onStoryToggle: (storyId: string, event: React.MouseEvent) => void;
   onEditStory: (story: Story) => void;
+  onAddStory: (storyId: string) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: 'available-stories',
-    data: {
-      type: 'drop-zone',
-      zone: 'available'
-    }
-  });
-
   return (
-    <div className="flex-1 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Available Stories ({stories.length})</h3>
-        <Badge variant="outline">Drag to add</Badge>
+    <div className="flex-1 p-2 sm:p-4">
+      <div className="flex items-center justify-between mb-2 sm:mb-4">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground">Available Stories ({stories.length})</h3>
       </div>
       <div 
-        ref={setNodeRef}
-        className={`space-y-2 overflow-y-auto h-full min-h-[400px] border-2 border-dashed rounded-lg p-2 ${
-          isOver 
-            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30' 
-            : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'
-        }`}
-        style={{ minHeight: '400px' }}
+        className="space-y-2 overflow-y-auto h-full min-h-[200px] sm:min-h-[400px] border-2 border-dashed rounded-lg p-2 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50"
+        style={{ minHeight: '200px' }}
       >
         {stories.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -325,12 +211,13 @@ function AvailableStoriesSection({
           </div>
         ) : (
           stories.map((story) => (
-            <DraggableAvailableStoryCard
+            <AvailableStoryCardWithAdd
               key={story.id}
               story={story}
               isSelected={selectedStories.includes(story.id)}
               onClick={(e) => onStoryToggle(story.id, e)}
               onEdit={onEditStory}
+              onAdd={onAddStory}
             />
           ))
         )}
@@ -344,19 +231,14 @@ export function ProjectProductManagementView() {
   const [stories] = useAtom(storiesAtom);
   const [, addStoryToProject] = useAtom(addStoryToProjectAtom);
   const [, removeStoryFromProject] = useAtom(removeStoryFromProjectAtom);
-  const [, updateStory] = useAtom(updateStoryAtom);
 
   const [selectedProjectId, setSelectedProjectId] = useAtom(selectedProjectIdAtom);
-
-  // Use settings mirror system for story settings
-  const storySettings = useStorySettings();
   
   // Get the current selected project from the projects atom
   const selectedProject = selectedProjectId 
     ? projects.find(p => p.id === selectedProjectId) || null
     : null;
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [isAddStoryModalOpen, setIsAddStoryModalOpen] = useState(false);
 
@@ -366,16 +248,6 @@ export function ProjectProductManagementView() {
       setSelectedProjectId(projects[0].id);
     }
   }, [projects, selectedProject]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10, // Increased distance to make clicks easier
-        delay: 100, // Small delay to distinguish between click and drag
-        tolerance: 5, // Allow small movements before starting drag
-      },
-    })
-  );
 
   // Get current project data (updated in real-time)
   const currentProject = selectedProject ? projects.find(p => p.id === selectedProject.id) || selectedProject : null;
@@ -402,61 +274,26 @@ export function ProjectProductManagementView() {
       })
     : [];
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  const handleAddStoryToProject = (storyId: string) => {
+    if (!currentProject) return;
+    
+    // First, remove the story from any other project it might be assigned to
+    const otherProjects = projects.filter(project => 
+      project.id !== currentProject.id && project.storyIds.includes(storyId)
+    );
+    
+    // Remove from other projects
+    otherProjects.forEach(project => {
+      removeStoryFromProject(project.id, storyId);
+    });
+    
+    // Then add to current project
+    addStoryToProject(currentProject.id, storyId);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over || !currentProject) {
-      return;
-    }
-
-    const storyId = active.id as string;
-    const isStoryInProject = currentProject.storyIds.includes(storyId);
-
-    // Check if dropping on the correct zone
-    if (over.id === 'available-stories' && isStoryInProject) {
-      removeStoryFromProject(currentProject.id, storyId);
-    } else if (over.id === 'project-stories' && !isStoryInProject) {
-      
-      // First, remove the story from any other project it might be assigned to
-      const otherProjects = projects.filter(project => 
-        project.id !== currentProject.id && project.storyIds.includes(storyId)
-      );
-      
-      // Remove from other projects
-      otherProjects.forEach(project => {
-        removeStoryFromProject(project.id, storyId);
-      });
-      
-      // Then add to current project
-      addStoryToProject(currentProject.id, storyId);
-    } else if (over.data?.current?.zone === 'available' && isStoryInProject) {
-      // Fallback: check data zone
-      removeStoryFromProject(currentProject.id, storyId);
-    } else if (over.data?.current?.zone === 'project' && !isStoryInProject) {
-      // Fallback: check data zone
-      
-      // First, remove the story from any other project it might be assigned to
-      const otherProjects = projects.filter(project => 
-        project.id !== currentProject.id && project.storyIds.includes(storyId)
-      );
-      
-      // Remove from other projects
-      otherProjects.forEach(project => {
-        removeStoryFromProject(project.id, storyId);
-      });
-      
-      // Then add to current project
-      addStoryToProject(currentProject.id, storyId);
-    }
+  const handleRemoveStoryFromProject = (storyId: string) => {
+    if (!currentProject) return;
+    removeStoryFromProject(currentProject.id, storyId);
   };
 
   const handleStoryToggle = (storyId: string, event: React.MouseEvent) => {
@@ -497,8 +334,6 @@ export function ProjectProductManagementView() {
   const handleEditStory = (story: Story) => {
     setEditingStory(story);
   };
-
-  const activeStory = activeId ? stories.find(s => s.id === activeId) : null;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -601,38 +436,25 @@ export function ProjectProductManagementView() {
           </div>
 
           {/* Two Column Layout */}
-          <div className="flex h-[600px] border border-border rounded-lg overflow-hidden">
-            <DndContext 
-              onDragStart={handleDragStart} 
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              sensors={sensors}
-            >
-              {/* Project Stories */}
-              <ProjectStoriesSection 
-                stories={projectStories}
-                selectedStories={selectedStories}
-                onStoryToggle={handleStoryToggle}
-                onEditStory={handleEditStory}
-                onAddStory={() => setIsAddStoryModalOpen(true)}
-              />
+          <div className="flex flex-col sm:flex-row h-auto sm:h-[600px] border border-border rounded-lg overflow-hidden">
+            {/* Project Stories */}
+            <ProjectStoriesSection 
+              stories={projectStories}
+              selectedStories={selectedStories}
+              onStoryToggle={handleStoryToggle}
+              onEditStory={handleEditStory}
+              onAddStory={() => setIsAddStoryModalOpen(true)}
+              onRemoveStory={handleRemoveStoryFromProject}
+            />
 
-              {/* Available Stories */}
-              <AvailableStoriesSection 
-                stories={availableStories}
-                selectedStories={selectedStories}
-                onStoryToggle={handleStoryToggle}
-                onEditStory={handleEditStory}
-              />
-
-              <DragOverlay>
-                {activeStory ? (
-                  <div className="opacity-50">
-                    <StoryCard story={activeStory} />
-                  </div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
+            {/* Available Stories */}
+            <AvailableStoriesSection 
+              stories={availableStories}
+              selectedStories={selectedStories}
+              onStoryToggle={handleStoryToggle}
+              onEditStory={handleEditStory}
+              onAddStory={handleAddStoryToProject}
+            />
           </div>
         </div>
       )}

@@ -31,5 +31,6 @@ export const STORAGE_KEYS = {
   ROADMAP_POSITION: 'life-scrum-roadmap-position',
   BURNDOWN_COLLAPSED: 'life-scrum-burndown-collapsed',
   BURNUP_COLLAPSED: 'life-scrum-burnup-collapsed',
-  ASSIGNMENTS: 'life-scrum-assignments'
+  ASSIGNMENTS: 'life-scrum-assignments',
+  TODAY_VIEW_MODE: 'life-scrum-today-view-mode'
 } as const;

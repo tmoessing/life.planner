@@ -28,3 +28,6 @@ export const burnupCollapsedAtom = atomWithStorage<boolean>(STORAGE_KEYS.BURNUP_
 
 // Help modal state (not persisted - should close on page reload)
 export const helpModalOpenAtom = atom<boolean>(false);
+
+// Today view mode (today vs week)
+export const todayViewModeAtom = atomWithStorage<'today' | 'week'>(STORAGE_KEYS.TODAY_VIEW_MODE, 'week');

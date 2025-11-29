@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { getCitiesForState } from '@/utils/cityData';
-import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, LayoutGrid, Trophy, Plane, Sparkles, GraduationCap, Award, Mountain, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, Circle, Star, Filter, MapPin, Map, Calendar, User, Target, LayoutGrid, Trophy, Plane, Sparkles, GraduationCap, Award, Mountain } from 'lucide-react';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import type { BucketlistItem, Priority } from '@/types';
@@ -67,7 +67,6 @@ export function BucketlistView() {
 
   // Horizontal section navigation (Experiences / Locations)
   const [activeSection, setActiveSection] = useState<'experience' | 'location'>('experience');
-  const sectionsContainerRef = useRef<HTMLDivElement | null>(null);
   const experienceSectionRef = useRef<HTMLDivElement | null>(null);
   const locationSectionRef = useRef<HTMLDivElement | null>(null);
   
@@ -231,7 +230,7 @@ export function BucketlistView() {
     return 'low';
   };
 
-  const getPriorityIcon = (priority: 'low' | 'medium' | 'high') => {
+  const getPriorityIcon = (_priority: 'low' | 'medium' | 'high') => {
     return <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />;
   };
 
@@ -276,8 +275,8 @@ export function BucketlistView() {
   });
 
   // Group items by bucketlistType and sort within each group
-  const groupedItems = filteredItems.reduce((groups, item) => {
-    const type = item.bucketlistType;
+  const groupedItems: Record<string, typeof filteredItems> = filteredItems.reduce((groups, item) => {
+    const type = item.bucketlistType || 'experience'; // Default to 'experience' if type is missing
     if (!groups[type]) {
       groups[type] = [];
     }

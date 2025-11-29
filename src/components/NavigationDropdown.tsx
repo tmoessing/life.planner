@@ -82,20 +82,21 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
   const [settings] = useAtom(settingsAtom);
   const { prefetchView } = useViewPrefetch();
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [isHovering, setIsHovering] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<'left' | 'right'>('left');
   const [buttonPosition, setButtonPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  // Filter navigation groups based on settings
-  const visibleGroups = navigationGroups.filter(group => {
-    if (group.label === 'Classes' && !settings.layout.sections.classes) {
-      return false;
-    }
-    return true;
-  });
+  // Filter navigation groups based on settings - memoize to prevent infinite loops
+  const visibleGroups = useMemo(() => {
+    return navigationGroups.filter(group => {
+      if (group.label === 'Classes' && !settings.layout.sections.classes) {
+        return false;
+      }
+      return true;
+    });
+  }, [settings.layout.sections.classes]);
 
   const getCurrentGroup = () => {
     for (const group of visibleGroups) {
@@ -106,10 +107,6 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
     return visibleGroups[0] || navigationGroups[0]; // fallback
   };
 
-  const getCurrentItem = () => {
-    const currentGroup = getCurrentGroup();
-    return currentGroup.items.find(item => item.id === currentView) || currentGroup.items[0];
-  };
 
   const currentGroup = getCurrentGroup();
 
@@ -118,7 +115,6 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
       clearTimeout(timeoutRef.current);
     }
     setHoveredGroup(groupLabel);
-    setIsHovering(true);
     
     // Calculate position for mobile responsiveness
     setTimeout(() => {
@@ -144,12 +140,10 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
     // For mobile touch, toggle the dropdown
     if (hoveredGroup === groupLabel) {
       setHoveredGroup(null);
-      setIsHovering(false);
       setButtonPosition(null);
     } else {
       // Close other dropdowns first, then open the clicked one
       setHoveredGroup(groupLabel);
-      setIsHovering(true);
       
       // On mobile, calculate button position for fixed dropdown
       const isMobile = window.innerWidth < 1024;
@@ -188,7 +182,6 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
     if (window.matchMedia('(hover: hover)').matches) {
       timeoutRef.current = setTimeout(() => {
         setHoveredGroup(null);
-        setIsHovering(false);
       }, 150); // Small delay to prevent flickering
     }
   };
@@ -197,20 +190,17 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    setIsHovering(true);
   };
 
   const handleDropdownMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setHoveredGroup(null);
-      setIsHovering(false);
     }, 150);
   };
 
   const handleViewClick = (viewId: ViewType) => {
     setCurrentView(viewId);
     setHoveredGroup(null);
-    setIsHovering(false);
   };
 
   // Memoized ref callbacks for each group to prevent infinite loops
@@ -246,7 +236,6 @@ export function NavigationDropdown({ currentView, setCurrentView }: NavigationDr
         const clickedButton = (target as Element).closest('button');
         if (!clickedButton || !clickedButton.closest('[data-navigation-group]')) {
           setHoveredGroup(null);
-          setIsHovering(false);
         }
       }
     };

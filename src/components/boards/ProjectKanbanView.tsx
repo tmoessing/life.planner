@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/forms/FilterBar';
 import { 
   projectsAtom, 
-  updateProjectAtom 
+  updateProjectAtom,
+  selectedProjectIdAtom
 } from '@/stores/appStore';
+import { currentViewAtom } from '@/stores/uiStore';
 import { Plus, FolderOpen, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProjectSettings } from '@/utils/settingsMirror';
 import type { Project } from '@/types';
@@ -31,6 +33,7 @@ function ProjectKanbanColumn({
   onEditProject, 
   onOpenKanban, 
   onOpenStoryManager,
+  onAddStory,
   projectSettings
 }: { 
   column: typeof PROJECT_COLUMNS[0]; 
@@ -40,6 +43,7 @@ function ProjectKanbanColumn({
   onEditProject: (project: Project) => void;
   onOpenKanban: (project: Project) => void;
   onOpenStoryManager: (project: Project) => void;
+  onAddStory?: (project: Project) => void;
   projectSettings: any;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -57,7 +61,9 @@ function ProjectKanbanColumn({
     <div className="flex-1 flex flex-col">
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-lg">{column.name} {projects.length}</h3>
+          <h3 className="font-semibold text-lg" style={{ color: projectSettings.getStatusColor(column.id) }}>
+            {column.name} {projects.length}
+          </h3>
         </div>
       </div>
       
@@ -91,6 +97,7 @@ function ProjectKanbanColumn({
                 onEdit={onEditProject}
                 onOpenKanban={onOpenKanban}
                 onOpenStoryManager={onOpenStoryManager}
+                onAddStory={onAddStory}
               />
             </div>
           ))
@@ -105,22 +112,27 @@ interface ProjectKanbanViewProps {
   onEditProject: (project: Project) => void;
   onOpenKanban: (project: Project) => void;
   onOpenStoryManager: (project: Project) => void;
+  onAddStory?: (project: Project) => void;
 }
 
 export function ProjectKanbanView({ 
   onAddProject, 
   onEditProject, 
   onOpenKanban, 
-  onOpenStoryManager 
+  onOpenStoryManager,
+  onAddStory
 }: ProjectKanbanViewProps) {
   const [projects] = useAtom(projectsAtom);
   const [, updateProject] = useAtom(updateProjectAtom);
+  const [, setSelectedProjectId] = useAtom(selectedProjectIdAtom);
+  const [, setCurrentView] = useAtom(currentViewAtom);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
+  // Initialize to "In Progress" column (index 3) on mobile
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(3);
   const projectSettings = useProjectSettings();
 
   const sensors = useSensors(
@@ -148,6 +160,16 @@ export function ProjectKanbanView({
   };
 
   const handleProjectClick = (projectId: string, event: React.MouseEvent, projectList?: Project[], currentIndex?: number) => {
+    // Check if mobile (screen width < 640px)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    
+    // On mobile, if it's a simple click (no modifiers), navigate to Projects Kanban Board
+    if (isMobile && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      setSelectedProjectId(projectId);
+      setCurrentView('projects-kanban');
+      return;
+    }
+    
     if (event.ctrlKey && event.shiftKey && projectList && currentIndex !== undefined && lastSelectedIndex !== null) {
       // Range selection with Ctrl+Shift
       const rangeProjectIds = getProjectsInRange(projectList, lastSelectedIndex, currentIndex);
@@ -326,18 +348,15 @@ export function ProjectKanbanView({
                   columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
               }}
-              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity text-left"
               style={{ backgroundColor: `${statusColor}20` }}
             >
               <div
                 className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: statusColor }}
               />
-              <span className="text-sm font-medium" style={{ color: statusColor }}>
-                {column.name}
-              </span>
-              <span className="text-xs text-muted-foreground ml-auto">
-                {projectCount}
+              <span className="text-sm font-medium text-left" style={{ color: statusColor }}>
+                {column.name} {projectCount}
               </span>
             </div>
           );
@@ -365,7 +384,7 @@ export function ProjectKanbanView({
                 <div
                   key={column.id}
                   onClick={() => setCurrentMobileColumnIndex(index)}
-                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity text-left ${
                     isActive ? 'ring-2 ring-offset-1' : ''
                   }`}
                   style={{ 
@@ -377,11 +396,8 @@ export function ProjectKanbanView({
                     className="w-2 h-2 rounded-full flex-shrink-0"
                     style={{ backgroundColor: statusColor }}
                   />
-                  <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
-                    {column.name}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                    {projectCount}
+                  <span className="text-xs font-medium truncate flex-1 min-w-0 text-left" style={{ color: statusColor }}>
+                    {column.name} {projectCount}
                   </span>
                 </div>
               );
@@ -419,6 +435,7 @@ export function ProjectKanbanView({
                   onEditProject={onEditProject}
                   onOpenKanban={onOpenKanban}
                   onOpenStoryManager={onOpenStoryManager}
+                  onAddStory={onAddStory}
                   projectSettings={projectSettings}
                 />
               </div>
@@ -440,6 +457,7 @@ export function ProjectKanbanView({
                   onEditProject={onEditProject}
                   onOpenKanban={onOpenKanban}
                   onOpenStoryManager={onOpenStoryManager}
+                  onAddStory={onAddStory}
                   projectSettings={projectSettings}
                 />
               </div>
@@ -454,6 +472,7 @@ export function ProjectKanbanView({
                   onEdit={onEditProject}
                   onOpenKanban={onOpenKanban}
                   onOpenStoryManager={onOpenStoryManager}
+                  onAddStory={onAddStory}
                 />
               </div>
             ) : null}

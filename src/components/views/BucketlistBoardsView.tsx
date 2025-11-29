@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, CheckCircle, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map, Plane, Sparkles, GraduationCap, Award, Mountain, Flag, Tag, Layers } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Calendar, User, Target, Edit, Trash2, Circle, Grid3X3, List, PieChart, GripVertical, Plus, Trophy, Map, Plane, Sparkles, GraduationCap, Award, Mountain, Flag, Tag, Layers } from 'lucide-react';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 import { BucketlistModal } from '@/components/modals/BucketlistModal';
 import { lazy, Suspense } from 'react';
@@ -777,7 +777,7 @@ export function BucketlistBoardsView() {
     return 'low';
   };
 
-  const getPriorityIcon = (priority: 'low' | 'medium' | 'high') => {
+  const getPriorityIcon = (_priority: 'low' | 'medium' | 'high') => {
     return <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />;
   };
 

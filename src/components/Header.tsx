@@ -4,6 +4,8 @@ import { NavigationDropdown } from '@/components/NavigationDropdown';
 import { Settings, Calendar } from 'lucide-react';
 import { ViewType } from '@/constants/views';
 import { useViewPrefetch } from '@/hooks/useViewPrefetch';
+import { useAtom } from 'jotai';
+import { todayViewModeAtom } from '@/stores/uiStore';
 
 interface HeaderProps {
   currentView: ViewType;
@@ -40,7 +42,14 @@ function getViewDisplayName(view: ViewType): string | null {
 }
 
 export function Header({ currentView, setCurrentView }: HeaderProps) {
-  const viewName = getViewDisplayName(currentView);
+  const [todayViewMode] = useAtom(todayViewModeAtom);
+  let viewName = getViewDisplayName(currentView);
+  
+  // Override view name for today view based on viewMode
+  if (currentView === 'today') {
+    viewName = todayViewMode === 'week' ? "Week's Focus" : "Today's Focus";
+  }
+  
   const { prefetchView } = useViewPrefetch();
 
   return (

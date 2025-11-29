@@ -17,9 +17,9 @@ type ViewType = 'list' | 'pie';
 
 export function GoalBoardsView() {
   const [goals] = useAtom(goalsAtom);
-  const [settings] = useAtom(settingsAtom);
   const [visions] = useAtom(visionsAtom);
   const [, updateGoal] = useAtom(updateGoalAtom);
+  const [settings] = useAtom(settingsAtom);
 
   // Use settings mirror system for goal settings
   const goalSettings = useGoalSettings();

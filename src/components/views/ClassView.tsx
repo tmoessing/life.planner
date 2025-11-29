@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { GraduationCap, Plus, Edit, FileText, Book, FileCheck, FolderKanban, ClipboardList, MoreHorizontal, Trash2, CheckCircle2, List, Grid, BarChart3, Weight, Loader2 } from 'lucide-react';
 import type { Class, Assignment, AssignmentType } from '@/types';
 import { formatRecurrencePattern } from '@/utils/assignmentRecurrenceUtils';
@@ -40,7 +39,6 @@ export function ClassView() {
   const [showCharts, setShowCharts] = useState(false);
   const [selectedClassForAnalytics, setSelectedClassForAnalytics] = useState<string>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addModalType, setAddModalType] = useState<'class' | 'assignment'>('assignment');
   const classRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const handleAddClass = () => {
@@ -126,26 +124,6 @@ export function ClassView() {
         return <ClipboardList className="h-4 w-4" />;
       default:
         return <MoreHorizontal className="h-4 w-4" />;
-    }
-  };
-
-  const getAssignmentTypeColor = (type: AssignmentType | string) => {
-    // Handle legacy "exam" type
-    if (type === 'exam') type = 'test';
-    
-    switch (type) {
-      case 'homework':
-        return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
-      case 'reading':
-        return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700';
-      case 'paper':
-        return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700';
-      case 'project':
-        return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700';
-      case 'test':
-        return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
     }
   };
 

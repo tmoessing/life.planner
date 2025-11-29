@@ -6,7 +6,6 @@ import {
   selectedSprintIdAtom
 } from '@/stores/appStore';
 import { SprintKanbanBoard } from '@/components/boards/SprintKanbanBoard';
-import { ChartsSection } from '@/components/charts/ChartsSection';
 import { RoadmapSection } from '@/components/RoadmapSection';
 import { FilterBar } from '@/components/forms/FilterBar';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
@@ -37,10 +36,6 @@ export function SprintView() {
         
         <div className="mb-4 sm:mb-6">
           <RoadmapSection />
-        </div>
-        
-        <div className="mb-4 sm:mb-6">
-          <ChartsSection />
         </div>
       </>
     );

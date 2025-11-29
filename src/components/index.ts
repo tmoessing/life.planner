@@ -32,7 +32,7 @@ export { ProjectStoryManager } from './ProjectStoryManager';
 export { RoadmapSection } from './RoadmapSection';
 
 // View Components
-export { TodayView } from './views/TodayView';
+export { FocusView } from './views/FocusView';
 export { SprintView } from './views/SprintView';
 export { StoryBoardsViewRefactored as StoryBoardsView } from './views/StoryBoardsViewRefactored';
 export { ImportanceView } from './views/ImportanceView';

@@ -165,10 +165,11 @@ export function MobileBottomNav({ currentView, setCurrentView }: MobileBottomNav
           }}
         >
           <div className="flex items-center justify-around py-2">
-          {mobileNavItems.map((item) => {
+          {mobileNavItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
             const viewType = item.id as ViewType;
+            const isMiddle = index === Math.floor(mobileNavItems.length / 2);
             
             return (
               <Button
@@ -181,8 +182,8 @@ export function MobileBottomNav({ currentView, setCurrentView }: MobileBottomNav
                 onFocus={() => prefetchView(viewType)}
                 onTouchStart={() => prefetchView(viewType)}
               >
-                <Icon className="h-4 w-4" />
-                <span className="text-xs leading-tight">{item.label}</span>
+                <Icon className={isMiddle ? "h-6 w-6" : "h-4 w-4"} />
+                {item.id !== 'today' && <span className="text-xs leading-tight">{item.label}</span>}
               </Button>
             );
           })}

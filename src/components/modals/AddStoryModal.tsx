@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { addStoryAtom, addStoryToProjectAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, currentSprintAtom, projectsAtom, storyPrioritiesAtom } from '@/stores/appStore';
+import { addStoryAtom, addStoryToProjectAtom, rolesAtom, visionsAtom, goalsAtom, settingsAtom, safeSprintsAtom, projectsAtom, storyPrioritiesAtom } from '@/stores/appStore';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { getWeightGradientColor } from '@/utils';
 import type { Story, Priority, StoryType } from '@/types';
@@ -33,7 +33,7 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
   const storySettings = useStorySettings();
 
 
-  const [formData, setFormData] = useState<Partial<Story>>({
+  const [formData, setFormData] = useState<Partial<Story>>(() => ({
     title: '',
     description: '',
     priority: undefined,
@@ -43,14 +43,48 @@ export function AddStoryModal({ open, onOpenChange, initialData, targetColumnId 
     roleId: undefined,
     visionId: undefined,
     dueDate: undefined,
-    sprintId: undefined,
+    sprintId: initialData?.sprintId,
     taskCategories: [],
     scheduledDate: undefined,
     location: undefined,
     goalId: undefined,
-    status: (targetColumnId || 'backlog') as "icebox" | "backlog" | "todo" | "progress" | "review" | "done",
+    status: (initialData?.status || targetColumnId || 'backlog') as "icebox" | "backlog" | "todo" | "progress" | "review" | "done",
     ...initialData
-  });
+  }));
+
+  // Update form data when modal opens with new initialData
+  useEffect(() => {
+    if (open) {
+      // Merge initialData properly - ensure sprintId and status from initialData take precedence
+      const mergedData = {
+        title: '',
+        description: '',
+        priority: undefined,
+        weight: undefined,
+        size: undefined,
+        type: undefined,
+        roleId: undefined,
+        visionId: undefined,
+        dueDate: undefined,
+        sprintId: undefined,
+        taskCategories: [],
+        scheduledDate: undefined,
+        location: undefined,
+        goalId: undefined,
+        status: (targetColumnId || 'backlog') as "icebox" | "backlog" | "todo" | "progress" | "review" | "done",
+        ...initialData
+      };
+      setFormData(mergedData);
+      // Reset recurrence state
+      setHasRecurrence(false);
+      setRecurrenceCadence('weekly');
+      setRecurrenceInterval(1);
+      setRecurrenceWeekOfMonth('any');
+      setRecurrenceEndDate('');
+      setRecurrenceCount('');
+      setRecurrenceEndType('never');
+    }
+  }, [open, initialData, targetColumnId]);
 
   // Recurrence state
   const [hasRecurrence, setHasRecurrence] = useState(false);

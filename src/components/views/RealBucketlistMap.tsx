@@ -164,7 +164,7 @@ function MapComponent({ items, selectedItem, setSelectedItem }: {
                 
                 {/* All items in this location */}
                 <div className="space-y-3">
-                  {itemsInSameLocation.map((locationItem, idx) => (
+                  {itemsInSameLocation.map((locationItem) => (
                     <div key={locationItem.id} className={`p-2 rounded-lg border ${
                       locationItem.completed 
                         ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 

@@ -7,11 +7,9 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { 
   storyStatusesAtom, 
-  goalStatusesAtom, 
   projectStatusesAtom,
   bucketlistStatusesAtom,
   updateStoryStatusesAtom,
-  updateGoalStatusesAtom,
   updateProjectStatusesAtom,
   updateBucketlistStatusesAtom
 } from '@/stores/appStore';
