@@ -576,64 +576,96 @@ export function SprintPlanningView() {
               onDragLeave={handleDragLeaveSprint}
               onDrop={(e) => handleDrop(e, sprint.id)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <CardTitle className="text-base">
+              <CardHeader className="pb-2 sm:pb-3">
+                {/* Mobile: Stacked layout, Desktop: Side by side */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <CardTitle className="text-sm sm:text-base truncate">
                       Week {sprint.isoWeek} - {sprint.year}
                     </CardTitle>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {sprintStories.length}
-                  </Badge>
+                  {/* Mobile: Right side details - compact and functional */}
+                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+                    {/* Date range - more prominent on mobile */}
+                    <div className="flex items-center gap-1.5 text-xs sm:text-xs">
+                      <Calendar className="h-3 w-3 text-muted-foreground sm:hidden" />
+                      <span className="text-muted-foreground font-medium sm:font-normal">
+                        {new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(sprint.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    {/* Story count badge - more functional */}
+                    <Badge 
+                      variant="secondary" 
+                      className="text-xs px-2 py-1 font-semibold bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
+                    >
+                      {sprintStories.length} {sprintStories.length === 1 ? 'story' : 'stories'}
+                    </Badge>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                {/* Desktop: Date range below */}
+                <p className="text-xs text-muted-foreground hidden sm:block mt-1">
                   {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}
                 </p>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+              <CardContent className="pt-2 sm:pt-4">
+                <div className="space-y-1.5 sm:space-y-2">
                   {sprintStories.slice(0, 3).map((story, index) => (
                     <div 
                       key={story.id} 
-                      className={`p-2 bg-muted rounded text-xs cursor-move transition-all ${
-                        draggedStoryId === story.id ? 'opacity-50 scale-95' : 'hover:bg-muted/80'
+                      className={`p-2 sm:p-2 bg-muted rounded-md text-xs cursor-move transition-all touch-target ${
+                        draggedStoryId === story.id ? 'opacity-50 scale-95' : 'hover:bg-muted/80 active:bg-muted/60'
                       } ${
-                        selectedStoryIds.has(story.id) ? 'ring-2 ring-blue-500 bg-blue-100' : ''
+                        selectedStoryIds.has(story.id) ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900/30' : ''
                       }`}
                       draggable
                       onDragStart={(e) => handleDragStart(e, story.id)}
                       onDragEnd={handleDragEnd}
                       onClick={(e) => handleStoryClick(e, story.id, sprintStories, index)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium truncate flex-1">{story.title}</div>
+                      {/* Mobile: Better layout with right-side actions */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate mb-1.5">{story.title}</div>
+                          {/* Mobile: Compact badges row */}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 h-5">
+                              {story.priority}
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 h-5">
+                              W:{story.weight}
+                            </Badge>
+                            {story.size && (
+                              <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 h-5">
+                                {story.size}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        {/* Right side: Edit button - better touch target on mobile */}
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-xs h-4 w-4 p-0 ml-1"
+                          className="text-xs h-8 w-8 sm:h-6 sm:w-6 p-0 flex-shrink-0 touch-target"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditStory(story);
                           }}
+                          title="Edit story"
                         >
-                          <Edit className="h-3 w-3" />
+                          <Edit className="h-4 w-4 sm:h-3 sm:w-3" />
                         </Button>
-                      </div>
-                      <div className="flex gap-1 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {story.priority}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {story.weight}
-                        </Badge>
                       </div>
                     </div>
                   ))}
                   {sprintStories.length > 3 && (
-                    <div className="text-xs text-muted-foreground text-center">
-                      +{sprintStories.length - 3} more stories
+                    <div className="text-xs text-muted-foreground text-center py-1.5 sm:py-2 font-medium">
+                      +{sprintStories.length - 3} more {sprintStories.length - 3 === 1 ? 'story' : 'stories'}
+                    </div>
+                  )}
+                  {sprintStories.length === 0 && (
+                    <div className="text-xs text-muted-foreground text-center py-4">
+                      No stories assigned
                     </div>
                   )}
                 </div>

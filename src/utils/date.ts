@@ -1,4 +1,16 @@
-import { format, startOfWeek, endOfWeek, getISOWeek, getYear, addWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, getISOWeek, getYear, setISOWeek, addDays } from 'date-fns';
+
+/**
+ * Calculate ISO year from a date
+ * ISO year is the year that contains the Thursday of the ISO week
+ */
+const getISOYear = (date: Date): number => {
+  // Get the Thursday of the ISO week (Thursday is day 4, Monday is day 1)
+  // ISO week starts on Monday, so Thursday is 3 days after Monday
+  const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+  const thursday = addDays(weekStart, 3);
+  return getYear(thursday);
+};
 
 /**
  * Get current week information
@@ -7,21 +19,37 @@ export const getCurrentWeek = (): { isoWeek: number; year: number } => {
   const now = new Date();
   return {
     isoWeek: getISOWeek(now),
-    year: getYear(now)
+    year: getISOYear(now) // Use ISO year to match ISO week
   };
 };
 
 /**
  * Get week dates for a given ISO week and year
+ * 
+ * ISO weeks don't align with calendar years. ISO week 1 is the week containing
+ * the first Thursday of the year. This function correctly calculates the
+ * start and end dates for any ISO week/year combination.
  */
 export const getWeekDates = (isoWeek: number, year: number): { startDate: string; endDate: string } => {
-  const date = new Date(year, 0, 1);
-  const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-  const targetWeek = addWeeks(weekStart, isoWeek - 1);
+  // Start with January 4th of the year, which is always in ISO week 1
+  // This ensures we're working with the correct ISO year
+  const jan4 = new Date(year, 0, 4);
+  const jan4ISOYear = getISOYear(jan4);
+  
+  // If the ISO year doesn't match, adjust to the correct year
+  // (ISO week 1 might belong to the previous calendar year)
+  const baseDate = jan4ISOYear === year ? jan4 : new Date(year - 1, 11, 28);
+  
+  // Set to the correct ISO week
+  const targetDate = setISOWeek(baseDate, isoWeek);
+  
+  // Get the start (Monday) and end (Sunday) of the ISO week
+  const weekStart = startOfWeek(targetDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(targetDate, { weekStartsOn: 1 });
   
   return {
-    startDate: format(targetWeek, 'yyyy-MM-dd'),
-    endDate: format(endOfWeek(targetWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+    startDate: format(weekStart, 'yyyy-MM-dd'),
+    endDate: format(weekEnd, 'yyyy-MM-dd')
   };
 };
 

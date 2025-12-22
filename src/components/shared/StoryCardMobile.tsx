@@ -1,29 +1,9 @@
-import { Calendar, CalendarPlus, Edit, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Calendar, CalendarPlus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getWeightGradientColor } from '@/utils/color';
+import { StatusSelector } from './StatusSelector';
+import { getPriorityColorStyle } from '@/utils/storyCardColors';
 import type { Story } from '@/types';
-
-// Helper function to get status icon
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'icebox':
-      return <Snowflake className="h-3 w-3" />;
-    case 'backlog':
-      return <Layers className="h-3 w-3" />;
-    case 'todo':
-      return <Circle className="h-3 w-3" />;
-    case 'progress':
-    case 'in-progress':
-      return <PlayCircle className="h-3 w-3" />;
-    case 'review':
-      return <Eye className="h-3 w-3" />;
-    case 'done':
-      return <CheckCircle2 className="h-3 w-3" />;
-    default:
-      return null;
-  }
-};
 
 interface StoryCardMobileProps {
   story: Story;
@@ -33,6 +13,7 @@ interface StoryCardMobileProps {
   showActions: boolean;
   onEdit?: (story: Story) => void;
   onAddToGoogleCalendar: () => void;
+  onStatusChange?: (newStatus: Story['status']) => void;
 }
 
 /**
@@ -45,7 +26,8 @@ export function StoryCardMobile({
   getStatusColor,
   showActions,
   onEdit,
-  onAddToGoogleCalendar
+  onAddToGoogleCalendar,
+  onStatusChange
 }: StoryCardMobileProps) {
   return (
     <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
@@ -67,15 +49,24 @@ export function StoryCardMobile({
       </div>
       {/* Key badges and info - right aligned, compact */}
       <div className="flex items-center gap-1 flex-shrink-0">
-        <Badge 
-          style={{ 
-            backgroundColor: getStatusColor(story.status),
-            color: 'white'
-          }}
-          className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5"
-        >
-          {getStatusIcon(story.status) || story.status.substring(0, 4)}
-        </Badge>
+        {onStatusChange ? (
+          <StatusSelector
+            status={story.status}
+            getStatusColor={getStatusColor}
+            onStatusChange={onStatusChange}
+            size="sm"
+          />
+        ) : (
+          <div 
+            style={{ 
+              backgroundColor: getStatusColor(story.status),
+              color: 'white'
+            }}
+            className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 rounded"
+          >
+            {story.status.substring(0, 4)}
+          </div>
+        )}
         <span 
           className="text-[9px] font-medium whitespace-nowrap"
           style={{ 
@@ -84,6 +75,13 @@ export function StoryCardMobile({
         >
           {story.weight}
         </span>
+        {/* Priority tag */}
+        <div 
+          style={getPriorityColorStyle(story.priority, storySettings)}
+          className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 rounded border"
+        >
+          {story.priority}
+        </div>
         {/* Actions */}
         {showActions && (
           <>

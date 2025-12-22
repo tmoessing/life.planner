@@ -5,6 +5,8 @@ interface UseStorySwipeProps {
   currentColumnId?: string;
   allColumnIds?: string[];
   onMoveToColumn?: (storyId: string, targetColumnId: string) => void;
+  onDelete?: (storyId: string) => void;
+  enableSwipeToDelete?: boolean;
 }
 
 interface TouchStart {
@@ -15,12 +17,15 @@ interface TouchStart {
 
 /**
  * Hook for handling swipe gestures on story cards in kanban mode
+ * Supports swipe left to delete and swipe right/left to move between columns
  */
 export function useStorySwipe({
   kanbanMode,
   currentColumnId,
   allColumnIds = [],
-  onMoveToColumn
+  onMoveToColumn,
+  onDelete,
+  enableSwipeToDelete = true
 }: UseStorySwipeProps) {
   const [touchStart, setTouchStart] = useState<TouchStart | null>(null);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
@@ -58,13 +63,6 @@ export function useStorySwipe({
   const handleTouchEnd = useCallback((e: React.TouchEvent, storyId: string) => {
     if (!touchStart) return;
     
-    // Only handle swipes in kanban mode
-    if (!kanbanMode || !currentColumnId || !allColumnIds.length || !onMoveToColumn) {
-      setTouchStart(null);
-      setSwipeDirection(null);
-      return;
-    }
-    
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
@@ -79,27 +77,39 @@ export function useStorySwipe({
       Math.abs(deltaX) > Math.abs(deltaY) &&
       deltaTime < maxSwipeTime
     ) {
-      // Kanban mode: swipe to move between columns
-      const currentIndex = allColumnIds.indexOf(currentColumnId);
+      // Swipe left to delete (if enabled)
+      if (deltaX < 0 && enableSwipeToDelete && onDelete) {
+        e.preventDefault();
+        e.stopPropagation();
+        onDelete(storyId);
+        setTouchStart(null);
+        setSwipeDirection(null);
+        return;
+      }
       
-      if (deltaX > 0 && currentIndex > 0) {
-        // Swipe right - Move to previous column (left in the board)
-        e.preventDefault();
-        e.stopPropagation();
-        const targetColumnId = allColumnIds[currentIndex - 1];
-        onMoveToColumn(storyId, targetColumnId);
-      } else if (deltaX < 0 && currentIndex < allColumnIds.length - 1) {
-        // Swipe left - Move to next column (right in the board)
-        e.preventDefault();
-        e.stopPropagation();
-        const targetColumnId = allColumnIds[currentIndex + 1];
-        onMoveToColumn(storyId, targetColumnId);
+      // Kanban mode: swipe to move between columns
+      if (kanbanMode && currentColumnId && allColumnIds.length && onMoveToColumn) {
+        const currentIndex = allColumnIds.indexOf(currentColumnId);
+        
+        if (deltaX > 0 && currentIndex > 0) {
+          // Swipe right - Move to previous column (left in the board)
+          e.preventDefault();
+          e.stopPropagation();
+          const targetColumnId = allColumnIds[currentIndex - 1];
+          onMoveToColumn(storyId, targetColumnId);
+        } else if (deltaX < 0 && currentIndex < allColumnIds.length - 1 && !enableSwipeToDelete) {
+          // Swipe left - Move to next column (only if swipe-to-delete is disabled)
+          e.preventDefault();
+          e.stopPropagation();
+          const targetColumnId = allColumnIds[currentIndex + 1];
+          onMoveToColumn(storyId, targetColumnId);
+        }
       }
     }
     
     setTouchStart(null);
     setSwipeDirection(null);
-  }, [touchStart, kanbanMode, currentColumnId, allColumnIds, onMoveToColumn]);
+  }, [touchStart, kanbanMode, currentColumnId, allColumnIds, onMoveToColumn, onDelete, enableSwipeToDelete]);
 
   return {
     swipeDirection,

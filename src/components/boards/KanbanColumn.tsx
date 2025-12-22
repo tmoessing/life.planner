@@ -16,6 +16,7 @@ interface KanbanColumnProps {
   selectedStories: string[];
   onStoryClick: (storyId: string, event: React.MouseEvent, storyList?: Story[], index?: number) => void;
   onEditStory: (story: Story) => void;
+  onDeleteStory?: (storyId: string) => void;
   projectId?: string;
   activeStory?: Story | null;
   isDragOver?: boolean;
@@ -26,7 +27,7 @@ interface KanbanColumnProps {
   columnColor?: string; // Optional color override (e.g., from project settings)
 }
 
-export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, projectId, activeStory, allColumnIds, onMoveToColumn, columnColor: propColumnColor }: KanbanColumnProps) {
+export function KanbanColumn({ column, stories, selectedStories, onStoryClick, onEditStory, onDeleteStory, projectId, activeStory, allColumnIds, onMoveToColumn, columnColor: propColumnColor }: KanbanColumnProps) {
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [currentSprint] = useAtom(currentSprintAtom);
   const storySettings = useStorySettings();
@@ -62,6 +63,7 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
     <>
       <Card 
         ref={setDroppableRef}
+        data-column-id={column.id}
         className={`${
           isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
         } ${
@@ -110,6 +112,7 @@ export function KanbanColumn({ column, stories, selectedStories, onStoryClick, o
               isSelected={selectedStories.includes(story.id)}
               onClick={(event) => onStoryClick(story.id, event, stories, index)}
               onEdit={onEditStory}
+              onDelete={onDeleteStory}
               draggable={true}
               kanbanMode={!!allColumnIds && allColumnIds.length > 0}
               currentColumnId={column.id}

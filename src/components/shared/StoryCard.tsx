@@ -85,6 +85,11 @@ export function StoryCard({
     openStoryInGoogleCalendar(story);
   }, [story, moveStory]);
 
+  // Handle status change
+  const handleStatusChange = useCallback((newStatus: Story['status']) => {
+    moveStory(story.id, newStatus);
+  }, [story.id, moveStory]);
+
   // Keyboard shortcuts hook
   const { handleKeyDown } = useStoryKeyboardShortcuts({
     story,
@@ -105,7 +110,9 @@ export function StoryCard({
     kanbanMode,
     currentColumnId,
     allColumnIds,
-    onMoveToColumn
+    onMoveToColumn,
+    onDelete,
+    enableSwipeToDelete: true
   });
 
   // Event handlers
@@ -168,6 +175,7 @@ export function StoryCard({
   return (
     <Card 
       {...cardProps}
+      data-story-id={story.id}
       tabIndex={isSelected ? 0 : -1}
       className={`
         glass-card
@@ -203,6 +211,7 @@ export function StoryCard({
         showActions={showActions}
         onEdit={onEdit}
         onAddToGoogleCalendar={handleAddToGoogleCalendar}
+        onStatusChange={handleStatusChange}
       />
 
       {/* Desktop layout */}
@@ -222,6 +231,7 @@ export function StoryCard({
         onEdit={onEdit}
         onDelete={onDelete}
         onAddToGoogleCalendar={handleAddToGoogleCalendar}
+        onStatusChange={handleStatusChange}
       />
     </Card>
   );

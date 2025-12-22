@@ -15,17 +15,12 @@ import {
   Repeat,
   MoreHorizontal,
   CalendarPlus,
-  Snowflake,
-  Layers,
-  Circle,
-  PlayCircle,
-  Eye,
-  CheckCircle2,
   Heart,
   Users,
   Brain,
   Dumbbell
 } from 'lucide-react';
+import { StatusSelector } from './StatusSelector';
 import type { Story } from '@/types';
 import { 
   getRoleName, 
@@ -41,27 +36,6 @@ import {
   getWeightColorStyle 
 } from '@/utils/storyCardColors';
 import type { Role, Vision, Goal, Project, Label } from '@/types';
-
-// Helper function to get status icon
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'icebox':
-      return <Snowflake className="h-2.5 w-2.5" />;
-    case 'backlog':
-      return <Layers className="h-2.5 w-2.5" />;
-    case 'todo':
-      return <Circle className="h-2.5 w-2.5" />;
-    case 'progress':
-    case 'in-progress':
-      return <PlayCircle className="h-2.5 w-2.5" />;
-    case 'review':
-      return <Eye className="h-2.5 w-2.5" />;
-    case 'done':
-      return <CheckCircle2 className="h-2.5 w-2.5" />;
-    default:
-      return null;
-  }
-};
 
 // Helper function to get type icon
 const getTypeIcon = (type: string) => {
@@ -95,6 +69,7 @@ interface StoryCardDesktopProps {
   onEdit?: (story: Story) => void;
   onDelete?: (storyId: string) => void;
   onAddToGoogleCalendar: () => void;
+  onStatusChange?: (newStatus: Story['status']) => void;
 }
 
 /**
@@ -115,7 +90,8 @@ export function StoryCardDesktop({
   draggable,
   onEdit,
   onDelete,
-  onAddToGoogleCalendar
+  onAddToGoogleCalendar,
+  onStatusChange
 }: StoryCardDesktopProps) {
   const completedChecklistItems = story.checklist.filter(item => item.done).length;
   const totalChecklistItems = story.checklist.length;
@@ -237,15 +213,24 @@ export function StoryCardDesktop({
           >
             {story.size}
           </Badge>
-          <Badge 
-            style={{ 
-              backgroundColor: getStatusColor(story.status),
-              color: 'white'
-            }}
-            className="text-[10px] px-1 py-0 flex items-center gap-0.5"
-          >
-            {getStatusIcon(story.status) || story.status}
-          </Badge>
+          {onStatusChange ? (
+            <StatusSelector
+              status={story.status}
+              getStatusColor={getStatusColor}
+              onStatusChange={onStatusChange}
+              size="sm"
+            />
+          ) : (
+            <Badge 
+              style={{ 
+                backgroundColor: getStatusColor(story.status),
+                color: 'white'
+              }}
+              className="text-[10px] px-1 py-0 flex items-center gap-0.5"
+            >
+              {story.status}
+            </Badge>
+          )}
           {(story as any)._isRecurringInstance && (
             <Badge 
               variant="outline" 

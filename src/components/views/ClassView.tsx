@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { GraduationCap, Plus, Edit, FileText, Book, FileCheck, FolderKanban, ClipboardList, MoreHorizontal, Trash2, CheckCircle2, List, Grid, BarChart3, Weight, Loader2 } from 'lucide-react';
 import type { Class, Assignment, AssignmentType } from '@/types';
 import { formatRecurrencePattern } from '@/utils/assignmentRecurrenceUtils';
@@ -40,6 +41,7 @@ export function ClassView() {
   const [selectedClassForAnalytics, setSelectedClassForAnalytics] = useState<string>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const classRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  
 
   const handleAddClass = () => {
     setSelectedClass(null);
@@ -340,13 +342,16 @@ export function ClassView() {
     }));
   }, [assignments, selectedClassForAnalytics]);
 
+  // Use all classes (no filtering)
+  const filteredClasses = classes;
+
   return (
     <div className="h-full flex flex-col p-4 sm:p-6">
       {/* Class codes navigation row with Add button */}
       <div className="mb-2 -mx-4 px-4 md:mx-0 md:px-0">
         <div className="flex items-start gap-2 flex-wrap">
           <div className="flex gap-2 flex-wrap flex-1 min-w-0">
-            {classes.map((classItem) => {
+            {filteredClasses.map((classItem) => {
               const classType = classItem.classType || 'Major';
               const buttonColor = getClassTypeButtonColor(classType);
               return (
@@ -414,6 +419,20 @@ export function ClassView() {
             </Button>
           </CardContent>
         </Card>
+      ) : filteredClasses.length === 0 ? (
+        <Card className="flex-1 flex items-center justify-center">
+          <CardContent className="text-center py-12">
+            <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">No classes for selected semester</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Try selecting a different semester or create a new class
+            </p>
+            <Button onClick={handleAddClass} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Class
+            </Button>
+          </CardContent>
+        </Card>
       ) : viewMode === 'list' ? (
         <>
           {/* Charts Section */}
@@ -431,7 +450,7 @@ export function ClassView() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Classes</SelectItem>
-                      {classes.map((classItem) => (
+                      {filteredClasses.map((classItem) => (
                         <SelectItem key={classItem.id} value={classItem.id}>
                           {classItem.classCode || classItem.title}
                         </SelectItem>
@@ -569,7 +588,7 @@ export function ClassView() {
         <>
           {/* Classes grid - horizontal scroll on mobile, grid on desktop */}
           <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto md:overflow-y-auto md:overflow-x-visible pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-            {classes.map((classItem) => {
+            {filteredClasses.map((classItem) => {
             const classAssignments = getClassAssignments(classItem);
             const assignmentsByType = groupAssignmentsByType(classAssignments);
             const hasAssignments = classAssignments.length > 0;
