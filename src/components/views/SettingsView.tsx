@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, FolderOpen, ListChecks, BookOpen, Trophy, Eye, Zap, Calendar, Heart, GraduationCap, Moon, Monitor } from 'lucide-react';
+import { Trash2, AlertTriangle, Download, FileSpreadsheet, Upload, Settings, Users, FolderOpen, ListChecks, BookOpen, Trophy, Eye, Zap, Calendar, Heart, GraduationCap, Moon, Monitor, Globe, Wand2 } from 'lucide-react';
+import { APISettings } from '@/components/settings/APISettings';
 import { settingsAtom } from '@/stores/settingsStore';
 import { ImportModal } from '@/components/modals/ImportModal';
 import { RolesSettings } from '@/components/settings/RolesSettings';
@@ -24,17 +25,19 @@ import { ProjectPrioritySettings } from '@/components/settings/ProjectPrioritySe
 import { WeightSettings } from '@/components/settings/WeightSettings';
 import { GoalCategoriesSettings } from '@/components/settings/GoalCategoriesSettings';
 import { ImportantDateSettings } from '@/components/settings/ImportantDateSettings';
-import { TaskCategoriesSettings } from '@/components/settings/TaskCategoriesSettings';
 import { GoogleSheetsSettings } from '@/components/settings/GoogleSheetsSettings';
-import { 
-  deleteAllDataAtom, 
-  storiesAtom, 
-  sprintsAtom, 
-  goalsAtom, 
-  projectsAtom, 
-  visionsAtom, 
-  bucketlistAtom, 
-  rolesAtom, 
+import { TaskCategoriesSettings } from '@/components/settings/TaskCategoriesSettings';
+import { RulesSettings } from '@/components/settings/RulesSettings';
+
+import {
+  deleteAllDataAtom,
+  storiesAtom,
+  sprintsAtom,
+  goalsAtom,
+  projectsAtom,
+  visionsAtom,
+  bucketlistAtom,
+  rolesAtom,
   labelsAtom,
   importantDatesAtom,
   traditionsAtom
@@ -44,7 +47,7 @@ import { assignmentsAtom } from '@/stores/assignmentStore';
 import { exportToExcel } from '@/utils/export';
 import { generateTestData } from '@/utils/testDataGenerator';
 
-type SettingsCategory = 'stories' | 'goals' | 'projects' | 'bucketlist' | 'visions' | 'roles' | 'traditions' | 'important-dates';
+type SettingsCategory = 'stories' | 'goals' | 'projects' | 'bucketlist' | 'visions' | 'roles' | 'traditions' | 'important-dates' | 'rules';
 
 export function SettingsView() {
   const [, deleteAllData] = useAtom(deleteAllDataAtom);
@@ -53,7 +56,7 @@ export function SettingsView() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showTestDataModal, setShowTestDataModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<SettingsCategory>('stories');
-  
+
   // Get all data for export
   const [stories, setStories] = useAtom(storiesAtom);
   const [sprints, setSprints] = useAtom(sprintsAtom);
@@ -98,7 +101,7 @@ export function SettingsView() {
 
   const handleConfirmTestData = () => {
     const testData = generateTestData();
-    
+
     // Merge with existing data instead of replacing
     setStories(prev => [...prev, ...testData.stories]);
     setGoals(prev => [...prev, ...testData.goals]);
@@ -110,14 +113,14 @@ export function SettingsView() {
     setSprints(prev => [...prev, ...testData.sprints]);
     setClasses(prev => [...prev, ...testData.classes]);
     setAssignments(prev => [...prev, ...testData.assignments]);
-    
+
     setShowTestDataModal(false);
   };
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="configuration" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 h-auto">
+        <TabsList className="grid w-full grid-cols-3 h-auto">
           <TabsTrigger value="configuration" className="gap-1 sm:gap-2 py-2 sm:py-1.5 touch-target min-h-[44px] sm:min-h-0">
             <Settings className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Configuration</span>
@@ -125,6 +128,10 @@ export function SettingsView() {
           <TabsTrigger value="data" className="gap-1 sm:gap-2 py-2 sm:py-1.5 touch-target min-h-[44px] sm:min-h-0">
             <Download className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Data Management</span>
+          </TabsTrigger>
+          <TabsTrigger value="api" className="gap-1 sm:gap-2 py-2 sm:py-1.5 touch-target min-h-[44px] sm:min-h-0">
+            <Globe className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">API & Integrations</span>
           </TabsTrigger>
         </TabsList>
 
@@ -142,7 +149,7 @@ export function SettingsView() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                
+
                 <Button
                   variant={selectedCategory === 'stories' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('stories')}
@@ -151,7 +158,7 @@ export function SettingsView() {
                   <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Stories</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'goals' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('goals')}
@@ -160,7 +167,7 @@ export function SettingsView() {
                   <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Goals</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'projects' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('projects')}
@@ -169,7 +176,7 @@ export function SettingsView() {
                   <FolderOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Projects</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'bucketlist' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('bucketlist')}
@@ -178,7 +185,7 @@ export function SettingsView() {
                   <ListChecks className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Bucketlist</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'visions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('visions')}
@@ -187,7 +194,7 @@ export function SettingsView() {
                   <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Visions</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'roles' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('roles')}
@@ -196,7 +203,7 @@ export function SettingsView() {
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Roles</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'traditions' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('traditions')}
@@ -205,7 +212,7 @@ export function SettingsView() {
                   <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Traditions</span>
                 </Button>
-                
+
                 <Button
                   variant={selectedCategory === 'important-dates' ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory('important-dates')}
@@ -214,7 +221,16 @@ export function SettingsView() {
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Important Dates</span>
                 </Button>
-                
+
+                <Button
+                  variant={selectedCategory === 'rules' ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory('rules')}
+                  className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 h-auto min-w-fit text-xs sm:text-sm rounded-full transition-all duration-150 hover:scale-[1.03] hover:shadow-md"
+                >
+                  <Wand2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Rules</span>
+                </Button>
+
               </div>
             </CardContent>
           </Card>
@@ -456,7 +472,7 @@ export function SettingsView() {
           {selectedCategory === 'roles' && (
             <div className="space-y-4">
               <Collapsible
-                title="Roles"
+                title="Story Roles"
                 description="Manage roles that can be assigned to stories and other items."
                 defaultOpen={false}
               >
@@ -486,6 +502,12 @@ export function SettingsView() {
               >
                 <ImportantDateSettings />
               </Collapsible>
+            </div>
+          )}
+
+          {selectedCategory === 'rules' && (
+            <div className="space-y-4">
+              <RulesSettings />
             </div>
           )}
 
@@ -519,7 +541,7 @@ export function SettingsView() {
                   </div>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handleExportData}
                 className="gap-2 w-full sm:w-auto"
                 size="sm"
@@ -551,7 +573,7 @@ export function SettingsView() {
                   </div>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={() => setShowImportModal(true)}
                 className="gap-2 w-full sm:w-auto"
                 size="sm"
@@ -589,7 +611,7 @@ export function SettingsView() {
                   </div>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handleGenerateTestData}
                 className="gap-2 w-full sm:w-auto"
                 size="sm"
@@ -599,6 +621,7 @@ export function SettingsView() {
               </Button>
             </div>
           </Collapsible>
+
 
           <Collapsible
             title="Google Sheets Integration"
@@ -698,8 +721,8 @@ export function SettingsView() {
                   Permanently delete all stories, goals, projects, visions, and other data. This action cannot be undone.
                 </p>
               </div>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleDeleteAll}
                 className="gap-2 w-full sm:w-auto"
                 size="sm"
@@ -710,24 +733,28 @@ export function SettingsView() {
             </div>
           </Collapsible>
 
-      {showDeleteModal && (
-        <DeleteAllModal 
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setShowDeleteModal(false)}
-        />
-      )}
+          {showDeleteModal && (
+            <DeleteAllModal
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setShowDeleteModal(false)}
+            />
+          )}
 
-      {showTestDataModal && (
-        <TestDataModal 
-          onConfirm={handleConfirmTestData}
-          onCancel={() => setShowTestDataModal(false)}
-        />
-      )}
+          {showTestDataModal && (
+            <TestDataModal
+              onConfirm={handleConfirmTestData}
+              onCancel={() => setShowTestDataModal(false)}
+            />
+          )}
 
+        </TabsContent>
+
+        <TabsContent value="api" className="space-y-6">
+          <APISettings />
         </TabsContent>
       </Tabs>
 
-      <ImportModal 
+      <ImportModal
         open={showImportModal}
         onOpenChange={setShowImportModal}
       />
@@ -795,15 +822,15 @@ function DeleteAllModal({ onConfirm, onCancel }: DeleteAllModalProps) {
           </div>
         </div>
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={onCancel}
             className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
           >
             Cancel
           </Button>
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={onConfirm}
             disabled={!isConfirmed}
             className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
@@ -857,15 +884,15 @@ function TestDataModal({ onConfirm, onCancel }: TestDataModalProps) {
           </div>
         </div>
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={onCancel}
             className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
           >
             Cancel
           </Button>
-          <Button 
-            onClick={onConfirm} 
+          <Button
+            onClick={onConfirm}
             className="gap-2 w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
           >
             <Zap className="h-4 w-4" />

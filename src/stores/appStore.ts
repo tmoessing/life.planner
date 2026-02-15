@@ -3,6 +3,7 @@ export * from './storyStore';
 export * from './goalStore';
 export * from './projectStore';
 export * from './classStore';
+export * from './assignmentStore';
 export * from './uiStore';
 export * from './priorityStore';
 export * from './typeStore';
@@ -82,7 +83,7 @@ export const filteredStoriesAtom = atom(
     const keywords = get(filterKeywordsAtom);
     const dueSoon = get(filterDueSoonAtom);
     const roles = get(rolesAtom);
-    
+
     return filterStories(stories, text, keywords, dueSoon, roles, []);
   }
 );
@@ -97,6 +98,7 @@ export const exportDataAtom = atom(
       visions: get(visionsAtom),
       projects: get(projectsAtom),
       classes: get(classesAtom),
+      assignments: get(assignmentsAtom),
       columns: get(columnsAtom),
       boards: get(boardsAtom),
       settings: get(settingsAtom),
@@ -136,6 +138,7 @@ export const importDataAtom = atom(
     }
     if (data.projects) set(projectsAtom, data.projects);
     if (data.classes) set(classesAtom, data.classes);
+    if (data.assignments) set(assignmentsAtom, data.assignments);
     if (data.settings) set(settingsAtom, data.settings);
   }
 );
@@ -212,6 +215,8 @@ export const deleteAllDataAtom = atom(
     set(storiesAtom, []);
     set(goalsAtom, []);
     set(projectsAtom, []);
+    set(classesAtom, []);
+    set(assignmentsAtom, []);
     set(visionsAtom, []);
     set(bucketlistAtom, []);
     set(importantDatesAtom, []);
@@ -220,7 +225,7 @@ export const deleteAllDataAtom = atom(
     set(columnsAtom, []);
     set(boardsAtom, []);
     set(sprintsAtom, []);
-    
+
     // Also manually clear localStorage for important dates and traditions
     localStorage.removeItem('important-dates');
     localStorage.removeItem('life-scrum-important-dates');

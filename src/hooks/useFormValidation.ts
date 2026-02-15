@@ -18,8 +18,7 @@ export function useFormValidation<T extends FormData>(
 ) {
   const {
     validateOnChange = true,
-    validateOnBlur = true,
-    debounceMs = 300
+    validateOnBlur = true
   } = options;
 
   const [formData, setFormData] = useState<T>(initialData);
@@ -31,7 +30,7 @@ export function useFormValidation<T extends FormData>(
   const validateField = useCallback((field: keyof T, value: any): ValidationResult => {
     const fieldRules = rules.filter(rule => rule.field === field);
     const fieldData = { ...formData, [field]: value };
-    
+
     return validateForm(fieldData, fieldRules);
   }, [formData, rules]);
 
@@ -41,7 +40,7 @@ export function useFormValidation<T extends FormData>(
 
   const updateField = useCallback((field: keyof T, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     if (validateOnChange) {
       const result = validateField(field, value);
       setErrors(prev => ({ ...prev, [field]: result.errors[0] || '' }));
@@ -51,7 +50,7 @@ export function useFormValidation<T extends FormData>(
 
   const setFieldTouched = useCallback((field: keyof T) => {
     setTouched(prev => ({ ...prev, [field]: true }));
-    
+
     if (validateOnBlur) {
       const result = validateField(field, formData[field]);
       setErrors(prev => ({ ...prev, [field]: result.errors[0] || '' }));
@@ -68,12 +67,12 @@ export function useFormValidation<T extends FormData>(
 
   const setFormDataWithValidation = useCallback((data: T) => {
     setFormData(data);
-    
+
     if (validateOnChange) {
-      const result = validateForm(data, rules);
+      validateForm(data, rules);
       const newErrors: Record<keyof T, string> = {} as Record<keyof T, string>;
       const newWarnings: Record<keyof T, string> = {} as Record<keyof T, string>;
-      
+
       rules.forEach(rule => {
         const fieldResult = validateField(rule.field, data[rule.field]);
         if (fieldResult.errors.length > 0) {
@@ -83,7 +82,7 @@ export function useFormValidation<T extends FormData>(
           newWarnings[rule.field] = fieldResult.warnings[0];
         }
       });
-      
+
       setErrors(newErrors);
       setWarnings(newWarnings);
     }
@@ -140,7 +139,7 @@ export function useFormValidation<T extends FormData>(
 
   const submitForm = useCallback(async (onSubmit: (data: T) => Promise<void> | void) => {
     setIsValidating(true);
-    
+
     try {
       const result = validateAllFields();
       if (!result.isValid) {
@@ -150,7 +149,7 @@ export function useFormValidation<T extends FormData>(
           allTouched[rule.field] = true;
         });
         setTouched(allTouched);
-        
+
         // Set errors for all fields
         const newErrors: Record<keyof T, string> = {} as Record<keyof T, string>;
         rules.forEach(rule => {
@@ -160,10 +159,10 @@ export function useFormValidation<T extends FormData>(
           }
         });
         setErrors(newErrors);
-        
+
         return;
       }
-      
+
       await onSubmit(formData);
     } finally {
       setIsValidating(false);

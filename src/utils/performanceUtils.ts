@@ -130,9 +130,9 @@ export const useLazyLoading = <T>(
 
   const loadMore = useCallback(() => {
     if (loadedCount >= items.length) return;
-    
+
     setIsLoading(true);
-    
+
     // Simulate async loading
     setTimeout(() => {
       setLoadedCount(prev => Math.min(prev + batchSize, items.length));
@@ -164,7 +164,7 @@ export const usePerformanceMonitor = (componentName: string) => {
   useEffect(() => {
     const endTime = performance.now();
     const renderTime = endTime - startTime.current;
-    
+
     if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.log(`${componentName} render #${renderCount.current}: ${renderTime.toFixed(2)}ms`);
     }
@@ -197,15 +197,15 @@ export const useMemoryOptimization = () => {
 // Batch updates utility
 export const useBatchUpdates = () => {
   const [updates, setUpdates] = useState<any[]>([]);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const batchUpdate = useCallback((update: any) => {
     setUpdates(prev => [...prev, update]);
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     timeoutRef.current = setTimeout(() => {
       // Process all batched updates
       setUpdates([]);
@@ -226,7 +226,7 @@ export const useOptimizedSearch = <T>(
 
   const filteredItems = useMemo(() => {
     if (!debouncedQuery.trim()) return items;
-    
+
     return items.filter(item => searchFn(item, debouncedQuery));
   }, [items, debouncedQuery, searchFn]);
 
@@ -312,11 +312,11 @@ export const withPerformanceOptimization = <P extends object>(
   } = {}
 ) => {
   const { memo = true, shouldUpdate } = options;
-  
+
   if (memo) {
     return React.memo(Component, shouldUpdate);
   }
-  
+
   return Component;
 };
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { 
+import {
   currentSprintAtom,
   addStoryAtom,
   addStoryToProjectAtom,
@@ -13,14 +13,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Plus, 
-  Trash2, 
+import {
+  Plus,
+  Trash2,
   Save,
   Copy,
   X
 } from 'lucide-react';
 import type { StoryFormData, Priority } from '@/types';
+import { useRules } from '@/hooks/useRules';
 
 const defaultStory: StoryFormData = {
   title: '',
@@ -42,20 +43,26 @@ const defaultStory: StoryFormData = {
   goalId: undefined
 };
 
-export function AddStoriesViewRefactored() {
+interface AddStoriesViewRefactoredProps {
+  onSuccess?: () => void;
+}
+
+export function AddStoriesViewRefactored({ onSuccess }: AddStoriesViewRefactoredProps) {
   const [, addStory] = useAtom(addStoryAtom);
   const [, addStoryToProject] = useAtom(addStoryToProjectAtom);
   const [storyPriorities] = useAtom(storyPrioritiesAtom);
 
   // Use settings mirror system
   const storySettings = useStorySettings();
-  
+
   const [currentSprint] = useAtom(currentSprintAtom);
-  
+
+  const { evaluateRules } = useRules();
+
   // Form state
   const [storyForms, setStoryForms] = useState<StoryFormData[]>([{ ...defaultStory }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedField, setFocusedField] = useState<{row: number, field: string} | null>(null);
+  const [focusedField, setFocusedField] = useState<{ row: number, field: string } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [templateMode, setTemplateMode] = useState(false);
 
@@ -125,8 +132,18 @@ export function AddStoriesViewRefactored() {
     if (currentSprint) {
       newStory.sprintId = currentSprint.id;
     }
+
+    // Apply rules
+    const appliedActions = evaluateRules('story-create', newStory);
+    if (appliedActions.length > 0) {
+      appliedActions.forEach(action => {
+        // @ts-ignore - dynamic field update
+        newStory[action.field as keyof StoryFormData] = action.value;
+      });
+    }
+
     setStoryForms(prev => [...prev, newStory]);
-    
+
     // Focus on the new form
     setTimeout(() => {
       const newIndex = storyForms.length;
@@ -143,7 +160,7 @@ export function AddStoriesViewRefactored() {
 
   // Update story form
   const updateStoryForm = (index: number, field: keyof StoryFormData, value: any) => {
-    setStoryForms(prev => prev.map((form, i) => 
+    setStoryForms(prev => prev.map((form, i) =>
       i === index ? { ...form, [field]: value } : form
     ));
   };
@@ -175,7 +192,7 @@ export function AddStoriesViewRefactored() {
   // Submit all stories
   const submitAllStories = async () => {
     setIsSubmitting(true);
-    
+
     try {
       for (const form of storyForms) {
         if (form.title.trim()) {
@@ -191,7 +208,7 @@ export function AddStoriesViewRefactored() {
             updatedAt: new Date().toISOString(),
             checklist: []
           };
-          
+
           if (form.projectId) {
             const addedStory = await addStory(storyData);
             await addStoryToProject(form.projectId, addedStory.id);
@@ -200,9 +217,13 @@ export function AddStoriesViewRefactored() {
           }
         }
       }
-      
+
       // Clear forms after successful submission
       setStoryForms([{ ...defaultStory }]);
+
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Error submitting stories:', error);
     } finally {
@@ -213,15 +234,15 @@ export function AddStoriesViewRefactored() {
   // Get form validation
   const getFormValidation = (form: StoryFormData) => {
     const errors: string[] = [];
-    
+
     if (!form.title.trim()) {
       errors.push('Title is required');
     }
-    
+
     if (form.weight <= 0) {
       errors.push('Weight must be greater than 0');
     }
-    
+
     return errors;
   };
 
@@ -343,7 +364,7 @@ export function AddStoriesViewRefactored() {
         {storyForms.map((form, index) => {
           const errors = getFormValidation(form);
           const hasErrors = errors.length > 0;
-          
+
           return (
             <Card key={index} className={hasErrors ? 'border-red-200 bg-red-50' : ''}>
               <CardHeader className="pb-3">
@@ -375,21 +396,21 @@ export function AddStoriesViewRefactored() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 {/* Basic Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Title *</label>
                     <Input
-                      ref={el => titleRefs.current[index] = el}
+                      ref={el => { titleRefs.current[index] = el; }}
                       value={form.title}
                       onChange={(e) => updateStoryForm(index, 'title', e.target.value)}
                       placeholder="Enter story title"
                       className={hasErrors && !form.title.trim() ? 'border-red-500' : ''}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Priority</label>
                     <Select
@@ -413,7 +434,7 @@ export function AddStoriesViewRefactored() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Description</label>
                   <Textarea
-                    ref={el => descriptionRefs.current[index] = el}
+                    ref={el => { descriptionRefs.current[index] = el; }}
                     value={form.description}
                     onChange={(e) => updateStoryForm(index, 'description', e.target.value)}
                     placeholder="Enter story description"

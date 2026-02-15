@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { storiesAtom, safeSprintsAtom, updateStoryAtom, deleteStoryAtom, addStoryAtom, rolesAtom, visionsAtom, settingsAtom, currentSprintAtom } from '@/stores/appStore';
+import { storiesAtom, safeSprintsAtom, updateStoryAtom, deleteStoryAtom, addStoryAtom, currentSprintAtom } from '@/stores/appStore';
 import { generateRecurrenceInstances } from '@/utils/recurrenceUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { StoryCard } from '@/components/shared/StoryCard';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
-import { Plus, Calendar, Target, Clock, Edit, Undo } from 'lucide-react';
+import { Calendar, Target, Clock, Undo } from 'lucide-react';
 import type { Story } from '@/types';
 
 export function SprintPlanningView() {
@@ -16,11 +17,8 @@ export function SprintPlanningView() {
   const [, updateStory] = useAtom(updateStoryAtom);
   const [, deleteStory] = useAtom(deleteStoryAtom);
   const [, addStory] = useAtom(addStoryAtom);
-  const [roles] = useAtom(rolesAtom);
-  const [visions] = useAtom(visionsAtom);
-  const [settings] = useAtom(settingsAtom);
   const [currentSprint] = useAtom(currentSprintAtom);
-  
+
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [showEditStoryModal, setShowEditStoryModal] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
@@ -38,25 +36,25 @@ export function SprintPlanningView() {
   // Helper function to get expanded stories for a sprint (including recurring instances)
   const getExpandedStoriesForSprint = (sprint: any) => {
     // Get all recurring stories (regardless of which sprint they're assigned to)
-    const recurringStories = stories.filter(story => 
-      !story.deleted && 
-      story.repeat && 
+    const recurringStories = stories.filter(story =>
+      !story.deleted &&
+      story.repeat &&
       story.repeat.cadence !== 'none'
     );
-    
+
     // Get non-recurring stories for the sprint
-    const nonRecurringStories = stories.filter(story => 
-      !story.deleted && 
+    const nonRecurringStories = stories.filter(story =>
+      !story.deleted &&
       story.sprintId === sprint.id &&
       (!story.repeat || story.repeat.cadence === 'none')
     );
-    
+
     // Expand recurring stories into virtual instances for the sprint
     const expandedStories: (Story & { _isRecurringInstance?: boolean; _instanceDate?: string; _originalId?: string })[] = [];
-    
+
     // Add non-recurring stories
     expandedStories.push(...nonRecurringStories);
-    
+
     // Generate instances for recurring stories within the sprint date range
     recurringStories.forEach(story => {
       const instances = generateRecurrenceInstances(
@@ -64,7 +62,7 @@ export function SprintPlanningView() {
         new Date(sprint.startDate),
         new Date(sprint.endDate)
       );
-      
+
       instances.forEach(instance => {
         expandedStories.push({
           ...story,
@@ -76,7 +74,7 @@ export function SprintPlanningView() {
         });
       });
     });
-    
+
     return expandedStories;
   };
 
@@ -97,7 +95,7 @@ export function SprintPlanningView() {
   const handleStoryClick = (e: React.MouseEvent, storyId: string, storyList?: Story[], currentIndex?: number) => {
     // Don't handle click if it's a drag operation
     if (e.defaultPrevented) return;
-    
+
     if (e.ctrlKey && e.shiftKey && storyList && currentIndex !== undefined && lastSelectedIndex !== null) {
       // Range selection with Ctrl+Shift
       const rangeStoryIds = getStoriesInRange(storyList, lastSelectedIndex, currentIndex);
@@ -157,7 +155,7 @@ export function SprintPlanningView() {
   const handleUndo = () => {
     if (undoStack.length > 0) {
       const lastAction = undoStack[undoStack.length - 1];
-      
+
       if (lastAction.type === 'delete' && lastAction.story) {
         // Restore deleted story by adding it back
         const storyToRestore = { ...lastAction.story, deleted: false };
@@ -166,7 +164,7 @@ export function SprintPlanningView() {
         // Restore previous sprint assignment
         updateStory(lastAction.storyId, { sprintId: lastAction.previousSprintId });
       }
-      
+
       // Remove from undo stack
       setUndoStack(prev => prev.slice(0, -1));
     }
@@ -203,15 +201,15 @@ export function SprintPlanningView() {
   const handleDragStart = (e: React.DragEvent, storyId: string) => {
     setDraggedStoryId(storyId);
     e.dataTransfer.effectAllowed = 'move';
-    
+
     // If this story is part of a multi-select, drag all selected stories
-    const storiesToDrag = selectedStoryIds.has(storyId) && selectedStoryIds.size > 1 
-      ? Array.from(selectedStoryIds) 
+    const storiesToDrag = selectedStoryIds.has(storyId) && selectedStoryIds.size > 1
+      ? Array.from(selectedStoryIds)
       : [storyId];
-    
+
     const dragData = JSON.stringify(storiesToDrag);
     e.dataTransfer.setData('text/plain', dragData);
-    
+
     // Add some visual feedback
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
@@ -244,7 +242,7 @@ export function SprintPlanningView() {
   const handleDrop = (e: React.DragEvent, targetSprintId: string) => {
     e.preventDefault();
     const data = e.dataTransfer.getData('text/plain');
-    
+
     if (data) {
       try {
         const storyIds = JSON.parse(data);
@@ -343,49 +341,27 @@ export function SprintPlanningView() {
     clearSelection();
   };
 
-  const getStoryTypeColor = (type: string) => {
-    const storyType = settings.storyTypes?.find(st => st.name === type);
-    return storyType?.color || '#6B7280';
-  };
-
-  const getVisionTypeColor = (visionId: string) => {
-    const vision = visions.find(v => v.id === visionId);
-    const visionType = settings.visionTypes?.find(vt => vt.name === vision?.type);
-    return visionType?.color || '#6B7280';
-  };
-
-  const getRoleColor = (roleId: string) => {
-    const role = roles.find(r => r.id === roleId);
-    return role?.color || '#6B7280';
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex items-center gap-2">
-        <Target className="h-5 w-5 sm:h-6 sm:w-6" />
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Drag stories between sprints to organize your work
-          </p>
+
           {selectedStoryIds.size > 0 && (
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-xs">
                 {selectedStoryIds.size} selected
               </Badge>
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={clearSelection}
                 className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
               >
                 Clear
               </Button>
-              <Button 
-                size="sm" 
-                variant="destructive" 
+              <Button
+                size="sm"
+                variant="destructive"
                 onClick={handleDeleteSelected}
                 className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
               >
@@ -395,9 +371,9 @@ export function SprintPlanningView() {
           )}
           {undoStack.length > 0 && (
             <div className="flex items-center gap-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={handleUndo}
                 className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
               >
@@ -407,28 +383,30 @@ export function SprintPlanningView() {
             </div>
           )}
         </div>
-        <Button 
-          onClick={() => setShowAddStoryModal(true)}
-          className="w-full sm:w-auto touch-target min-h-[44px] sm:min-h-0"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Story
-        </Button>
       </div>
 
       {/* Unassigned Stories */}
       <Card
         onDragOver={handleDragOver}
         onDrop={handleDropToUnassigned}
-        className={`transition-colors ${
-          draggedStoryId && !dragOverSprintId ? 'ring-2 ring-green-500 bg-green-50' : ''
-        }`}
+        className={`transition-colors ${draggedStoryId && !dragOverSprintId ? 'ring-2 ring-green-500 bg-green-50' : ''
+          }`}
       >
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Unassigned Stories ({unassignedStories.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Clock className="h-5 w-5 text-orange-500" />
+              Unassigned Backlog
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                {unassignedStories.length} Stories
+              </Badge>
+              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                {unassignedStories.reduce((acc, story) => acc + (story.weight || 0), 0)} Weight
+              </Badge>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {unassignedStories.length === 0 ? (
@@ -440,122 +418,52 @@ export function SprintPlanningView() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {unassignedStories.map((story, index) => (
-                <Card 
-                  key={story.id} 
-                  className={`hover:shadow-md transition-all cursor-move ${
-                    draggedStoryId === story.id ? 'opacity-50 scale-95' : ''
-                  } ${
-                    selectedStoryIds.has(story.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                  }`}
+                <div
+                  key={story.id}
+                  className={`cursor-move transition-all ${draggedStoryId === story.id ? 'opacity-50 scale-95' : ''}`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, story.id)}
                   onDragEnd={handleDragEnd}
                   onClick={(e) => handleStoryClick(e, story.id, unassignedStories, index)}
                 >
-                  <CardContent className="p-3">
-                    <div className="space-y-2">
-                      <div>
-                        <h3 className="font-medium text-sm mb-1">{story.title}</h3>
-                        {story.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {story.description}
-                          </p>
-                        )}
-                      </div>
+                  <StoryCard
+                    story={story}
+                    showActions={false}
+                    isSelected={selectedStoryIds.has(story.id)}
+                    className="mb-2"
+                    onEdit={handleEditStory}
+                  />
 
-                      <div className="flex flex-wrap gap-1">
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs"
-                          style={{ 
-                            borderColor: getStoryTypeColor(story.type),
-                            color: getStoryTypeColor(story.type)
+                  {/* Assign to Sprint Controls */}
+                  <div className="pl-1 pr-1 pb-1">
+                    <div className="flex flex-wrap gap-1">
+                      <span className="text-[10px] text-muted-foreground self-center mr-1">Assign:</span>
+                      {sprints.slice(0, 3).map((sprint) => (
+                        <Button
+                          key={sprint.id}
+                          size="sm"
+                          variant="outline"
+                          className="text-[10px] h-6 px-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAssignToSprint(story.id, sprint.id);
                           }}
                         >
-                          <div 
-                            className="w-2 h-2 rounded-full mr-1" 
-                            style={{ backgroundColor: getStoryTypeColor(story.type) }}
-                          />
-                          {story.type}
-                        </Badge>
-                        
-                        <Badge variant="outline" className="text-xs">
-                          {story.priority}
-                        </Badge>
-                        
-                        <Badge variant="outline" className="text-xs">
-                          {story.weight}
-                        </Badge>
-                        
-                        <Badge variant="outline" className="text-xs">
-                          {story.size}
-                        </Badge>
-                      </div>
-
-                      {story.roleId && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: getRoleColor(story.roleId) }}
-                          />
-                          {roles.find(r => r.id === story.roleId)?.name}
-                        </div>
+                          W{sprint.isoWeek}
+                        </Button>
+                      ))}
+                      {sprints.length > 3 && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-[10px] h-6 px-1"
+                        >
+                          +{sprints.length - 3}
+                        </Button>
                       )}
-
-                      {story.visionId && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: getVisionTypeColor(story.visionId) }}
-                          />
-                          {visions.find(v => v.id === story.visionId)?.title}
-                        </div>
-                      )}
-
-                      <div className="pt-2 border-t">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-medium">Assign to Sprint:</p>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-xs h-11 w-11 sm:h-6 sm:w-auto sm:p-1 touch-target"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditStory(story);
-                            }}
-                          >
-                            <Edit className="h-4 w-4 sm:h-3 sm:w-3" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {sprints.slice(0, 3).map((sprint) => (
-                            <Button
-                              key={sprint.id}
-                              size="sm"
-                              variant="outline"
-                              className="text-xs h-11 sm:h-6 touch-target sm:min-h-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAssignToSprint(story.id, sprint.id);
-                              }}
-                            >
-                              Week {sprint.isoWeek}
-                            </Button>
-                          ))}
-                          {sprints.length > 3 && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-xs h-6"
-                            >
-                              +{sprints.length - 3} more
-                            </Button>
-                          )}
-                        </div>
-                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -567,95 +475,60 @@ export function SprintPlanningView() {
         {sprints.slice(0, 6).map((sprint) => {
           const sprintStories = getExpandedStoriesForSprint(sprint);
           return (
-            <Card 
-              key={sprint.id} 
-              className={`hover:shadow-md transition-all ${
-                dragOverSprintId === sprint.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-              }`}
+            <Card
+              key={sprint.id}
+              className={`hover:shadow-md transition-all ${dragOverSprintId === sprint.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                }`}
               onDragOver={(e) => handleDragOverSprint(e, sprint.id)}
               onDragLeave={handleDragLeaveSprint}
               onDrop={(e) => handleDrop(e, sprint.id)}
             >
               <CardHeader className="pb-2 sm:pb-3">
                 {/* Mobile: Stacked layout, Desktop: Side by side */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <CardTitle className="text-sm sm:text-base truncate">
-                      Week {sprint.isoWeek} - {sprint.year}
-                    </CardTitle>
-                  </div>
-                  {/* Mobile: Right side details - compact and functional */}
-                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
-                    {/* Date range - more prominent on mobile */}
-                    <div className="flex items-center gap-1.5 text-xs sm:text-xs">
-                      <Calendar className="h-3 w-3 text-muted-foreground sm:hidden" />
-                      <span className="text-muted-foreground font-medium sm:font-normal">
-                        {new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(sprint.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <CardTitle className="text-base font-semibold">
+                        Week {sprint.isoWeek}, {sprint.year}
+                      </CardTitle>
                     </div>
-                    {/* Story count badge - more functional */}
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs px-2 py-1 font-semibold bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
-                    >
-                      {sprintStories.length} {sprintStories.length === 1 ? 'story' : 'stories'}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200">
+                        {sprintStories.length} Stories
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                        {sprintStories.reduce((acc, s) => acc + (s.weight || 0), 0)} Weight
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-2 mt-1">
+                    <span className="font-medium text-foreground">
+                      {new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {' - '}
+                      {new Date(sprint.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
                   </div>
                 </div>
-                {/* Desktop: Date range below */}
-                <p className="text-xs text-muted-foreground hidden sm:block mt-1">
-                  {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}
-                </p>
               </CardHeader>
               <CardContent className="pt-2 sm:pt-4">
                 <div className="space-y-1.5 sm:space-y-2">
                   {sprintStories.slice(0, 3).map((story, index) => (
-                    <div 
-                      key={story.id} 
-                      className={`p-2 sm:p-2 bg-muted rounded-md text-xs cursor-move transition-all touch-target ${
-                        draggedStoryId === story.id ? 'opacity-50 scale-95' : 'hover:bg-muted/80 active:bg-muted/60'
-                      } ${
-                        selectedStoryIds.has(story.id) ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900/30' : ''
-                      }`}
+                    <div
+                      key={story.id}
+                      className={`cursor-move transition-all ${draggedStoryId === story.id ? 'opacity-50 scale-95' : ''}`}
                       draggable
                       onDragStart={(e) => handleDragStart(e, story.id)}
                       onDragEnd={handleDragEnd}
                       onClick={(e) => handleStoryClick(e, story.id, sprintStories, index)}
                     >
-                      {/* Mobile: Better layout with right-side actions */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate mb-1.5">{story.title}</div>
-                          {/* Mobile: Compact badges row */}
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 h-5">
-                              {story.priority}
-                            </Badge>
-                            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 h-5">
-                              W:{story.weight}
-                            </Badge>
-                            {story.size && (
-                              <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 h-5">
-                                {story.size}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        {/* Right side: Edit button - better touch target on mobile */}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs h-8 w-8 sm:h-6 sm:w-6 p-0 flex-shrink-0 touch-target"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditStory(story);
-                          }}
-                          title="Edit story"
-                        >
-                          <Edit className="h-4 w-4 sm:h-3 sm:w-3" />
-                        </Button>
-                      </div>
+                      <StoryCard
+                        story={story}
+                        showActions={false}
+                        isSelected={selectedStoryIds.has(story.id)}
+                        className={`hover:shadow-md transition-all ${draggedStoryId === story.id ? 'opacity-50' : ''}`}
+                        onClick={(e) => handleStoryClick(e, story.id, sprintStories, index)}
+                      />
                     </div>
                   ))}
                   {sprintStories.length > 3 && (
@@ -675,19 +548,21 @@ export function SprintPlanningView() {
         })}
       </div>
 
-      <AddStoryModal 
-        open={showAddStoryModal} 
+      <AddStoryModal
+        open={showAddStoryModal}
         onOpenChange={setShowAddStoryModal}
         initialData={{ sprintId: currentSprint?.id }}
       />
 
-      {editingStory && (
-        <EditStoryModal 
-          open={showEditStoryModal} 
-          onOpenChange={handleCloseEditModal}
-          story={editingStory}
-        />
-      )}
-    </div>
+      {
+        editingStory && (
+          <EditStoryModal
+            open={showEditStoryModal}
+            onOpenChange={handleCloseEditModal}
+            story={editingStory}
+          />
+        )
+      }
+    </div >
   );
 }

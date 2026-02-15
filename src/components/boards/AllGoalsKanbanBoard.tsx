@@ -2,24 +2,25 @@ import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/forms/FilterBar';
-import { Plus, Target, Edit, Search, Filter, ChevronLeft, ChevronRight, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2, Heart, Users, Brain, Dumbbell, DollarSign, Shield, Trophy } from 'lucide-react';
-import { 
-  goalsAtom, 
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
+import { Plus, Target, Search, Filter } from 'lucide-react';
+import {
+  goalsAtom,
   updateGoalAtom
 } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import type { Goal } from '@/types';
 
+import { GoalCard } from '@/components/shared/GoalCard';
+
 // Draggable Goal Card Component
-function DraggableGoalCard({ goal, onEdit }: { 
-  goal: Goal; 
-  onEdit: (goal: Goal) => void; 
+function DraggableGoalCard({ goal, onEdit, onStatusChange }: {
+  goal: Goal;
+  onEdit: (goal: Goal) => void;
+  onStatusChange?: (goalId: string, newStatus: Goal['status']) => void;
 }) {
-  const goalSettings = useGoalSettings();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: goal.id,
   });
@@ -28,209 +29,30 @@ function DraggableGoalCard({ goal, onEdit }: {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
 
-  const getPriorityColor = (priority: string) => {
-    const priorityColor = goalSettings.getPriorityColor(priority);
-    return {
-      backgroundColor: `${priorityColor}20`,
-      color: priorityColor,
-      borderColor: `${priorityColor}40`
-    };
-  };
-
-
-  const getGoalTypeColor = (goalType: string) => {
-    const goalTypeColor = goalSettings.getTypeColor(goalType);
-    return {
-      backgroundColor: `${goalTypeColor}20`,
-      color: goalTypeColor,
-      borderColor: `${goalTypeColor}40`
-    };
-  };
-
-  const getStatusColor = (status: string) => {
-    const statusColor = goalSettings.getStatusColor(status);
-    return {
-      backgroundColor: `${statusColor}20`,
-      color: statusColor,
-      borderColor: `${statusColor}40`
-    };
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'icebox':
-        return 'Icebox';
-      case 'backlog':
-        return 'Backlog';
-      case 'todo':
-        return 'To Do';
-      case 'in-progress':
-        return 'In Progress';
-      case 'review':
-        return 'Review';
-      case 'done':
-        return 'Done';
-      default:
-        return status;
-    }
-  };
-
-  // Helper function to get status icon
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'icebox':
-        return <Snowflake className="h-3 w-3" />;
-      case 'backlog':
-        return <Layers className="h-3 w-3" />;
-      case 'todo':
-        return <Circle className="h-3 w-3" />;
-      case 'in-progress':
-        return <PlayCircle className="h-3 w-3" />;
-      case 'review':
-        return <Eye className="h-3 w-3" />;
-      case 'done':
-        return <CheckCircle2 className="h-3 w-3" />;
-      default:
-        return null;
-    }
-  };
-
-  // Helper function to get goal type icon
-  const getGoalTypeIcon = (goalType: string) => {
-    switch (goalType) {
-      case 'Spiritual':
-        return <Heart className="h-3 w-3" />;
-      case 'Social':
-        return <Users className="h-3 w-3" />;
-      case 'Intellectual':
-        return <Brain className="h-3 w-3" />;
-      case 'Physical':
-        return <Dumbbell className="h-3 w-3" />;
-      case 'Financial':
-        return <DollarSign className="h-3 w-3" />;
-      case 'Protector':
-        return <Shield className="h-3 w-3" />;
-      default:
-        return null;
-    }
-  };
-
-  // Helper function to get priority letter
-  const getPriorityLetter = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'H';
-      case 'medium':
-        return 'M';
-      case 'low':
-        return 'L';
-      default:
-        return priority.charAt(0).toUpperCase();
-    }
-  };
-
-
   return (
-    <Card 
-      ref={setNodeRef}
-      style={style}
-      className={`cursor-grab hover:shadow-md transition-shadow ${isDragging ? 'opacity-50' : ''}`}
-      {...attributes}
-      {...listeners}
-    >
-      {/* Mobile: Single row layout */}
-      <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
-        <Target className="h-3 w-3 text-blue-600 flex-shrink-0" />
-        <span className="text-xs font-medium truncate flex-1 min-w-0">
-          {goal.title}
-        </span>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5" style={getGoalTypeColor(goal.goalType)}>
-            {getGoalTypeIcon(goal.goalType)}
-          </Badge>
-          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5" style={getStatusColor(goal.status)}>
-            {getStatusIcon(goal.status) || getStatusText(goal.status).substring(0, 4)}
-          </Badge>
-          {goal.priority && (
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 whitespace-nowrap flex items-center gap-0.5" style={getPriorityColor(goal.priority)}>
-              <Trophy className="h-3 w-3" />
-              {getPriorityLetter(goal.priority)}
-            </Badge>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(goal);
-            }}
-            className="h-11 w-11 sm:h-7 sm:w-7 p-0 flex-shrink-0"
-          >
-            <Edit className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Desktop: Compact card layout */}
-      <div className="hidden sm:block">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0.5 px-2 pt-2">
-          <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-1 line-clamp-1">
-            <Target className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600 flex-shrink-0" />
-            <span className="truncate">{goal.title}</span>
-          </CardTitle>
-          <div className="flex items-center gap-0.5 flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(goal);
-              }}
-              className="h-4 w-4 p-0 sm:h-5 sm:w-5"
-            >
-              <Edit className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-0.5 px-2 pb-1.5">
-        {/* Badges - compact */}
-        <div className="flex flex-wrap gap-0.5">
-          <Badge variant="outline" className="text-[9px] px-1 py-0 flex items-center gap-0.5" style={getGoalTypeColor(goal.goalType)}>
-            {getGoalTypeIcon(goal.goalType)}
-          </Badge>
-          <Badge variant="outline" className="text-[9px] px-1 py-0 flex items-center gap-0.5" style={getStatusColor(goal.status)}>
-            {getStatusIcon(goal.status) || getStatusText(goal.status).substring(0, 4)}
-          </Badge>
-          {goal.priority && (
-            <Badge variant="outline" className="text-[9px] px-1 py-0 flex items-center gap-0.5" style={getPriorityColor(goal.priority)}>
-              <Trophy className="h-2.5 w-2.5" />
-              {getPriorityLetter(goal.priority)}
-            </Badge>
-          )}
-        </div>
-
-        {goal.description && (
-          <p className="text-[9px] text-muted-foreground line-clamp-1">{goal.description}</p>
-        )}
-
-        <div className="text-[9px] text-muted-foreground">
-          {goal.storyIds?.length || 0} stories
-        </div>
-        </CardContent>
-      </div>
-    </Card>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+      <GoalCard
+        goal={goal}
+        onEdit={onEdit}
+        onStatusChange={onStatusChange}
+        isDragging={isDragging}
+        className="cursor-grab"
+      />
+    </div>
   );
 }
 
 // Droppable Column Component
-function DroppableColumn({ 
-  status, 
-  goals, 
-  onEdit
-}: { 
-  status: { id: string; name: string }; 
+function DroppableColumn({
+  status,
+  goals,
+  onEdit,
+  onStatusChange
+}: {
+  status: { id: string; name: string };
   goals: Goal[];
   onEdit: (goal: Goal) => void;
+  onStatusChange?: (goalId: string, newStatus: Goal['status']) => void;
 }) {
   const goalSettings = useGoalSettings();
   const { isOver, setNodeRef } = useDroppable({
@@ -238,7 +60,7 @@ function DroppableColumn({
   });
 
   const statusColor = goalSettings.getStatusColor(status.id);
-  
+
   return (
     <div className="flex-1 flex flex-col">
       <div className="mb-4">
@@ -246,12 +68,11 @@ function DroppableColumn({
           <h3 className="font-semibold text-lg">{status.name} {goals.length}</h3>
         </div>
       </div>
-      
-      <div 
+
+      <div
         ref={setNodeRef}
-        className={`flex-1 space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors overflow-y-auto ${
-          isOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-gray-50'
-        }`}
+        className={`flex-1 space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors overflow-y-auto ${isOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-gray-50'
+          }`}
         style={{
           borderColor: isOver ? goalSettings.weightBaseColor : statusColor + '40',
           backgroundColor: isOver ? goalSettings.weightBaseColor + '20' : statusColor + '10'
@@ -270,6 +91,7 @@ function DroppableColumn({
               key={goal.id}
               goal={goal}
               onEdit={onEdit}
+              onStatusChange={onStatusChange}
             />
           ))
         )}
@@ -306,9 +128,9 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal }: AllGoalsKanbanBoa
     id: status.name.toLowerCase().replace(' ', '-'),
     name: status.name
   }));
-  
+
   // Initialize to "In Progress" column if it exists, otherwise default to first column
-  const inProgressIndex = statusColumns.findIndex(col => 
+  const inProgressIndex = statusColumns.findIndex(col =>
     col.id === 'in-progress' || col.name.toLowerCase() === 'in progress'
   );
   const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(
@@ -342,6 +164,10 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal }: AllGoalsKanbanBoa
         updateGoal(goalId, { status: targetStatus.id as any });
       }
     }
+  };
+
+  const handleStatusChange = (goalId: string, newStatus: Goal['status']) => {
+    updateGoal(goalId, { status: newStatus });
   };
 
   const activeGoal = activeId ? goals.find(g => g.id === activeId) : null;
@@ -407,122 +233,33 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal }: AllGoalsKanbanBoa
         </div>
       )}
 
-      {/* Column Header Row - Desktop */}
-      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
-        {statusColumns.map((column) => {
-          const goalCount = goalsByStatus[column.id]?.length || 0;
-          const statusColor = goalSettings.getStatusColor(column.id);
-          return (
-            <div
-              key={column.id}
-              onClick={() => {
-                const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
-                if (columnElement) {
-                  columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-              }}
-              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
-              style={{ backgroundColor: `${statusColor}20` }}
-            >
-              <div
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: statusColor }}
-              />
-              <span className="text-sm font-medium" style={{ color: statusColor }}>
-                {column.name} {goalCount}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Column Header Row with Navigation Arrows - Mobile */}
-      <div className="sm:hidden mb-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
-            disabled={currentMobileColumnIndex === 0}
-            className="flex-shrink-0"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 grid grid-cols-3 gap-1.5">
-            {statusColumns.map((column, index) => {
-              const goalCount = goalsByStatus[column.id]?.length || 0;
-              const statusColor = goalSettings.getStatusColor(column.id);
-              const isActive = statusColumns[currentMobileColumnIndex]?.id === column.id;
-              return (
-                <div
-                  key={column.id}
-                  onClick={() => setCurrentMobileColumnIndex(index)}
-                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                    isActive ? 'ring-2 ring-offset-1' : ''
-                  }`}
-                  style={{ 
-                    backgroundColor: `${statusColor}20`,
-                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
-                  }}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: statusColor }}
-                  />
-                  <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
-                    {column.name} {goalCount}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMobileColumnIndex(prev => Math.min(statusColumns.length - 1, prev + 1))}
-            disabled={currentMobileColumnIndex === statusColumns.length - 1}
-            className="flex-shrink-0"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
       {/* Kanban Board */}
       <div className="flex-1 min-h-0">
-        <DndContext 
-          onDragStart={handleDragStart} 
+        <DndContext
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           sensors={sensors}
         >
-          {/* Desktop Grid Layout */}
-          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
-            {statusColumns.map((status) => (
-              <div key={status.id} className="min-w-0" data-column-id={status.id}>
-                <DroppableColumn
-                  status={status}
-                  goals={goalsByStatus[status.id] || []}
-                  onEdit={onEditGoal}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Mobile Single Column Layout */}
-          <div className="sm:hidden">
-            {statusColumns.map((status, index) => (
-              <div
-                key={status.id}
-                className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
-              >
-                <DroppableColumn
-                  status={status}
-                  goals={goalsByStatus[status.id] || []}
-                  onEdit={onEditGoal}
-                />
-              </div>
-            ))}
-          </div>
+          <BoardGridLayout
+            columns={statusColumns.map((status) => ({
+              id: status.id,
+              label: status.name,
+              items: goalsByStatus[status.id] || [],
+              color: goalSettings.getStatusColor(status.id)
+            }))}
+            renderItem={() => null} // Not used when renderColumn is provided
+            renderColumn={(column) => (
+              <DroppableColumn
+                status={{ id: column.id, name: column.label }}
+                goals={column.items}
+                onEdit={onEditGoal}
+                onStatusChange={handleStatusChange}
+              />
+            )}
+            currentMobileColumnIndex={currentMobileColumnIndex}
+            onMobileColumnChange={setCurrentMobileColumnIndex}
+            gridClassName="gap-2 sm:gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+          />
 
           <DragOverlay>
             {activeGoal ? (
@@ -530,6 +267,7 @@ export function AllGoalsKanbanBoard({ onAddGoal, onEditGoal }: AllGoalsKanbanBoa
                 <DraggableGoalCard
                   goal={activeGoal}
                   onEdit={onEditGoal}
+                  onStatusChange={handleStatusChange}
                 />
               </div>
             ) : null}

@@ -48,7 +48,7 @@ export function StatusSelector({
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animatingToStatus, setAnimatingToStatus] = useState<Story['status'] | null>(null);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartTime = useRef<number | null>(null);
 
   // Get next status in cycle
@@ -70,7 +70,7 @@ export function StatusSelector({
   };
 
   // Handle touch start - detect long press
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = () => {
     touchStartTime.current = Date.now();
     longPressTimer.current = setTimeout(() => {
       setIsLongPressing(true);
@@ -79,12 +79,12 @@ export function StatusSelector({
   };
 
   // Handle touch end - cancel long press if it was a quick tap
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = () => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
-    
+
     if (touchStartTime.current) {
       const pressDuration = Date.now() - touchStartTime.current;
       if (pressDuration < 500 && !isLongPressing) {
@@ -94,7 +94,7 @@ export function StatusSelector({
       }
       touchStartTime.current = null;
     }
-    
+
     if (!isPopoverOpen) {
       setIsLongPressing(false);
     }
@@ -110,7 +110,7 @@ export function StatusSelector({
   };
 
   // Handle mouse up - cancel long press or handle click
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleMouseUp = () => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
@@ -157,14 +157,14 @@ export function StatusSelector({
     setIsLongPressing(false);
 
     // Find the story card element to animate it
-    const storyCard = containerRef.current?.closest('[data-story-id]') || 
-                     containerRef.current?.closest('.glass-card');
-    
+    const storyCard = containerRef.current?.closest('[data-story-id]') ||
+      containerRef.current?.closest('.glass-card');
+
     if (storyCard instanceof HTMLElement) {
       // Add animation class to story card
       storyCard.classList.add('story-moving');
       storyCard.setAttribute('data-moving-to', newStatus);
-      
+
       // Add a subtle glow effect with the target status color
       const targetColor = getStatusColor(newStatus);
       storyCard.style.boxShadow = `0 0 20px ${targetColor}40, 0 0 40px ${targetColor}20`;
@@ -174,17 +174,17 @@ export function StatusSelector({
     requestAnimationFrame(() => {
       // Change status after animation starts
       onStatusChange(newStatus);
-      
+
       // Scroll to target column if in kanban view
       setTimeout(() => {
         const targetColumn = document.querySelector(`[data-column-id="${newStatus}"]`);
         if (targetColumn) {
           // Highlight the target column with animation
           targetColumn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2', 'transition-all', 'duration-300', 'z-10');
-          
+
           // Scroll to target column smoothly
-          targetColumn.scrollIntoView({ 
-            behavior: 'smooth', 
+          targetColumn.scrollIntoView({
+            behavior: 'smooth',
             block: 'nearest',
             inline: 'center'
           });
@@ -253,7 +253,7 @@ export function StatusSelector({
 
   // Position popover centered above the badge
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
-  
+
   useEffect(() => {
     if (isPopoverOpen && badgeRef.current) {
       const rect = badgeRef.current.getBoundingClientRect();
@@ -271,33 +271,32 @@ export function StatusSelector({
     <div ref={containerRef} className="relative inline-block">
       <div ref={badgeRef}>
         <Badge
-        style={{
-          backgroundColor: isAnimating && animatingToStatus 
-            ? getStatusColor(animatingToStatus) 
-            : getStatusColor(status),
-          color: 'white',
-          cursor: 'pointer',
-          userSelect: 'none',
-          touchAction: 'manipulation',
-          transition: 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}
-        className={`${badgeSize} flex items-center gap-0.5 transition-all hover:opacity-80 active:scale-95 ${
-          isAnimating ? 'scale-110 shadow-lg' : ''
-        } ${className}`}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+          style={{
+            backgroundColor: isAnimating && animatingToStatus
+              ? getStatusColor(animatingToStatus)
+              : getStatusColor(status),
+            color: 'white',
+            cursor: 'pointer',
+            userSelect: 'none',
+            touchAction: 'manipulation',
+            transition: 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+          className={`${badgeSize} flex items-center gap-0.5 transition-all hover:opacity-80 active:scale-95 ${isAnimating ? 'scale-110 shadow-lg' : ''
+            } ${className}`}
+          onClick={handleClick}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           title="Click to cycle status, hold for menu"
         >
-          {isAnimating && animatingToStatus 
-            ? getStatusIcon(animatingToStatus, 'sm') 
+          {isAnimating && animatingToStatus
+            ? getStatusIcon(animatingToStatus, 'sm')
             : getStatusIcon(status, 'sm') || status.substring(0, 4)}
         </Badge>
       </div>
-      
+
       {isPopoverOpen && (
         <>
           {/* Backdrop */}
@@ -324,7 +323,7 @@ export function StatusSelector({
                 const isSelected = statusOption === status;
                 const isHovered = statusOption === hoveredStatus;
                 const statusColor = getStatusColor(statusOption);
-                
+
                 return (
                   <button
                     key={statusOption}
@@ -332,11 +331,11 @@ export function StatusSelector({
                     className={`
                       w-8 h-8 rounded-full flex items-center justify-center
                       transition-all touch-target
-                      ${isSelected 
-                        ? 'ring-2 ring-offset-2 scale-110' 
-                        : isHovered 
-                        ? 'scale-105 opacity-90' 
-                        : 'hover:scale-105 active:scale-95'
+                      ${isSelected
+                        ? 'ring-2 ring-offset-2 scale-110'
+                        : isHovered
+                          ? 'scale-105 opacity-90'
+                          : 'hover:scale-105 active:scale-95'
                       }
                     `}
                     style={{

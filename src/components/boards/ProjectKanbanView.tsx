@@ -5,13 +5,14 @@ import { useDroppable } from '@dnd-kit/core';
 import { ProjectCard } from '@/components/boards/ProjectCard';
 import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/forms/FilterBar';
-import { 
-  projectsAtom, 
+import {
+  projectsAtom,
   updateProjectAtom,
   selectedProjectIdAtom
 } from '@/stores/appStore';
 import { currentViewAtom } from '@/stores/uiStore';
-import { Plus, FolderOpen, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, FolderOpen, Search, Filter } from 'lucide-react';
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
 import { useProjectSettings } from '@/utils/settingsMirror';
 import type { Project } from '@/types';
 
@@ -25,19 +26,19 @@ const PROJECT_COLUMNS = [
 ];
 
 // Project Kanban Column Component
-function ProjectKanbanColumn({ 
-  column, 
-  projects, 
+function ProjectKanbanColumn({
+  column,
+  projects,
   selectedProjects,
   onProjectClick,
-  onEditProject, 
-  onOpenKanban, 
+  onEditProject,
+  onOpenKanban,
   onOpenStoryManager,
   onAddStory,
   projectSettings
-}: { 
-  column: typeof PROJECT_COLUMNS[0]; 
-  projects: Project[]; 
+}: {
+  column: typeof PROJECT_COLUMNS[0];
+  projects: Project[];
   selectedProjects: string[];
   onProjectClick: (projectId: string, event: React.MouseEvent, projectList?: Project[], currentIndex?: number) => void;
   onEditProject: (project: Project) => void;
@@ -50,10 +51,10 @@ function ProjectKanbanColumn({
     id: column.id,
     data: {
       type: 'project-column',
-      status: column.id === 'icebox' ? 'Icebox' : 
-              column.id === 'backlog' ? 'Backlog' :
-              column.id === 'to-do' ? 'To do' :
-              column.id === 'in-progress' ? 'In Progress' : 'Done'
+      status: column.id === 'icebox' ? 'Icebox' :
+        column.id === 'backlog' ? 'Backlog' :
+          column.id === 'to-do' ? 'To do' :
+            column.id === 'in-progress' ? 'In Progress' : 'Done'
     }
   });
 
@@ -66,12 +67,11 @@ function ProjectKanbanColumn({
           </h3>
         </div>
       </div>
-      
-      <div 
+
+      <div
         ref={setNodeRef}
-        className={`flex-1 space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors overflow-y-auto ${
-          isOver ? 'border-blue-400 bg-blue-50' : ''
-        }`}
+        className={`flex-1 space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors overflow-y-auto ${isOver ? 'border-blue-400 bg-blue-50' : ''
+          }`}
         style={{
           backgroundColor: isOver ? undefined : `${projectSettings.getStatusColor(column.id)}20`,
           borderColor: isOver ? undefined : `${projectSettings.getStatusColor(column.id)}40`
@@ -115,10 +115,10 @@ interface ProjectKanbanViewProps {
   onAddStory?: (project: Project) => void;
 }
 
-export function ProjectKanbanView({ 
-  onAddProject, 
-  onEditProject, 
-  onOpenKanban, 
+export function ProjectKanbanView({
+  onAddProject,
+  onEditProject,
+  onOpenKanban,
   onOpenStoryManager,
   onAddStory
 }: ProjectKanbanViewProps) {
@@ -162,14 +162,14 @@ export function ProjectKanbanView({
   const handleProjectClick = (projectId: string, event: React.MouseEvent, projectList?: Project[], currentIndex?: number) => {
     // Check if mobile (screen width < 640px)
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-    
+
     // On mobile, if it's a simple click (no modifiers), navigate to Projects Kanban Board
     if (isMobile && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
       setSelectedProjectId(projectId);
       setCurrentView('projects-kanban');
       return;
     }
-    
+
     if (event.ctrlKey && event.shiftKey && projectList && currentIndex !== undefined && lastSelectedIndex !== null) {
       // Range selection with Ctrl+Shift
       const rangeProjectIds = getProjectsInRange(projectList, lastSelectedIndex, currentIndex);
@@ -180,8 +180,8 @@ export function ProjectKanbanView({
       });
     } else if (event.ctrlKey || event.metaKey) {
       // Multi-select with Ctrl/Cmd
-      setSelectedProjects(prev => 
-        prev.includes(projectId) 
+      setSelectedProjects(prev =>
+        prev.includes(projectId)
           ? prev.filter(id => id !== projectId)
           : [...prev, projectId]
       );
@@ -250,10 +250,10 @@ export function ProjectKanbanView({
           for (const [status, projectList] of Object.entries(projectsByStatus)) {
             if (projectList.some(project => project.id === projectId)) {
               if (status !== toColumnId) {
-                const newStatus = toColumnId === 'icebox' ? 'Icebox' : 
-                                toColumnId === 'backlog' ? 'Backlog' :
-                                toColumnId === 'to-do' ? 'To do' :
-                                toColumnId === 'in-progress' ? 'In Progress' : 'Done';
+                const newStatus = toColumnId === 'icebox' ? 'Icebox' :
+                  toColumnId === 'backlog' ? 'Backlog' :
+                    toColumnId === 'to-do' ? 'To do' :
+                      toColumnId === 'in-progress' ? 'In Progress' : 'Done';
                 updateProject(projectId, { status: newStatus as Project['status'] });
               }
             }
@@ -262,10 +262,10 @@ export function ProjectKanbanView({
         setSelectedProjects([]);
       } else {
         // Move single project
-        const newStatus = toColumnId === 'icebox' ? 'Icebox' : 
-                         toColumnId === 'backlog' ? 'Backlog' :
-                         toColumnId === 'to-do' ? 'To do' :
-                         toColumnId === 'in-progress' ? 'In Progress' : 'Done';
+        const newStatus = toColumnId === 'icebox' ? 'Icebox' :
+          toColumnId === 'backlog' ? 'Backlog' :
+            toColumnId === 'to-do' ? 'To do' :
+              toColumnId === 'in-progress' ? 'In Progress' : 'Done';
         updateProject(activeId, { status: newStatus as Project['status'] });
       }
     }
@@ -334,86 +334,6 @@ export function ProjectKanbanView({
         </div>
       )}
 
-      {/* Column Header Row - Desktop */}
-      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-2">
-        {PROJECT_COLUMNS.map((column) => {
-          const projectCount = projectsByStatus[column.id as keyof typeof projectsByStatus]?.length || 0;
-          const statusColor = projectSettings.getStatusColor(column.id);
-          return (
-            <div
-              key={column.id}
-              onClick={() => {
-                const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
-                if (columnElement) {
-                  columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-              }}
-              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity text-left"
-              style={{ backgroundColor: `${statusColor}20` }}
-            >
-              <div
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: statusColor }}
-              />
-              <span className="text-sm font-medium text-left" style={{ color: statusColor }}>
-                {column.name} {projectCount}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Column Header Row with Navigation Arrows - Mobile */}
-      <div className="sm:hidden mb-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
-            disabled={currentMobileColumnIndex === 0}
-            className="flex-shrink-0"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 grid grid-cols-3 gap-1.5">
-            {PROJECT_COLUMNS.map((column, index) => {
-              const projectCount = projectsByStatus[column.id as keyof typeof projectsByStatus]?.length || 0;
-              const statusColor = projectSettings.getStatusColor(column.id);
-              const isActive = PROJECT_COLUMNS[currentMobileColumnIndex]?.id === column.id;
-              return (
-                <div
-                  key={column.id}
-                  onClick={() => setCurrentMobileColumnIndex(index)}
-                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity text-left ${
-                    isActive ? 'ring-2 ring-offset-1' : ''
-                  }`}
-                  style={{ 
-                    backgroundColor: `${statusColor}20`,
-                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
-                  }}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: statusColor }}
-                  />
-                  <span className="text-xs font-medium truncate flex-1 min-w-0 text-left" style={{ color: statusColor }}>
-                    {column.name} {projectCount}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMobileColumnIndex(prev => Math.min(PROJECT_COLUMNS.length - 1, prev + 1))}
-            disabled={currentMobileColumnIndex === PROJECT_COLUMNS.length - 1}
-            className="flex-shrink-0"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
 
       {/* Kanban Board */}
       <div className="flex-1 min-h-0">
@@ -423,51 +343,36 @@ export function ProjectKanbanView({
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          {/* Desktop Grid Layout */}
-          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-            {PROJECT_COLUMNS.map((column) => (
-              <div key={column.id} className="min-w-0" data-column-id={column.id}>
-                <ProjectKanbanColumn
-                  column={column}
-                  projects={projectsByStatus[column.id as keyof typeof projectsByStatus]}
-                  selectedProjects={selectedProjects}
-                  onProjectClick={handleProjectClick}
-                  onEditProject={onEditProject}
-                  onOpenKanban={onOpenKanban}
-                  onOpenStoryManager={onOpenStoryManager}
-                  onAddStory={onAddStory}
-                  projectSettings={projectSettings}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Mobile Single Column Layout */}
-          <div className="sm:hidden">
-            {PROJECT_COLUMNS.map((column, index) => (
-              <div
-                key={column.id}
-                className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
-              >
-                <ProjectKanbanColumn
-                  column={column}
-                  projects={projectsByStatus[column.id as keyof typeof projectsByStatus]}
-                  selectedProjects={selectedProjects}
-                  onProjectClick={handleProjectClick}
-                  onEditProject={onEditProject}
-                  onOpenKanban={onOpenKanban}
-                  onOpenStoryManager={onOpenStoryManager}
-                  onAddStory={onAddStory}
-                  projectSettings={projectSettings}
-                />
-              </div>
-            ))}
-          </div>
+          <BoardGridLayout
+            columns={PROJECT_COLUMNS.map((column) => ({
+              id: column.id,
+              label: column.name,
+              items: projectsByStatus[column.id as keyof typeof projectsByStatus],
+              color: projectSettings.getStatusColor(column.id)
+            }))}
+            renderItem={() => null}
+            renderColumn={(column) => (
+              <ProjectKanbanColumn
+                column={{ id: column.id, name: column.label, color: '' }} // Color unused in ProjectKanbanColumn props logic internally uses settings
+                projects={column.items}
+                selectedProjects={selectedProjects}
+                onProjectClick={handleProjectClick}
+                onEditProject={onEditProject}
+                onOpenKanban={onOpenKanban}
+                onOpenStoryManager={onOpenStoryManager}
+                onAddStory={onAddStory}
+                projectSettings={projectSettings}
+              />
+            )}
+            currentMobileColumnIndex={currentMobileColumnIndex}
+            onMobileColumnChange={setCurrentMobileColumnIndex}
+            gridClassName="gap-2 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+          />
 
           <DragOverlay>
             {activeProject ? (
               <div className="opacity-50">
-                <ProjectCard 
+                <ProjectCard
                   project={activeProject}
                   onEdit={onEditProject}
                   onOpenKanban={onOpenKanban}

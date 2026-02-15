@@ -32,7 +32,7 @@ export function StoryCardMobile({
   return (
     <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
       {/* Priority badge as indicator */}
-      <div 
+      <div
         className="w-1 h-6 rounded-full flex-shrink-0"
         style={{ backgroundColor: storySettings.getPriorityColor(story.priority) }}
       />
@@ -57,8 +57,8 @@ export function StoryCardMobile({
             size="sm"
           />
         ) : (
-          <div 
-            style={{ 
+          <div
+            style={{
               backgroundColor: getStatusColor(story.status),
               color: 'white'
             }}
@@ -67,16 +67,16 @@ export function StoryCardMobile({
             {story.status.substring(0, 4)}
           </div>
         )}
-        <span 
+        <span
           className="text-[9px] font-medium whitespace-nowrap"
-          style={{ 
+          style={{
             color: getWeightGradientColor(story.weight, storySettings.weightBaseColor)
           }}
         >
           {story.weight}
         </span>
         {/* Priority tag */}
-        <div 
+        <div
           style={getPriorityColorStyle(story.priority, storySettings)}
           className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 rounded border"
         >
@@ -88,11 +88,10 @@ export function StoryCardMobile({
             <Button
               size="sm"
               variant="ghost"
-              className={`h-12 w-12 sm:h-8 sm:w-8 p-0 flex-shrink-0 touch-manipulation ${
-                story.status === 'progress' || story.status === 'in-progress'
+              className={`h-12 w-12 sm:h-8 sm:w-8 p-0 flex-shrink-0 touch-manipulation ${story.status === 'progress'
                   ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-950/50'
                   : 'text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
-              }`}
+                }`}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToGoogleCalendar();

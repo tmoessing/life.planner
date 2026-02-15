@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { GraduationCap, Plus, Edit, FileText, Book, FileCheck, FolderKanban, ClipboardList, MoreHorizontal, Trash2, CheckCircle2, List, Grid, BarChart3, Weight, Loader2 } from 'lucide-react';
 import type { Class, Assignment, AssignmentType } from '@/types';
 import { formatRecurrencePattern } from '@/utils/assignmentRecurrenceUtils';
@@ -26,22 +25,22 @@ export function ClassView() {
   const [settings] = useAtom(settingsAtom);
   const [, deleteAssignment] = useAtom(deleteAssignmentAtom);
   const [, updateAssignment] = useAtom(updateAssignmentAtom);
-  
+
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-  
+
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [assignmentModalMode, setAssignmentModalMode] = useState<'add' | 'edit'>('add');
   const [assignmentClassId, setAssignmentClassId] = useState<string>('');
-  
+
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [showCharts, setShowCharts] = useState(false);
   const [selectedClassForAnalytics, setSelectedClassForAnalytics] = useState<string>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const classRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  
+
 
   const handleAddClass = () => {
     setSelectedClass(null);
@@ -112,7 +111,7 @@ export function ClassView() {
   const getAssignmentTypeIcon = (type: AssignmentType | string) => {
     // Handle legacy "exam" type
     if (type === 'exam') type = 'test';
-    
+
     switch (type) {
       case 'homework':
         return <FileText className="h-4 w-4" />;
@@ -274,7 +273,7 @@ export function ClassView() {
     return assignments.filter(assignment => {
       const classItem = classes.find(c => c.id === assignment.classId);
       if (!classItem) return false;
-      
+
       const classEndDate = getClassEndDate(classItem);
       // Include assignment if it's due before or on the class end date
       if (assignment.dueDate) {
@@ -327,18 +326,18 @@ export function ClassView() {
   // Chart data for assignment statuses by selected class (use all assignments for analytics)
   const assignmentsByStatusData = useMemo(() => {
     if (!selectedClassForAnalytics || selectedClassForAnalytics === 'all') return [];
-    
+
     const classAssignments = assignments.filter(a => a.classId === selectedClassForAnalytics);
     const statusMap = new Map<string, number>();
-    
+
     classAssignments.forEach(assignment => {
       const status = assignment.status;
       statusMap.set(status, (statusMap.get(status) || 0) + 1);
     });
-    
-    return Array.from(statusMap.entries()).map(([name, value]) => ({ 
-      name: name.replace('-', ' '), 
-      value 
+
+    return Array.from(statusMap.entries()).map(([name, value]) => ({
+      name: name.replace('-', ' '),
+      value
     }));
   }, [assignments, selectedClassForAnalytics]);
 
@@ -478,7 +477,7 @@ export function ClassView() {
                   assignmentsByStatusData={assignmentsByStatusData}
                   selectedClassForAnalytics={selectedClassForAnalytics}
                   colors={COLORS}
-                  statusChartTitle={selectedClassForAnalytics && selectedClassForAnalytics !== 'all' 
+                  statusChartTitle={selectedClassForAnalytics && selectedClassForAnalytics !== 'all'
                     ? `Status - ${classes.find(c => c.id === selectedClassForAnalytics)?.classCode || classes.find(c => c.id === selectedClassForAnalytics)?.title}`
                     : undefined}
                 />
@@ -504,7 +503,7 @@ export function ClassView() {
                 const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date() && assignment.status !== 'completed' && assignment.status !== 'submitted';
                 const classType = classItem?.classType || 'Major';
                 const borderColor = getClassTypeBorderColor(classType);
-                
+
                 return (
                   <Card key={assignment.id} className={`hover:shadow-md transition-shadow border-2 ${borderColor}`}>
                     <CardContent className="p-4">
@@ -589,136 +588,136 @@ export function ClassView() {
           {/* Classes grid - horizontal scroll on mobile, grid on desktop */}
           <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto md:overflow-y-auto md:overflow-x-visible pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
             {filteredClasses.map((classItem) => {
-            const classAssignments = getClassAssignments(classItem);
-            const assignmentsByType = groupAssignmentsByType(classAssignments);
-            const hasAssignments = classAssignments.length > 0;
-            const totalWeight = classAssignments.reduce((sum, assignment) => sum + (assignment.weight || 3), 0);
-            
-            const classType = classItem.classType || 'Major';
-            const borderColor = getClassTypeBorderColor(classType);
-            const accentColor = getClassTypeAccentColor(classType);
-            const bgColor = getClassTypeBgColor(classType);
-            
-            return (
-              <Card 
-                key={classItem.id}
-                ref={(el) => {
-                  classRefs.current[classItem.id] = el;
-                }}
-                className={`hover:shadow-md transition-shadow border-2 ${borderColor} ${bgColor} relative overflow-hidden flex-shrink-0 w-[85vw] md:w-auto`}
-              >
-                {/* Class type accent bar */}
-                <div 
-                  className={`absolute left-0 top-0 bottom-0 w-1 ${accentColor}`}
-                />
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle 
-                        className="text-lg mb-2 cursor-pointer"
-                        onClick={() => handleEditClass(classItem)}
-                      >
-                        {classItem.title}
-                      </CardTitle>
-                      {classItem.classCode && (
-                        <Badge variant="outline" className="text-xs mb-2">
-                          {classItem.classCode}
-                        </Badge>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditClass(classItem);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${getSemesterColor(classItem.semester)}`}
-                      >
-                        {classItem.semester} {classItem.year}
-                      </Badge>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${getClassTypeColor(classItem.classType || 'Major')}`}
-                      >
-                        {classItem.classType || 'Major'}
-                      </Badge>
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
-                      >
-                        {classItem.creditHours || 3} credit{classItem.creditHours !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
+              const classAssignments = getClassAssignments(classItem);
+              const assignmentsByType = groupAssignmentsByType(classAssignments);
+              const hasAssignments = classAssignments.length > 0;
+              const totalWeight = classAssignments.reduce((sum, assignment) => sum + (assignment.weight || 3), 0);
 
-                    {classItem.schedule && classItem.schedule.length > 0 && (
-                      <div className="text-xs text-muted-foreground">
-                        <div className="font-medium mb-1">Schedule:</div>
-                        {classItem.schedule.map((scheduleItem, idx) => (
-                          <div key={idx} className="ml-2 space-y-0.5">
-                            <div>
-                              {scheduleItem.days.map(getDayName).join(', ')} 
-                              {scheduleItem.time && (
-                                scheduleItem.endTime
-                                  ? ` at ${formatTime(scheduleItem.time)} - ${formatTime(scheduleItem.endTime)}`
-                                  : ` at ${formatTime(scheduleItem.time)}`
+              const classType = classItem.classType || 'Major';
+              const borderColor = getClassTypeBorderColor(classType);
+              const accentColor = getClassTypeAccentColor(classType);
+              const bgColor = getClassTypeBgColor(classType);
+
+              return (
+                <Card
+                  key={classItem.id}
+                  ref={(el) => {
+                    classRefs.current[classItem.id] = el;
+                  }}
+                  className={`hover:shadow-md transition-shadow border-2 ${borderColor} ${bgColor} relative overflow-hidden flex-shrink-0 w-[85vw] md:w-auto`}
+                >
+                  {/* Class type accent bar */}
+                  <div
+                    className={`absolute left-0 top-0 bottom-0 w-1 ${accentColor}`}
+                  />
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle
+                          className="text-lg mb-2 cursor-pointer"
+                          onClick={() => handleEditClass(classItem)}
+                        >
+                          {classItem.title}
+                        </CardTitle>
+                        {classItem.classCode && (
+                          <Badge variant="outline" className="text-xs mb-2">
+                            {classItem.classCode}
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditClass(classItem);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getSemesterColor(classItem.semester)}`}
+                        >
+                          {classItem.semester} {classItem.year}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getClassTypeColor(classItem.classType || 'Major')}`}
+                        >
+                          {classItem.classType || 'Major'}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                        >
+                          {classItem.creditHours || 3} credit{classItem.creditHours !== 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+
+                      {classItem.schedule && classItem.schedule.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          <div className="font-medium mb-1">Schedule:</div>
+                          {classItem.schedule.map((scheduleItem, idx) => (
+                            <div key={idx} className="ml-2 space-y-0.5">
+                              <div>
+                                {scheduleItem.days.map(getDayName).join(', ')}
+                                {scheduleItem.time && (
+                                  scheduleItem.endTime
+                                    ? ` at ${formatTime(scheduleItem.time)} - ${formatTime(scheduleItem.endTime)}`
+                                    : ` at ${formatTime(scheduleItem.time)}`
+                                )}
+                              </div>
+                              {(scheduleItem.startDate || scheduleItem.endDate) && (
+                                <div className="text-xs opacity-75 ml-2">
+                                  {scheduleItem.startDate && scheduleItem.endDate
+                                    ? `${formatDate(scheduleItem.startDate)} - ${formatDate(scheduleItem.endDate)}`
+                                    : scheduleItem.startDate
+                                      ? `From ${formatDate(scheduleItem.startDate)}`
+                                      : scheduleItem.endDate
+                                        ? `Until ${formatDate(scheduleItem.endDate)}`
+                                        : ''}
+                                </div>
                               )}
                             </div>
-                            {(scheduleItem.startDate || scheduleItem.endDate) && (
-                              <div className="text-xs opacity-75 ml-2">
-                                {scheduleItem.startDate && scheduleItem.endDate
-                                  ? `${formatDate(scheduleItem.startDate)} - ${formatDate(scheduleItem.endDate)}`
-                                  : scheduleItem.startDate
-                                  ? `From ${formatDate(scheduleItem.startDate)}`
-                                  : scheduleItem.endDate
-                                  ? `Until ${formatDate(scheduleItem.endDate)}`
-                                  : ''}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Assignments Section */}
-                    <div className="border-t pt-3 mt-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-muted-foreground">
-                            Assignments ({classAssignments.length})
-                          </span>
-                          <div title={`Total Weight: ${totalWeight}`}>
-                            <Weight className="h-3.5 w-3.5 text-muted-foreground" />
-                          </div>
+                          ))}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleAddAssignment(classItem.id, e)}
-                          className="h-6 px-2 text-xs"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </Button>
-                      </div>
+                      )}
 
-                      <div className="space-y-3">
-                        {!hasAssignments ? (
-                          <p className="text-xs text-muted-foreground text-center py-2">
-                            No assignments yet. Click "Add" to create one.
-                          </p>
-                        ) : (
+                      {/* Assignments Section */}
+                      <div className="border-t pt-3 mt-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-muted-foreground">
+                              Assignments ({classAssignments.length})
+                            </span>
+                            <div title={`Total Weight: ${totalWeight}`}>
+                              <Weight className="h-3.5 w-3.5 text-muted-foreground" />
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleAddAssignment(classItem.id, e)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+
+                        <div className="space-y-3">
+                          {!hasAssignments ? (
+                            <p className="text-xs text-muted-foreground text-center py-2">
+                              No assignments yet. Click "Add" to create one.
+                            </p>
+                          ) : (
                             Object.entries(assignmentsByType).map(([type, typeAssignments]) => {
                               if (typeAssignments.length === 0) return null;
                               return (
@@ -814,12 +813,12 @@ export function ClassView() {
                             })
                           )}
                         </div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </>
       )}

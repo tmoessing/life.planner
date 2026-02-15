@@ -9,10 +9,10 @@ export type Role = {
   color: string; // hex
 };
 
-export type Label = { 
-  id: string; 
-  name: string; 
-  color: string; 
+export type Label = {
+  id: string;
+  name: string;
+  color: string;
 };
 
 export type Vision = {
@@ -150,13 +150,13 @@ export type Story = {
     interval?: number; // e.g., every 2 weeks
     endDate?: string; // ISO date
     count?: number; // number of occurrences
-    
+
     // Week-of-month patterns
     weekOfMonth?: "first" | "second" | "third" | "fourth" | "last";
-    
+
     // Day selections for weekly patterns
     daysOfWeek?: number[]; // 0-6 for Sun-Sat
-    
+
     // Instance-specific overrides
     instances?: {
       [date: string]: { // ISO date key
@@ -270,19 +270,21 @@ export type Settings = {
     ideal: string;
     actual: string;
   }; // chart colors for burndown/burnup charts
-  
+
+  rules: Rule[]; // automation rules
+
   // Google Sheets Integration
   googleSheets?: GoogleSheetsConfig;
-  
+
   // UI Customization
   ui: UICustomization;
-  
+
   // Layout Customization
   layout: LayoutCustomization;
-  
+
   // Behavior Customization
   behavior: BehaviorCustomization;
-  
+
   // Accessibility Customization
   accessibility: AccessibilityCustomization;
 };
@@ -297,19 +299,19 @@ export type UICustomization = {
   textColor: string;
   mutedTextColor: string;
   borderColor: string;
-  
+
   // Typography
   fontFamily: "system" | "serif" | "mono" | "custom";
   customFontFamily?: string;
   fontSize: "small" | "medium" | "large";
   fontWeight: "light" | "normal" | "medium" | "semibold" | "bold";
   lineHeight: "tight" | "normal" | "relaxed";
-  
+
   // Spacing and Sizing
   spacing: "compact" | "normal" | "comfortable";
   borderRadius: "none" | "small" | "medium" | "large";
   shadowIntensity: "none" | "subtle" | "medium" | "strong";
-  
+
   // Component Visibility
   header: {
     show: boolean;
@@ -320,7 +322,7 @@ export type UICustomization = {
     showSettingsButton: boolean;
     compactMode: boolean;
   };
-  
+
   navigation: {
     show: boolean;
     showGroupLabels: boolean;
@@ -328,7 +330,7 @@ export type UICustomization = {
     compactMode: boolean;
     position: "top" | "sidebar" | "bottom";
   };
-  
+
   addDropdown: {
     show: boolean;
     showSingleAdd: boolean;
@@ -336,7 +338,7 @@ export type UICustomization = {
     showLabels: boolean;
     compactMode: boolean;
   };
-  
+
   // Button Customization
   buttons: {
     style: "default" | "minimal" | "outlined" | "filled";
@@ -346,7 +348,7 @@ export type UICustomization = {
     hoverEffects: boolean;
     clickEffects: boolean;
   };
-  
+
   // Card Customization
   cards: {
     style: "default" | "minimal" | "elevated" | "outlined";
@@ -355,7 +357,7 @@ export type UICustomization = {
     hoverEffects: boolean;
     compactMode: boolean;
   };
-  
+
   // Modal Customization
   modals: {
     backdrop: "blur" | "dark" | "light" | "none";
@@ -363,7 +365,7 @@ export type UICustomization = {
     size: "small" | "medium" | "large" | "full";
     position: "center" | "top" | "bottom";
   };
-  
+
   // Form Customization
   forms: {
     inputStyle: "default" | "minimal" | "outlined" | "filled";
@@ -379,33 +381,33 @@ export type LayoutCustomization = {
   containerWidth: "narrow" | "normal" | "wide" | "full";
   sidebarWidth: "narrow" | "normal" | "wide";
   sidebarPosition: "left" | "right" | "none";
-  
+
   // Header Layout
   headerHeight: "small" | "medium" | "large";
   headerSticky: boolean;
   headerTransparent: boolean;
-  
+
   // Navigation Layout
   navigationStyle: "horizontal" | "vertical" | "dropdown" | "tabs";
   navigationPosition: "top" | "sidebar" | "bottom";
   showNavigationLabels: boolean;
   showNavigationIcons: boolean;
-  
+
   // Content Layout
   contentPadding: "none" | "small" | "medium" | "large";
   contentMaxWidth: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   contentCentered: boolean;
-  
+
   // Grid Layouts
   storyGridColumns: number;
   projectGridColumns: number;
   goalGridColumns: number;
-  
+
   // Responsive Behavior
   mobileLayout: "stack" | "collapse" | "hide";
   tabletLayout: "stack" | "side-by-side" | "grid";
   desktopLayout: "full" | "sidebar" | "grid";
-  
+
   // Section Visibility
   sections: {
     header: boolean;
@@ -415,7 +417,7 @@ export type LayoutCustomization = {
     sidebar: boolean;
     classes: boolean; // Show/hide classes section
   };
-  
+
   // Component Arrangement
   componentOrder: {
     header: string[];
@@ -434,7 +436,7 @@ export type BehaviorCustomization = {
     dragThreshold: number; // pixels
     scrollSensitivity: number; // multiplier
   };
-  
+
   // Animation Behavior
   animations: {
     enabled: boolean;
@@ -442,7 +444,7 @@ export type BehaviorCustomization = {
     easing: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out";
     reduceMotion: boolean;
   };
-  
+
   // Auto-save Behavior
   autoSave: {
     enabled: boolean;
@@ -450,14 +452,14 @@ export type BehaviorCustomization = {
     showIndicator: boolean;
     showNotifications: boolean;
   };
-  
+
   // Keyboard Shortcuts
   shortcuts: {
     enabled: boolean;
     showHints: boolean;
     customShortcuts: Record<string, string>;
   };
-  
+
   // Data Behavior
   data: {
     confirmDeletes: boolean;
@@ -466,7 +468,7 @@ export type BehaviorCustomization = {
     backupInterval: number; // hours
     maxBackups: number;
   };
-  
+
   // Navigation Behavior
   navigation: {
     rememberLastView: boolean;
@@ -474,7 +476,7 @@ export type BehaviorCustomization = {
     autoCloseDropdowns: boolean;
     keyboardNavigation: boolean;
   };
-  
+
   // Form Behavior
   forms: {
     autoFocus: boolean;
@@ -483,7 +485,7 @@ export type BehaviorCustomization = {
     showValidationErrors: boolean;
     autoComplete: boolean;
   };
-  
+
   // Modal Behavior
   modals: {
     closeOnEscape: boolean;
@@ -502,7 +504,7 @@ export type AccessibilityCustomization = {
     colorBlindFriendly: boolean;
     focusIndicators: boolean;
   };
-  
+
   // Motor Accessibility
   motor: {
     largeTouchTargets: boolean;
@@ -510,7 +512,7 @@ export type AccessibilityCustomization = {
     voiceControl: boolean;
     switchControl: boolean;
   };
-  
+
   // Cognitive Accessibility
   cognitive: {
     simplifiedInterface: boolean;
@@ -519,7 +521,7 @@ export type AccessibilityCustomization = {
     errorPrevention: boolean;
     helpText: boolean;
   };
-  
+
   // Screen Reader Support
   screenReader: {
     announceChanges: boolean;
@@ -527,7 +529,7 @@ export type AccessibilityCustomization = {
     skipLinks: boolean;
     landmarks: boolean;
   };
-  
+
   // Keyboard Navigation
   keyboard: {
     tabOrder: "logical" | "visual" | "custom";
@@ -689,6 +691,31 @@ export type Assignment = {
   storyId?: string; // Optional link to Story
   createdAt: string;
   updatedAt: string;
+};
+
+// Rules engine types
+export type RuleTrigger = 'story-create';
+
+export type RuleOperator = 'exists' | 'not_exists' | 'equals' | 'not_equals' | 'contains';
+
+export type RuleCondition = {
+  field: string;
+  operator: RuleOperator;
+  value?: any;
+};
+
+export type RuleAction = {
+  field: string;
+  value: any;
+};
+
+export type Rule = {
+  id: string;
+  name: string;
+  trigger: RuleTrigger;
+  conditions: RuleCondition[];
+  actions: RuleAction[];
+  enabled: boolean;
 };
 
 // Re-export types from story.ts

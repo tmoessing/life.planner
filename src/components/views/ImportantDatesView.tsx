@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Calendar, Plus, Trash2, Edit2, ExternalLink, Search } from 'lucide-react';
+import { Calendar, Plus, Trash2, Edit2, ExternalLink, Search, X } from 'lucide-react';
 import { importantDatesAtom } from '@/stores/appStore';
 import { useImportantDateSettings } from '@/utils/settingsMirror';
 import { ImportantDateModal } from '@/components/modals/ImportantDateModal';
@@ -11,17 +11,25 @@ import type { ImportantDate } from '@/types';
 
 export function ImportantDatesView() {
   const [importantDates, setImportantDates] = useAtom(importantDatesAtom);
-  
+
   // Use settings mirror system for important date settings
   const importantDateSettings = useImportantDateSettings();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingDate, setEditingDate] = useState<ImportantDate | null>(null);
   const [showAllDates, setShowAllDates] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'required' | 'optional' | 'all'>('required');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   // Auto-sort dates by date (ascending)
   const sortedDates = [...importantDates].sort((a, b) => {
@@ -34,7 +42,7 @@ export function ImportantDatesView() {
   // Filter dates to show only next 6 months by default and apply search
   const getFilteredDates = () => {
     let filtered = sortedDates;
-    
+
     // Apply required/optional filter
     if (filterType === 'required') {
       filtered = filtered.filter(date => date.isRequired !== false);
@@ -42,61 +50,61 @@ export function ImportantDatesView() {
       filtered = filtered.filter(date => date.isRequired === false);
     }
     // 'all' shows everything
-    
+
     // Apply category filter
     if (selectedCategories.size > 0) {
-      filtered = filtered.filter(date => 
+      filtered = filtered.filter(date =>
         date.category && selectedCategories.has(date.category)
       );
     }
-    
+
     // Apply search filter
     if (searchQuery.trim()) {
-      filtered = filtered.filter(date => 
+      filtered = filtered.filter(date =>
         date.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
       // When searching, show all matching dates regardless of 6-month filter
       return filtered;
     }
-    
+
     // Apply 6-month filter if not showing all dates and not searching
     if (!showAllDates) {
       const today = new Date();
       const sixMonthsFromNow = new Date();
       sixMonthsFromNow.setMonth(today.getMonth() + 6);
-      
+
       filtered = filtered.filter(date => {
         const dateObj = date.date.includes('T') ? new Date(date.date) : new Date(date.date + 'T00:00:00');
         return dateObj >= today && dateObj <= sixMonthsFromNow;
       });
     }
-    
+
     return filtered;
   };
 
   const filteredDates = getFilteredDates();
-  
+
   // Calculate if there are more dates beyond the current filters
   const getUnfilteredDates = () => {
     let filtered = sortedDates;
-    
+
     // Apply required/optional filter
     if (filterType === 'required') {
       filtered = filtered.filter(date => date.isRequired !== false);
     } else if (filterType === 'optional') {
       filtered = filtered.filter(date => date.isRequired === false);
     }
-    
+
     // Apply category filter
     if (selectedCategories.size > 0) {
-      filtered = filtered.filter(date => 
+      filtered = filtered.filter(date =>
         date.category && selectedCategories.has(date.category)
       );
     }
-    
+
     return filtered;
   };
-  
+
   const unfilteredDates = getUnfilteredDates();
   const hasMoreDates = !showAllDates && unfilteredDates.length > 6;
 
@@ -121,6 +129,15 @@ export function ImportantDatesView() {
     setEditingDate(null);
   };
 
+  const toggleSearch = () => {
+    if (isSearchOpen) {
+      setIsSearchOpen(false);
+      setSearchQuery('');
+    } else {
+      setIsSearchOpen(true);
+    }
+  };
+
   const formatDate = (dateString: string, endDateString?: string) => {
     // Handle date strings in YYYY-MM-DD format (local dates)
     const date = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
@@ -130,7 +147,7 @@ export function ImportantDatesView() {
       month: 'long',
       day: 'numeric'
     });
-    
+
     if (endDateString) {
       const endDate = endDateString.includes('T') ? new Date(endDateString) : new Date(endDateString + 'T00:00:00');
       const formattedEnd = endDate.toLocaleDateString('en-US', {
@@ -141,7 +158,7 @@ export function ImportantDatesView() {
       });
       return `${formattedStart} - ${formattedEnd}`;
     }
-    
+
     return formattedStart;
   };
 
@@ -153,7 +170,7 @@ export function ImportantDatesView() {
       day: 'numeric',
       year: 'numeric'
     });
-    
+
     if (endDateString) {
       const endDate = endDateString.includes('T') ? new Date(endDateString) : new Date(endDateString + 'T00:00:00');
       const formattedEnd = endDate.toLocaleDateString('en-US', {
@@ -163,7 +180,7 @@ export function ImportantDatesView() {
       });
       return `${formattedStart} - ${formattedEnd}`;
     }
-    
+
     return formattedStart;
   };
 
@@ -171,10 +188,10 @@ export function ImportantDatesView() {
     const today = new Date();
     // Handle date strings in YYYY-MM-DD format (local dates)
     const startDate = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
-    
+
     if (endDateString) {
       const endDate = endDateString.includes('T') ? new Date(endDateString) : new Date(endDateString + 'T00:00:00');
-      
+
       // If current date is within the range
       if (today >= startDate && today <= endDate) {
         const diffTime = endDate.getTime() - today.getTime();
@@ -183,7 +200,7 @@ export function ImportantDatesView() {
         if (diffDays === 1) return 'Ends tomorrow';
         return `Ends in ${diffDays} days`;
       }
-      
+
       // If current date is before the range
       if (today < startDate) {
         const diffTime = startDate.getTime() - today.getTime();
@@ -192,17 +209,17 @@ export function ImportantDatesView() {
         if (diffDays === 1) return 'Starts tomorrow';
         return `Starts in ${diffDays} days`;
       }
-      
+
       // If current date is after the range
       const diffTime = today.getTime() - endDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return `${diffDays} days ago`;
     }
-    
+
     // Single date logic (existing)
     const diffTime = startDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Tomorrow';
     if (diffDays === -1) return 'Yesterday';
@@ -216,7 +233,7 @@ export function ImportantDatesView() {
     const targetDate = dateString.includes('T') ? new Date(dateString) : new Date(dateString + 'T00:00:00');
     const diffTime = targetDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return 'past';
     if (diffDays === 0) return 'today';
     if (diffDays <= 7) return 'upcoming';
@@ -228,7 +245,7 @@ export function ImportantDatesView() {
     // Handle date strings in YYYY-MM-DD format (local dates)
     const startDate = date.includes('T') ? new Date(date) : new Date(date + 'T00:00:00');
     const startDateString = startDate.toISOString().split('T')[0].replace(/-/g, '');
-    
+
     let endDateString = startDateString;
     if (endDate) {
       const eventEndDate = endDate.includes('T') ? new Date(endDate) : new Date(endDate + 'T00:00:00');
@@ -236,9 +253,9 @@ export function ImportantDatesView() {
       eventEndDate.setDate(eventEndDate.getDate() + 1);
       endDateString = eventEndDate.toISOString().split('T')[0].replace(/-/g, '');
     }
-    
+
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDateString}/${endDateString}`;
-    
+
     window.open(googleCalendarUrl, '_blank');
   };
 
@@ -246,41 +263,85 @@ export function ImportantDatesView() {
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              Track your important dates and events
-            </p>
+        <div className="flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+          {/* Mobile Filter Buttons (Left Aligned) */}
+          <div className="flex sm:hidden items-center gap-1 flex-shrink-0">
+            <Button
+              variant={filterType === 'required' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilterType('required')}
+              className="h-9 px-2 text-xs whitespace-nowrap"
+            >
+              Required
+            </Button>
+            <Button
+              variant={filterType === 'optional' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilterType('optional')}
+              className="h-9 px-2 text-xs whitespace-nowrap"
+            >
+              Optional
+            </Button>
+            <Button
+              variant={filterType === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilterType('all')}
+              className="h-9 px-2 text-xs whitespace-nowrap"
+            >
+              All
+            </Button>
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          <div className="hidden sm:block flex-1">
+            {/* Text removed as requested - spacer for desktop */}
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+            {isSearchOpen ? (
+              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
+                <Input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-32 sm:w-64 h-9 text-sm"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSearch}
+                  className="h-9 w-9"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleSearch}
+                className="h-9 w-9"
+                title="Search Dates"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            )}
+
             <Button
               onClick={handleAddDate}
-              className="gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+              className="gap-2 bg-blue-600 hover:bg-blue-700 h-9"
               size="sm"
             >
               <Plus className="h-4 w-4" />
-              Add Important Date
+              <span className="hidden sm:inline">Add Important Date</span>
             </Button>
           </div>
         </div>
       </div>
-
-      {/* Search Box */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          type="text"
-          placeholder="Search dates..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
       {/* Filter Buttons */}
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="flex gap-2">
+        <div className="hidden sm:flex gap-2">
           <Button
             variant={filterType === 'required' ? 'default' : 'outline'}
             size="sm"
@@ -303,12 +364,13 @@ export function ImportantDatesView() {
             All
           </Button>
         </div>
-        
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
           <Button
             variant={selectedCategories.size === 0 ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedCategories(new Set())}
+            className="whitespace-nowrap"
           >
             All Categories
           </Button>
@@ -326,10 +388,10 @@ export function ImportantDatesView() {
                 }
                 setSelectedCategories(newSelected);
               }}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 whitespace-nowrap"
             >
-              <div 
-                className="w-2 h-2 rounded-full" 
+              <div
+                className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: type.color }}
               />
               {type.name}
@@ -345,17 +407,17 @@ export function ImportantDatesView() {
             <CardContent className="text-center p-4">
               <Calendar className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold mb-2">
-                {searchQuery.trim() 
-                  ? 'No dates found' 
-                  : importantDates.length === 0 
-                    ? 'No Important Dates' 
+                {searchQuery.trim()
+                  ? 'No dates found'
+                  : importantDates.length === 0
+                    ? 'No Important Dates'
                     : 'No Dates in Next 6 Months'
                 }
               </h3>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {searchQuery.trim()
                   ? `No dates match "${searchQuery}". Try a different search term.`
-                  : importantDates.length === 0 
+                  : importantDates.length === 0
                     ? 'Add your first important date below to get started'
                     : 'No important dates in the next 6 months. Click "See More" to view all dates.'
                 }
@@ -373,13 +435,13 @@ export function ImportantDatesView() {
             };
 
             // Get category color
-            const categoryColor = date.category 
+            const categoryColor = date.category
               ? importantDateSettings.getDateTypeColor(date.category)
               : '#6B7280';
 
             return (
-              <Card 
-                key={date.id} 
+              <Card
+                key={date.id}
                 className={`${statusColors[status]} transition-colors`}
                 style={{
                   borderLeftColor: categoryColor,
@@ -389,7 +451,7 @@ export function ImportantDatesView() {
               >
                 {/* Mobile: Single row layout */}
                 <div className="sm:hidden p-1.5 flex items-center gap-1.5 min-h-[44px]">
-                  <div 
+                  <div
                     className="w-1 h-6 rounded-full flex-shrink-0"
                     style={{ backgroundColor: categoryColor }}
                   />
@@ -478,7 +540,7 @@ export function ImportantDatesView() {
 
       {/* Add Important Date Button at Bottom */}
       <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer">
-        <CardContent 
+        <CardContent
           className="p-3 sm:p-4 flex items-center justify-center min-h-[60px]"
           onClick={handleAddDate}
         >

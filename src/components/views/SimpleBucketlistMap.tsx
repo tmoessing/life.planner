@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { BucketlistItem } from '@/types';
-import { getCoordinates, getLocationKey, getItemsInSameLocation, calculateOffsetCoordinates } from '@/utils/coordinateMapping';
+import { getCoordinates, getItemsInSameLocation, calculateOffsetCoordinates } from '@/utils/coordinateMapping';
 import { formatLocationDisplay } from '@/utils/formatting';
 
 interface SimpleBucketlistMapProps {
@@ -11,16 +11,16 @@ interface SimpleBucketlistMapProps {
 export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
   const [selectedItem, setSelectedItem] = useState<BucketlistItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Filter only location items
   const locationItems = items.filter(item => item.bucketlistType === 'location');
-  
+
   // Simulate loading for better UX
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
-  
+
   // Demo data for testing if no items exist
   const demoItems: BucketlistItem[] = [
     {
@@ -37,7 +37,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'demo-2', 
+      id: 'demo-2',
       title: 'Explore Tokyo, Japan',
       description: 'Experience Japanese culture and cuisine',
       bucketlistType: 'location',
@@ -64,10 +64,10 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
       updatedAt: new Date().toISOString()
     }
   ];
-  
+
   // Use demo data if no real items exist
   const displayItems = locationItems.length > 0 ? locationItems : demoItems;
-  
+
   if (isLoading) {
     return (
       <div className="h-96 w-full rounded-lg overflow-hidden border border-border shadow-lg bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 flex items-center justify-center">
@@ -93,7 +93,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
           </p>
         </div>
       )}
-      
+
       {/* Interactive Map with Real Map Background */}
       <div className="h-96 w-full rounded-lg overflow-hidden border border-border shadow-lg relative bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 dark:from-blue-950/50 dark:via-blue-900/30 dark:to-green-950/50">
         {/* World Map Background */}
@@ -101,25 +101,25 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
           {/* Simplified world map using SVG */}
           <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
             {/* World map outline */}
-            <path d="M50,50 L100,45 L150,50 L200,55 L250,50 L300,45 L350,50 L350,150 L300,155 L250,150 L200,155 L150,150 L100,155 L50,150 Z" 
-                  fill="none" stroke="#4A5568" strokeWidth="1" opacity="0.3"/>
-            
+            <path d="M50,50 L100,45 L150,50 L200,55 L250,50 L300,45 L350,50 L350,150 L300,155 L250,150 L200,155 L150,150 L100,155 L50,150 Z"
+              fill="none" stroke="#4A5568" strokeWidth="1" opacity="0.3" />
+
             {/* Continents */}
-            <circle cx="80" cy="60" r="15" fill="#E2E8F0" opacity="0.4"/>
-            <circle cx="200" cy="70" r="20" fill="#E2E8F0" opacity="0.4"/>
-            <circle cx="320" cy="80" r="12" fill="#E2E8F0" opacity="0.4"/>
-            <circle cx="120" cy="140" r="18" fill="#E2E8F0" opacity="0.4"/>
-            <circle cx="280" cy="130" r="14" fill="#E2E8F0" opacity="0.4"/>
-            
+            <circle cx="80" cy="60" r="15" fill="#E2E8F0" opacity="0.4" />
+            <circle cx="200" cy="70" r="20" fill="#E2E8F0" opacity="0.4" />
+            <circle cx="320" cy="80" r="12" fill="#E2E8F0" opacity="0.4" />
+            <circle cx="120" cy="140" r="18" fill="#E2E8F0" opacity="0.4" />
+            <circle cx="280" cy="130" r="14" fill="#E2E8F0" opacity="0.4" />
+
             {/* Grid lines */}
-            <line x1="0" y1="50" x2="400" y2="50" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="0" y1="100" x2="400" y2="100" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="0" y1="150" x2="400" y2="150" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="100" y1="0" x2="100" y2="200" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="200" y1="0" x2="200" y2="200" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="300" y1="0" x2="300" y2="200" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3"/>
+            <line x1="0" y1="50" x2="400" y2="50" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3" />
+            <line x1="0" y1="100" x2="400" y2="100" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3" />
+            <line x1="0" y1="150" x2="400" y2="150" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3" />
+            <line x1="100" y1="0" x2="100" y2="200" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3" />
+            <line x1="200" y1="0" x2="200" y2="200" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3" />
+            <line x1="300" y1="0" x2="300" y2="200" stroke="#CBD5E0" strokeWidth="0.5" opacity="0.3" />
           </svg>
-          
+
           {/* Continent labels */}
           <div className="absolute top-12 left-16 text-xs font-medium text-gray-600 opacity-60">North America</div>
           <div className="absolute top-16 right-20 text-xs font-medium text-gray-600 opacity-60">Europe</div>
@@ -127,7 +127,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
           <div className="absolute bottom-16 left-20 text-xs font-medium text-gray-600 opacity-60">South America</div>
           <div className="absolute bottom-12 right-16 text-xs font-medium text-gray-600 opacity-60">Australia</div>
         </div>
-        
+
         {/* Map Grid Lines */}
         <div className="absolute inset-0 opacity-10">
           {/* Horizontal lines */}
@@ -139,30 +139,29 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
           <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
           <div className="absolute left-3/4 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
         </div>
-        
+
         {/* Location markers positioned on the map */}
         <div className="absolute inset-0">
-          {displayItems.map((item, index) => {
+          {displayItems.map((item, _index) => {
             const coords = getCoordinates(item);
-            
+
             // Group items by location to handle multiple items in same city
             const itemsInSameLocation = getItemsInSameLocation(displayItems, item);
             const itemIndex = itemsInSameLocation.findIndex(otherItem => otherItem.id === item.id);
             const totalInLocation = itemsInSameLocation.length;
-            
+
             // Add small offset for multiple items in same location
             const adjustedCoords = calculateOffsetCoordinates(coords, itemIndex, totalInLocation, 0.1);
-            
+
             // Convert coordinates to percentage positions for display
             const x = ((adjustedCoords[1] + 180) / 360) * 100; // longitude to x percentage
             const y = ((90 - adjustedCoords[0]) / 180) * 100; // latitude to y percentage
-            
+
             return (
               <button
                 key={item.id}
-                className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border-3 border-white shadow-lg transition-all hover:scale-125 hover:z-10 ${
-                  item.completed ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600'
-                }`}
+                className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border-3 border-white shadow-lg transition-all hover:scale-125 hover:z-10 ${item.completed ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600'
+                  }`}
                 style={{
                   left: `${Math.max(8, Math.min(92, x))}%`,
                   top: `${Math.max(8, Math.min(92, y))}%`,
@@ -174,14 +173,14 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
                 <div className="w-full h-full flex items-center justify-center text-white text-sm font-bold">
                   {item.completed ? '✓' : '●'}
                 </div>
-                
+
                 {/* Show count badge for multiple items in same location */}
                 {totalInLocation > 1 && (
                   <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                     {totalInLocation}
                   </div>
                 )}
-                
+
                 {/* Pulse animation for selected item */}
                 {selectedItem?.id === item.id && (
                   <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping"></div>
@@ -190,7 +189,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
             );
           })}
         </div>
-        
+
         {/* Map Legend */}
         <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
           <div className="flex items-center gap-4 text-xs text-foreground">
@@ -204,7 +203,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
             </div>
           </div>
         </div>
-        
+
         {/* Map Title */}
         <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
           <h3 className="text-sm font-semibold text-foreground">Bucketlist Locations</h3>
@@ -213,12 +212,12 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
           </p>
         </div>
       </div>
-      
+
       {/* Selected Location Details */}
       {selectedItem && (() => {
         // Find all items in the same location
         const itemsInSameLocation = getItemsInSameLocation(displayItems, selectedItem);
-        
+
         return (
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
             <div className="flex items-start justify-between mb-3">
@@ -239,30 +238,27 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
                 ✕
               </button>
             </div>
-            
+
             {/* All items in this location */}
             <div className="space-y-3">
               {itemsInSameLocation.map((item) => (
-                <div key={item.id} className={`p-3 rounded-lg border ${
-                  item.completed 
-                    ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
-                    : 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
-                }`}>
+                <div key={item.id} className={`p-3 rounded-lg border ${item.completed
+                  ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
+                  : 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
+                  }`}>
                   <div className="flex items-start gap-2">
-                    <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
-                      item.completed ? 'bg-green-500' : 'bg-yellow-500'
-                    }`}></div>
+                    <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${item.completed ? 'bg-green-500' : 'bg-yellow-500'
+                      }`}></div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-sm mb-1 text-foreground">{item.title}</h4>
                       {item.description && (
                         <p className="text-xs text-muted-foreground mb-2">{item.description}</p>
                       )}
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          item.completed 
-                            ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' 
-                            : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${item.completed
+                          ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                          : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
+                          }`}>
                           {item.completed ? 'Completed' : 'In Progress'}
                         </span>
                         {item.priority && (
@@ -279,7 +275,7 @@ export function SimpleBucketlistMap({ items }: SimpleBucketlistMapProps) {
           </div>
         );
       })()}
-      
+
       {/* Map Legend */}
       <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">

@@ -15,14 +15,14 @@ export * from './formatting';
 export const generateSprints = (weeksAhead: number = 12): Sprint[] => {
   const { isoWeek, year } = getCurrentWeek();
   const sprints: Sprint[] = [];
-  
+
   for (let i = 0; i < weeksAhead; i++) {
     const weekNumber = isoWeek + i;
     const sprintYear = year + Math.floor((weekNumber - 1) / 52);
     const normalizedWeek = ((weekNumber - 1) % 52) + 1;
-    
+
     const { startDate, endDate } = getWeekDates(normalizedWeek, sprintYear);
-    
+
     sprints.push({
       id: createSprintId(normalizedWeek, sprintYear),
       isoWeek: normalizedWeek,
@@ -31,7 +31,7 @@ export const generateSprints = (weeksAhead: number = 12): Sprint[] => {
       endDate
     });
   }
-  
+
   return sprints;
 };
 
@@ -138,7 +138,7 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'Personal', color: '#EC4899' }
   ],
   countries: [
-    'US', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 
+    'US', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain',
     'Japan', 'China', 'India', 'Australia', 'Brazil', 'Argentina', 'Chile', 'Peru',
     'South Africa', 'Egypt', 'Morocco', 'Nigeria', 'Kenya', 'Thailand', 'Vietnam',
     'Indonesia', 'Philippines', 'South Korea', 'Singapore', 'Malaysia', 'New Zealand'
@@ -158,14 +158,14 @@ export const getDefaultSettings = (): Settings => ({
     'Sports', 'Wellness', 'Art & Music', 'History', 'Technology', 'Business',
     'Volunteer', 'Spiritual', 'Social', 'Personal Growth'
   ],
-  
+
   // Project types for project settings mirror
   projectTypes: [
     { name: 'Code', color: '#3B82F6' },
     { name: 'Organization', color: '#8B5CF6' },
     { name: 'Learning', color: '#10B981' }
   ],
-  
+
   // Project sizes for project settings mirror
   projectSizes: [
     { name: 'XS', color: '#10B981' }, // Green - Very small projects
@@ -174,7 +174,7 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'L', color: '#EF4444' },  // Red - Large projects
     { name: 'XL', color: '#8B5CF6' }  // Purple - Extra large projects
   ],
-  
+
   // Tradition types for tradition settings mirror
   traditionTypes: [
     { name: 'Spiritual', color: '#8B5CF6' },
@@ -182,7 +182,7 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'Intellectual', color: '#F59E0B' },
     { name: 'Social', color: '#3B82F6' }
   ],
-  
+
   // Traditional categories for tradition settings mirror
   traditionalCategories: [
     { name: 'Christmas', color: '#EF4444' },
@@ -194,7 +194,7 @@ export const getDefaultSettings = (): Settings => ({
     { name: 'Valentine\'s Day', color: '#EC4899' },
     { name: 'Anniversary', color: '#06B6D4' }
   ],
-  
+
   // Important date types for important date settings mirror
   importantDateTypes: [
     { name: 'Birthday', color: '#F59E0B' },
@@ -253,7 +253,7 @@ export const getDefaultSettings = (): Settings => ({
     ideal: '#8884d8', // Purple for ideal line
     actual: '#82ca9d'  // Green for actual line
   },
-  
+
   // UI Customization
   ui: {
     theme: 'system',
@@ -264,16 +264,16 @@ export const getDefaultSettings = (): Settings => ({
     textColor: '#1f2937',
     mutedTextColor: '#6b7280',
     borderColor: '#e5e7eb',
-    
+
     fontFamily: 'system',
     fontSize: 'medium',
     fontWeight: 'normal',
     lineHeight: 'normal',
-    
+
     spacing: 'normal',
     borderRadius: 'medium',
     shadowIntensity: 'medium',
-    
+
     header: {
       show: true,
       showTitle: true,
@@ -283,7 +283,7 @@ export const getDefaultSettings = (): Settings => ({
       showSettingsButton: true,
       compactMode: false
     },
-    
+
     navigation: {
       show: true,
       showGroupLabels: true,
@@ -291,7 +291,7 @@ export const getDefaultSettings = (): Settings => ({
       compactMode: false,
       position: 'top'
     },
-    
+
     addDropdown: {
       show: true,
       showSingleAdd: true,
@@ -299,7 +299,7 @@ export const getDefaultSettings = (): Settings => ({
       showLabels: true,
       compactMode: false
     },
-    
+
     buttons: {
       style: 'default',
       size: 'medium',
@@ -308,7 +308,7 @@ export const getDefaultSettings = (): Settings => ({
       hoverEffects: true,
       clickEffects: true
     },
-    
+
     cards: {
       style: 'default',
       showBorders: true,
@@ -316,14 +316,14 @@ export const getDefaultSettings = (): Settings => ({
       hoverEffects: true,
       compactMode: false
     },
-    
+
     modals: {
       backdrop: 'blur',
       animation: 'slide',
       size: 'medium',
       position: 'center'
     },
-    
+
     forms: {
       inputStyle: 'default',
       showLabels: true,
@@ -332,34 +332,34 @@ export const getDefaultSettings = (): Settings => ({
       autoSave: false
     }
   },
-  
+
   // Layout Customization
   layout: {
     containerWidth: 'normal',
     sidebarWidth: 'normal',
     sidebarPosition: 'none',
-    
+
     headerHeight: 'medium',
     headerSticky: true,
     headerTransparent: false,
-    
+
     navigationStyle: 'horizontal',
     navigationPosition: 'top',
     showNavigationLabels: true,
     showNavigationIcons: true,
-    
+
     contentPadding: 'medium',
     contentMaxWidth: 'xl',
     contentCentered: true,
-    
+
     storyGridColumns: 3,
     projectGridColumns: 2,
     goalGridColumns: 2,
-    
+
     mobileLayout: 'stack',
     tabletLayout: 'side-by-side',
     desktopLayout: 'full',
-    
+
     sections: {
       header: true,
       navigation: true,
@@ -368,7 +368,7 @@ export const getDefaultSettings = (): Settings => ({
       sidebar: false,
       classes: true
     },
-    
+
     componentOrder: {
       header: ['title', 'navigation', 'actions'],
       navigation: ['groups'],
@@ -376,7 +376,7 @@ export const getDefaultSettings = (): Settings => ({
       sidebar: []
     }
   },
-  
+
   // Behavior Customization
   behavior: {
     interactions: {
@@ -386,27 +386,27 @@ export const getDefaultSettings = (): Settings => ({
       dragThreshold: 5,
       scrollSensitivity: 1
     },
-    
+
     animations: {
       enabled: true,
       duration: 'normal',
       easing: 'ease',
       reduceMotion: false
     },
-    
+
     autoSave: {
       enabled: false,
       interval: 30,
       showIndicator: true,
       showNotifications: false
     },
-    
+
     shortcuts: {
       enabled: true,
       showHints: true,
       customShortcuts: {}
     },
-    
+
     data: {
       confirmDeletes: true,
       confirmOverwrites: true,
@@ -414,14 +414,14 @@ export const getDefaultSettings = (): Settings => ({
       backupInterval: 24,
       maxBackups: 5
     },
-    
+
     navigation: {
       rememberLastView: true,
       showBreadcrumbs: false,
       autoCloseDropdowns: true,
       keyboardNavigation: true
     },
-    
+
     forms: {
       autoFocus: true,
       validateOnBlur: true,
@@ -429,7 +429,7 @@ export const getDefaultSettings = (): Settings => ({
       showValidationErrors: true,
       autoComplete: true
     },
-    
+
     modals: {
       closeOnEscape: true,
       closeOnBackdrop: true,
@@ -437,7 +437,7 @@ export const getDefaultSettings = (): Settings => ({
       restoreFocus: true
     }
   },
-  
+
   // Accessibility Customization
   accessibility: {
     visual: {
@@ -447,14 +447,14 @@ export const getDefaultSettings = (): Settings => ({
       colorBlindFriendly: false,
       focusIndicators: true
     },
-    
+
     motor: {
       largeTouchTargets: false,
       reducedPrecisionRequired: false,
       voiceControl: false,
       switchControl: false
     },
-    
+
     cognitive: {
       simplifiedInterface: false,
       clearLabels: true,
@@ -462,21 +462,22 @@ export const getDefaultSettings = (): Settings => ({
       errorPrevention: true,
       helpText: true
     },
-    
+
     screenReader: {
       announceChanges: true,
       describeImages: true,
       skipLinks: true,
       landmarks: true
     },
-    
+
     keyboard: {
       tabOrder: 'logical',
       focusTrapping: true,
       escapeHandling: true,
       arrowKeyNavigation: true
     }
-  }
+  },
+  rules: []
 });
 
 // Description template generation
@@ -486,21 +487,21 @@ export const generateDescription = (
   customText?: string
 ): string => {
   if (customText) return customText;
-  
+
   const roleName = role?.name || 'person';
   const visionText = vision ? ` so that I fulfill (${vision.title})` : '';
-  
+
   return `As a ${roleName} I need to <...>${visionText}`;
 };
 
 // Filter utilities
 export const parseFilterKeywords = (keywords: string): Record<string, string[]> => {
   const filters: Record<string, string[]> = {};
-  
+
   if (!keywords.trim()) return filters;
-  
+
   const parts = keywords.split(/\s+/);
-  
+
   for (const part of parts) {
     const [key, value] = part.split('=');
     if (key && value) {
@@ -508,7 +509,7 @@ export const parseFilterKeywords = (keywords: string): Record<string, string[]> 
       filters[key] = values;
     }
   }
-  
+
   return filters;
 };
 
@@ -523,19 +524,19 @@ export const filterStories = (
   // visions: Vision[]
 ): Story[] => {
   let filtered = stories.filter(story => !story.deleted);
-  
+
   // Text search
   if (text.trim()) {
     const searchText = text.toLowerCase();
-    filtered = filtered.filter(story => 
+    filtered = filtered.filter(story =>
       story.title.toLowerCase().includes(searchText) ||
       story.description.toLowerCase().includes(searchText)
     );
   }
-  
+
   // Keyword filters
   const keywordFilters = parseFilterKeywords(keywords);
-  
+
   for (const [key, values] of Object.entries(keywordFilters)) {
     filtered = filtered.filter(story => {
       switch (key) {
@@ -566,19 +567,19 @@ export const filterStories = (
       }
     });
   }
-  
+
   // Due soon filter
   if (dueSoon) {
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    
+
     filtered = filtered.filter(story => {
       if (!story.dueDate) return false;
       const dueDate = parseISO(story.dueDate);
       return isValid(dueDate) && dueDate <= sevenDaysFromNow;
     });
   }
-  
+
   return filtered;
 };
 
@@ -620,7 +621,7 @@ export const saveStories = (stories: any[]): void => {
 export const exportAllData = (data: any) => {
   // Filter out deleted stories for export
   const activeStories = data.stories ? data.stories.filter((story: any) => !story.deleted) : [];
-  
+
   const exportData = {
     exportedAt: new Date().toISOString(),
     stories: activeStories,
@@ -636,13 +637,13 @@ export const exportAllData = (data: any) => {
     boards: data.boards || [],
     settings: data.settings || {}
   };
-  
+
   const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const filename = `backup-${timestamp}.json`;
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
@@ -661,22 +662,22 @@ export const exportStories = (stories: any[]) => {
 export const importAllData = (file: File): Promise<{ data: any, mode: 'overwrite' | 'merge' }> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string;
         const data = JSON.parse(content);
-        
+
         // Handle different import formats
         if (Array.isArray(data)) {
           // Legacy format: Direct array of stories
-          resolve({ 
-            data: { stories: data }, 
-            mode: 'overwrite' 
+          resolve({
+            data: { stories: data },
+            mode: 'overwrite'
           });
         } else if (data.stories && Array.isArray(data.stories)) {
           // Full backup format: Object with all data
-          resolve({ 
+          resolve({
             data: {
               stories: data.stories || [],
               sprints: data.sprints || [],
@@ -690,8 +691,8 @@ export const importAllData = (file: File): Promise<{ data: any, mode: 'overwrite
               columns: data.columns || [],
               boards: data.boards || [],
               settings: data.settings || {}
-            }, 
-            mode: 'overwrite' 
+            },
+            mode: 'overwrite'
           });
         } else {
           throw new Error('Invalid file format. Expected array of stories or full backup object.');
@@ -700,11 +701,11 @@ export const importAllData = (file: File): Promise<{ data: any, mode: 'overwrite
         reject(new Error('Invalid JSON file or unsupported format.'));
       }
     };
-    
+
     reader.onerror = () => {
       reject(new Error('Failed to read file.'));
     };
-    
+
     reader.readAsText(file);
   });
 };

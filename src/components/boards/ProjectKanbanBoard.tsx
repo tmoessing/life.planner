@@ -4,10 +4,9 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
 import { StoryCard } from '@/components/shared/StoryCard';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { 
-  storiesAtom, 
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
+import {
+  storiesAtom,
   columnsAtom,
   moveStoryAtom
 } from '@/stores/appStore';
@@ -31,13 +30,13 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
   const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   // Get project stories
-  const projectStories = stories.filter(story => 
+  const projectStories = stories.filter(story =>
     project.storyIds?.includes(story.id) && !story.deleted
   );
 
   // Group stories by column
   const storiesByColumn = columns.reduce((acc, column) => {
-    acc[column.id] = projectStories.filter(story => 
+    acc[column.id] = projectStories.filter(story =>
       column.storyIds.includes(story.id)
     );
     return acc;
@@ -84,7 +83,7 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
     // Find which column the story is currently in
     const fromColumn = columns.find(col => col.storyIds.includes(storyId));
     const targetColumn = columns.find(col => col.id === targetColumnId);
-    
+
     if (fromColumn && targetColumn && fromColumn.id !== targetColumn.id) {
       moveStory(storyId, targetColumnId);
     }
@@ -108,96 +107,22 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
         </button>
       </div>
 
-      {/* Column Header Row - Desktop */}
-      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-4 mb-2">
-        {columns.map((column) => {
-          const columnStories = storiesByColumn[column.id] || [];
-          const statusColor = storySettings.getStatusColor(column.id);
-          return (
-            <div
-              key={column.id}
-              onClick={() => {
-                const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
-                if (columnElement) {
-                  columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-              }}
-              className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
-              style={{ backgroundColor: `${statusColor}20` }}
-            >
-              <div
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: statusColor }}
-              />
-              <span className="text-sm font-medium" style={{ color: statusColor }}>
-                {column.name} {columnStories.length}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Column Header Row with Navigation Arrows - Mobile */}
-      <div className="sm:hidden mb-4 px-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
-            disabled={currentMobileColumnIndex === 0}
-            className="flex-shrink-0"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 grid grid-cols-3 gap-1.5">
-            {columns.map((column, index) => {
-              const columnStories = storiesByColumn[column.id] || [];
-              const statusColor = storySettings.getStatusColor(column.id);
-              const isActive = columns[currentMobileColumnIndex]?.id === column.id;
-              return (
-                <div
-                  key={column.id}
-                  onClick={() => setCurrentMobileColumnIndex(index)}
-                  className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                    isActive ? 'ring-2 ring-offset-1' : ''
-                  }`}
-                  style={{ 
-                    backgroundColor: `${statusColor}20`,
-                    ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
-                  }}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: statusColor }}
-                  />
-                  <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
-                    {column.name} {columnStories.length}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMobileColumnIndex(prev => Math.min(columns.length - 1, prev + 1))}
-            disabled={currentMobileColumnIndex === columns.length - 1}
-            className="flex-shrink-0"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
       {/* Kanban Board */}
       <div className="flex-1 p-4 overflow-hidden pb-20 lg:pb-4">
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 h-full overflow-x-auto mobile-scroll pb-4">
-            {columns.map((column) => (
-              <div key={column.id} className="flex-shrink-0 w-80" data-column-id={column.id}>
+          <BoardGridLayout
+            columns={columns.map((column) => ({
+              id: column.id,
+              label: column.name,
+              items: storiesByColumn[column.id] || [],
+              color: storySettings.getStatusColor(column.id)
+            }))}
+            renderItem={() => null}
+            renderColumn={(column) => (
+              <div className="flex-shrink-0 w-80">
                 <KanbanColumn
-                  column={column}
-                  stories={storiesByColumn[column.id] || []}
+                  column={{ id: column.id, name: column.label as any, storyIds: [] }} // Mapping BoardColumn back to KanbanColumn props
+                  stories={column.items}
                   selectedStories={[]}
                   onStoryClick={handleStoryClick}
                   onEditStory={handleEditStory}
@@ -206,8 +131,16 @@ export function ProjectKanbanBoard({ project, onClose }: ProjectKanbanBoardProps
                   onMoveToColumn={handleMoveToColumn}
                 />
               </div>
-            ))}
-          </div>
+            )}
+            currentMobileColumnIndex={currentMobileColumnIndex}
+            onMobileColumnChange={setCurrentMobileColumnIndex}
+            // Use flex display for horizontal scrolling behavior if desired, or grid for standard grid
+            // The original used flex horizontal scrolling.
+            // BoardGridLayout uses grid by default.
+            // If we want horizontal scrolling on desktop, we might need to override gridClassName and styles.
+            // But user asked for "grid".
+            gridClassName="gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+          />
 
           <DragOverlay>
             {activeStory ? (

@@ -55,9 +55,9 @@ export function StoryCard({
   const [projects] = useAtom(projectsAtom);
   const [, moveStory] = useAtom(moveStoryAtom);
   const storySettings = useStorySettings();
-  
-  const cardRef = useRef<HTMLDivElement>(null);
-  
+
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
   // Check if story is scheduled (has scheduledDate or dueDate)
   const isScheduled = !!(story.scheduledDate || story.dueDate);
 
@@ -101,11 +101,11 @@ export function StoryCard({
   });
 
   // Swipe handling hook
-  const { 
-    swipeDirection, 
-    handleTouchStart, 
-    handleTouchMove, 
-    handleTouchEnd 
+  const {
+    swipeDirection,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd
   } = useStorySwipe({
     kanbanMode,
     currentColumnId,
@@ -118,7 +118,7 @@ export function StoryCard({
   // Event handlers
   const handleClick = (event: React.MouseEvent) => {
     if (isDragging) return;
-    
+
     if (onSelect) {
       onSelect(story.id, index, event);
     } else if (onClick) {
@@ -167,13 +167,13 @@ export function StoryCard({
   };
 
   const priorityColor = storySettings.getPriorityColor(story.priority);
-  
+
   // Color helper functions
   const getStatusColor = (status: string) => storySettings.getStatusColor(status);
   const getTaskCategoryColor = (category: string) => storySettings.getTaskCategoryColor(category);
-  
+
   return (
-    <Card 
+    <Card
       {...cardProps}
       data-story-id={story.id}
       tabIndex={isSelected ? 0 : -1}
@@ -197,11 +197,11 @@ export function StoryCard({
       onTouchEnd={handleTouchEndWithStory}
     >
       {/* Priority accent bar */}
-      <div 
+      <div
         className="absolute left-0 top-0 bottom-0 w-1"
         style={{ backgroundColor: priorityColor }}
       />
-      
+
       {/* Mobile layout */}
       <StoryCardMobile
         story={story}

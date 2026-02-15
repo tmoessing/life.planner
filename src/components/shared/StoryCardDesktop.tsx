@@ -1,14 +1,14 @@
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Calendar, 
-  User, 
-  Target, 
-  Weight, 
-  MapPin, 
-  Star, 
-  Edit, 
+import {
+  Calendar,
+  User,
+  Target,
+  Weight,
+  MapPin,
+  Star,
+  Edit,
   Trash2,
   CheckCircle,
   Clock,
@@ -22,18 +22,18 @@ import {
 } from 'lucide-react';
 import { StatusSelector } from './StatusSelector';
 import type { Story } from '@/types';
-import { 
-  getRoleName, 
-  getVisionName, 
-  getGoalName, 
-  getProjectName, 
-  getLabelObjects 
+import {
+  getRoleName,
+  getVisionName,
+  getGoalName,
+  getProjectName,
+  getLabelObjects
 } from '@/utils/storyUtils';
-import { 
-  getPriorityColorStyle, 
-  getTypeColorStyle, 
-  getSizeColorStyle, 
-  getWeightColorStyle 
+import {
+  getPriorityColorStyle,
+  getTypeColorStyle,
+  getSizeColorStyle,
+  getWeightColorStyle
 } from '@/utils/storyCardColors';
 import type { Role, Vision, Goal, Project, Label } from '@/types';
 
@@ -115,11 +115,10 @@ export function StoryCardDesktop({
               <Button
                 size="sm"
                 variant="ghost"
-                className={`h-6 w-6 sm:h-5 sm:w-5 p-0 touch-manipulation ${
-                  story.status === 'progress' || story.status === 'in-progress'
+                className={`h-6 w-6 sm:h-5 sm:w-5 p-0 touch-manipulation ${story.status === 'progress'
                     ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-950/50'
                     : 'text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
-                }`}
+                  }`}
                 onClick={(e) => {
                   e.stopPropagation();
                   onAddToGoogleCalendar();
@@ -173,7 +172,7 @@ export function StoryCardDesktop({
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         {/* Description */}
         {story.description && (
@@ -184,21 +183,21 @@ export function StoryCardDesktop({
 
         {/* Priority, Type, Weight, Size, Status */}
         <div className="flex items-center gap-1 flex-wrap mb-1">
-          <Badge 
+          <Badge
             variant="outline"
             className="text-[10px] px-1 py-0"
             style={getPriorityColorStyle(story.priority, storySettings)}
           >
             {story.priority}
           </Badge>
-          <Badge 
+          <Badge
             variant="outline"
             className="text-[10px] px-1 py-0 flex items-center gap-0.5"
             style={getTypeColorStyle(story.type, storySettings)}
           >
             {getTypeIcon(story.type) || story.type}
           </Badge>
-          <Badge 
+          <Badge
             variant="outline"
             className="text-[10px] flex items-center gap-0.5 px-1 py-0"
             style={getWeightColorStyle(story.weight, storySettings)}
@@ -206,7 +205,7 @@ export function StoryCardDesktop({
             <Weight className="h-2.5 w-2.5" />
             {story.weight}
           </Badge>
-          <Badge 
+          <Badge
             variant="outline"
             className="text-[10px] px-1 py-0"
             style={getSizeColorStyle(story.size, storySettings)}
@@ -221,8 +220,8 @@ export function StoryCardDesktop({
               size="sm"
             />
           ) : (
-            <Badge 
-              style={{ 
+            <Badge
+              style={{
                 backgroundColor: getStatusColor(story.status),
                 color: 'white'
               }}
@@ -232,8 +231,8 @@ export function StoryCardDesktop({
             </Badge>
           )}
           {(story as any)._isRecurringInstance && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="text-[10px] px-1 py-0 bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-0.5"
             >
               <Repeat className="h-2.5 w-2.5" />
@@ -246,11 +245,11 @@ export function StoryCardDesktop({
         {story.taskCategories && story.taskCategories.length > 0 && (
           <div className="flex items-center gap-1 flex-wrap mb-1">
             {story.taskCategories.slice(0, 2).map((category, idx) => (
-              <Badge 
+              <Badge
                 key={idx}
                 variant="outline"
                 className="text-[10px] px-1 py-0"
-                style={{ 
+                style={{
                   backgroundColor: getTaskCategoryColor(category),
                   color: 'white',
                   borderColor: getTaskCategoryColor(category)
@@ -271,7 +270,7 @@ export function StoryCardDesktop({
         {(story.scheduledDate || story.location || story.goalId) && (
           <div className="flex items-center gap-1 flex-wrap mb-1">
             {story.scheduledDate && (
-              <Badge 
+              <Badge
                 variant="outline"
                 className="text-[10px] px-1 py-0 flex items-center gap-0.5"
               >
@@ -280,7 +279,7 @@ export function StoryCardDesktop({
               </Badge>
             )}
             {story.location && (
-              <Badge 
+              <Badge
                 variant="outline"
                 className="text-[10px] px-1 py-0 flex items-center gap-0.5"
               >
@@ -289,7 +288,7 @@ export function StoryCardDesktop({
               </Badge>
             )}
             {story.goalId && (
-              <Badge 
+              <Badge
                 variant="outline"
                 className="text-[10px] px-1 py-0 flex items-center gap-0.5"
               >
@@ -344,11 +343,11 @@ export function StoryCardDesktop({
         {story.labels.length > 0 && (
           <div className="flex flex-wrap gap-0.5 mb-0.5">
             {getLabelObjects(story.labels, labels).slice(0, 3).map((label, idx) => (
-              <Badge 
+              <Badge
                 key={idx}
-                variant="outline" 
+                variant="outline"
                 className="text-[10px] px-1 py-0"
-                style={{ 
+                style={{
                   borderColor: label.color || '#6B7280',
                   color: label.color || '#6B7280'
                 }}

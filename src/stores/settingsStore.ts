@@ -1,16 +1,16 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import type { 
-  Role, 
-  Label, 
-  Vision, 
+import type {
+  Role,
+  Label,
+  Vision,
   BucketlistItem,
   ImportantDate,
   Tradition,
   Settings,
   TraditionTypeConfig
 } from '@/types';
-import { 
+import {
   createRole,
   createLabel,
   createVision
@@ -36,7 +36,7 @@ const migrateSettings = (settings: any): Settings => {
       'low': '#6B7280'
     };
   }
-  
+
   // If projectPriorityColors is missing, add it
   if (!settings.projectPriorityColors) {
     settings.projectPriorityColors = {
@@ -45,24 +45,24 @@ const migrateSettings = (settings: any): Settings => {
       'low': '#6B7280'
     };
   }
-  
+
   // If assignmentWeightBaseColor is missing, default to weightBaseColor or blue
   if (!settings.assignmentWeightBaseColor) {
     settings.assignmentWeightBaseColor = settings.weightBaseColor || '#3B82F6';
   }
-  
-         // If bucketlistCategories is missing, add default categories
-         if (!settings.bucketlistCategories || settings.bucketlistCategories.length === 0) {
-           settings.bucketlistCategories = [
-             { name: 'Adventure', color: '#EF4444' },
-             { name: 'Travel', color: '#3B82F6' },
-             { name: 'Learning', color: '#8B5CF6' },
-             { name: 'Experience', color: '#10B981' },
-             { name: 'Achievement', color: '#F59E0B' },
-             { name: 'Personal', color: '#EC4899' }
-           ];
-         }
-         
+
+  // If bucketlistCategories is missing, add default categories
+  if (!settings.bucketlistCategories || settings.bucketlistCategories.length === 0) {
+    settings.bucketlistCategories = [
+      { name: 'Adventure', color: '#EF4444' },
+      { name: 'Travel', color: '#3B82F6' },
+      { name: 'Learning', color: '#8B5CF6' },
+      { name: 'Experience', color: '#10B981' },
+      { name: 'Achievement', color: '#F59E0B' },
+      { name: 'Personal', color: '#EC4899' }
+    ];
+  }
+
   // If projectTypes is missing, add default project types
   if (!settings.projectTypes || settings.projectTypes.length === 0) {
     settings.projectTypes = [
@@ -75,7 +75,7 @@ const migrateSettings = (settings: any): Settings => {
       { name: 'Health', color: '#22C55E' }
     ];
   }
-  
+
   // If projectSizes is missing, add default project sizes
   if (!settings.projectSizes || settings.projectSizes.length === 0) {
     settings.projectSizes = [
@@ -86,7 +86,12 @@ const migrateSettings = (settings: any): Settings => {
       { name: 'XL', color: '#8B5CF6' }
     ];
   }
-  
+
+  // If rules is missing, add it
+  if (!settings.rules) {
+    settings.rules = [];
+  }
+
   return settings as Settings;
 };
 
@@ -94,7 +99,7 @@ const migrateSettings = (settings: any): Settings => {
 const migrateLegacyData = (): { roles: Role[], labels: Label[] } => {
   let roles: Role[] = [];
   let labels: Label[] = [];
-  
+
   try {
     // Check for existing roles data
     const existingRoles = localStorage.getItem('life-scrum-roles');
@@ -103,7 +108,7 @@ const migrateLegacyData = (): { roles: Role[], labels: Label[] } => {
       // Remove the old key after migration
       localStorage.removeItem('life-scrum-roles');
     }
-    
+
     // Check for existing labels data
     const existingLabels = localStorage.getItem('life-scrum-labels');
     if (existingLabels) {
@@ -114,7 +119,7 @@ const migrateLegacyData = (): { roles: Role[], labels: Label[] } => {
   } catch (error) {
     console.warn('Error migrating legacy data:', error);
   }
-  
+
   return { roles, labels };
 };
 
@@ -122,379 +127,380 @@ const migrateLegacyData = (): { roles: Role[], labels: Label[] } => {
 const getDefaultSettings = (): Settings => {
   // Migrate existing data from separate atoms
   const { roles: migratedRoles, labels: migratedLabels } = migrateLegacyData();
-  
+
   return {
-  theme: 'system',
-  roles: migratedRoles.length > 0 ? migratedRoles : [
-    { id: 'disciple', name: 'Disciple of Christ', color: '#8B5CF6' },
-    { id: 'individual', name: 'Individual/Development', color: '#3B82F6' },
-    { id: 'family', name: 'Family Member', color: '#F59E0B' },
-    { id: 'friend', name: 'Friend', color: '#10B981' },
-    { id: 'student', name: 'Student', color: '#3B82F6' },
-    { id: 'employer', name: 'Employer', color: '#EF4444' },
-    { id: 'future-employer', name: 'Future Employer', color: '#8B5CF6' }
-  ],
-  labels: migratedLabels.length > 0 ? migratedLabels : [
-    { id: 'workout', name: 'workout', color: '#EF4444' },
-    { id: 'study', name: 'study', color: '#3B82F6' },
-    { id: 'family', name: 'family', color: '#F59E0B' },
-    { id: 'spiritual', name: 'spiritual', color: '#8B5CF6' }
-  ],
-  storyTypes: [
-    { name: 'Spiritual', color: '#8B5CF6' },
-    { name: 'Physical', color: '#EF4444' },
-    { name: 'Intellectual', color: '#3B82F6' },
-    { name: 'Social', color: '#10B981' }
-  ],
-  storySizes: [
-    { name: 'XS', color: '#10B981', timeEstimate: '15 min' },
-    { name: 'S', color: '#3B82F6', timeEstimate: '30 min' },
-    { name: 'M', color: '#F59E0B', timeEstimate: '1 hour' },
-    { name: 'L', color: '#EF4444', timeEstimate: '2-4 hours' },
-    { name: 'XL', color: '#8B5CF6', timeEstimate: '1+ days' }
-  ],
-  taskCategories: [
-    { name: 'Decisions', color: '#8B5CF6' },
-    { name: 'Actions', color: '#10B981' },
-    { name: 'Involve Others', color: '#F59E0B' },
-    { name: 'Buying', color: '#EF4444' },
-    { name: 'Travel', color: '#3B82F6' }
-  ],
-  visionTypes: [
-    { name: 'Spiritual', color: '#8B5CF6' },
-    { name: 'Physical', color: '#EF4444' },
-    { name: 'Intellectual', color: '#3B82F6' },
-    { name: 'Social', color: '#10B981' }
-  ],
-  goalCategories: [
-    { name: 'Target', color: '#3B82F6' },
-    { name: 'Lifestyle/Value', color: '#10B981' }
-  ],
-  goalTypes: [
-    { name: 'Spiritual', color: '#8B5CF6' },
-    { name: 'Physical', color: '#EF4444' },
-    { name: 'Intellectual', color: '#3B82F6' },
-    { name: 'Social', color: '#10B981' },
-    { name: 'Financial', color: '#F59E0B' },
-    { name: 'Protector', color: '#81E6D9' }
-  ],
-  goalStatuses: [
-    { name: 'Icebox', color: '#6B7280' },
-    { name: 'Backlog', color: '#3B82F6' },
-    { name: 'To Do', color: '#F59E0B' },
-    { name: 'In Progress', color: '#10B981' },
-    { name: 'Review', color: '#8B5CF6' },
-    { name: 'Done', color: '#22C55E' }
-  ],
-  bucketlistTypes: [
-    { name: 'Location', color: '#3B82F6' },
-    { name: 'Experience', color: '#10B981' }
-  ],
-  bucketlistCategories: [
-    { name: 'Adventure', color: '#EF4444' },
-    { name: 'Travel', color: '#3B82F6' },
-    { name: 'Learning', color: '#8B5CF6' },
-    { name: 'Experience', color: '#10B981' },
-    { name: 'Achievement', color: '#F59E0B' },
-    { name: 'Personal', color: '#EC4899' }
-  ],
-  countries: [
-    'United States', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 
-    'Japan', 'China', 'India', 'Australia', 'Brazil', 'Argentina', 'Chile', 'Peru',
-    'South Africa', 'Egypt', 'Morocco', 'Nigeria', 'Kenya', 'Thailand', 'Vietnam',
-    'Indonesia', 'Philippines', 'South Korea', 'Singapore', 'Malaysia', 'New Zealand'
-  ],
-  usStates: [
-    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-    'Wisconsin', 'Wyoming'
-  ],
-  experienceCategories: [
-    'Adventure', 'Cultural', 'Educational', 'Entertainment', 'Food & Drink', 'Nature',
-    'Sports', 'Wellness', 'Art & Music', 'History', 'Technology', 'Business',
-    'Volunteer', 'Spiritual', 'Social', 'Personal Growth'
-  ],
-  projectTypes: [
-    { name: 'Code', color: '#3B82F6' },
-    { name: 'Organization', color: '#8B5CF6' },
-    { name: 'Creative', color: '#10B981' },
-    { name: 'Work', color: '#EF4444' },
-    { name: 'Personal', color: '#F59E0B' },
-    { name: 'Learning', color: '#8B5CF6' },
-    { name: 'Health', color: '#22C55E' }
-  ],
-  projectSizes: [
-    { name: 'XS', color: '#10B981' }, // Green - Very small projects
-    { name: 'S', color: '#3B82F6' },  // Blue - Small projects
-    { name: 'M', color: '#F59E0B' },  // Yellow - Medium projects
-    { name: 'L', color: '#EF4444' },  // Red - Large projects
-    { name: 'XL', color: '#8B5CF6' }  // Purple - Extra large projects
-  ],
-  traditionTypes: [
-    { name: 'Spiritual', color: '#8B5CF6' },
-    { name: 'Physical', color: '#10B981' },
-    { name: 'Intellectual', color: '#F59E0B' },
-    { name: 'Social', color: '#3B82F6' }
-  ],
-  traditionalCategories: [
-    { name: 'Christmas', color: '#EF4444' },
-    { name: 'Birthday', color: '#F59E0B' },
-    { name: 'New Year', color: '#8B5CF6' },
-    { name: 'Easter', color: '#10B981' },
-    { name: 'Thanksgiving', color: '#F97316' },
-    { name: 'Halloween', color: '#7C3AED' },
-    { name: 'Valentine\'s Day', color: '#EC4899' },
-    { name: 'Anniversary', color: '#06B6D4' }
-  ],
-  importantDateTypes: [
-    { name: 'School', color: '#3B82F6' },  // Blue
-    { name: 'Work', color: '#EF4444' },    // Red
-    { name: 'Other', color: '#6B7280' }    // Gray
-  ],
-  priorityColors: {
-    'Q1': '#EF4444',
-    'Q2': '#10B981',
-    'Q3': '#F59E0B',
-    'Q4': '#6B7280',
-    'high': '#EF4444',
-    'medium': '#F59E0B',
-    'low': '#6B7280'
-  },
-  bucketlistPriorityColors: {
-    'high': '#EF4444',
-    'medium': '#F59E0B',
-    'low': '#6B7280'
-  },
-  projectPriorityColors: {
-    'high': '#EF4444',
-    'medium': '#F59E0B',
-    'low': '#6B7280'
-  },
-  weightBaseColor: '#3B82F6',
-  assignmentWeightBaseColor: '#3B82F6', // Default to same as story weights, but can be customized
-  roleToTypeMap: {
-    'disciple': 'Spiritual',
-    'individual': 'Intellectual',
-    'family': 'Social',
-    'friend': 'Social',
-    'student': 'Intellectual',
-    'employer': 'Social',
-    'future-employer': 'Social'
-  },
-  statusColors: {
-    'icebox': '#6B7280',
-    'backlog': '#3B82F6',
-    'todo': '#F59E0B',
-    'progress': '#F97316',
-    'review': '#8B5CF6',
-    'done': '#10B981'
-  },
-  roadmapScheduledColor: '#8B5CF6',
-  sizeColors: {
-    'XS': '#10B981',
-    'S': '#3B82F6',
-    'M': '#F59E0B',
-    'L': '#EF4444',
-    'XL': '#8B5CF6'
-  },
-  chartColors: {
-    ideal: '#8884d8',
-    actual: '#82ca9d'
-  },
-  ui: {
     theme: 'system',
-    primaryColor: '#3B82F6',
-    accentColor: '#8B5CF6',
-    backgroundColor: '#ffffff',
-    surfaceColor: '#f8fafc',
-    textColor: '#1f2937',
-    mutedTextColor: '#6b7280',
-    borderColor: '#e5e7eb',
-    fontFamily: 'system',
-    fontSize: 'medium',
-    fontWeight: 'normal',
-    lineHeight: 'normal',
-    spacing: 'normal',
-    borderRadius: 'medium',
-    shadowIntensity: 'medium',
-    header: {
-      show: true,
-      showTitle: true,
-      showNavigation: true,
-      showAddButton: true,
-      showPlannerButton: true,
-      showSettingsButton: true,
-      compactMode: false
+    roles: migratedRoles.length > 0 ? migratedRoles : [
+      { id: 'disciple', name: 'Disciple of Christ', color: '#8B5CF6' },
+      { id: 'individual', name: 'Individual/Development', color: '#3B82F6' },
+      { id: 'family', name: 'Family Member', color: '#F59E0B' },
+      { id: 'friend', name: 'Friend', color: '#10B981' },
+      { id: 'student', name: 'Student', color: '#3B82F6' },
+      { id: 'employer', name: 'Employer', color: '#EF4444' },
+      { id: 'future-employer', name: 'Future Employer', color: '#8B5CF6' }
+    ],
+    labels: migratedLabels.length > 0 ? migratedLabels : [
+      { id: 'workout', name: 'workout', color: '#EF4444' },
+      { id: 'study', name: 'study', color: '#3B82F6' },
+      { id: 'family', name: 'family', color: '#F59E0B' },
+      { id: 'spiritual', name: 'spiritual', color: '#8B5CF6' }
+    ],
+    storyTypes: [
+      { name: 'Spiritual', color: '#8B5CF6' },
+      { name: 'Physical', color: '#EF4444' },
+      { name: 'Intellectual', color: '#3B82F6' },
+      { name: 'Social', color: '#10B981' }
+    ],
+    storySizes: [
+      { name: 'XS', color: '#10B981', timeEstimate: '15 min' },
+      { name: 'S', color: '#3B82F6', timeEstimate: '30 min' },
+      { name: 'M', color: '#F59E0B', timeEstimate: '1 hour' },
+      { name: 'L', color: '#EF4444', timeEstimate: '2-4 hours' },
+      { name: 'XL', color: '#8B5CF6', timeEstimate: '1+ days' }
+    ],
+    taskCategories: [
+      { name: 'Decisions', color: '#8B5CF6' },
+      { name: 'Actions', color: '#10B981' },
+      { name: 'Involve Others', color: '#F59E0B' },
+      { name: 'Buying', color: '#EF4444' },
+      { name: 'Travel', color: '#3B82F6' }
+    ],
+    visionTypes: [
+      { name: 'Spiritual', color: '#8B5CF6' },
+      { name: 'Physical', color: '#EF4444' },
+      { name: 'Intellectual', color: '#3B82F6' },
+      { name: 'Social', color: '#10B981' }
+    ],
+    goalCategories: [
+      { name: 'Target', color: '#3B82F6' },
+      { name: 'Lifestyle/Value', color: '#10B981' }
+    ],
+    goalTypes: [
+      { name: 'Spiritual', color: '#8B5CF6' },
+      { name: 'Physical', color: '#EF4444' },
+      { name: 'Intellectual', color: '#3B82F6' },
+      { name: 'Social', color: '#10B981' },
+      { name: 'Financial', color: '#F59E0B' },
+      { name: 'Protector', color: '#81E6D9' }
+    ],
+    goalStatuses: [
+      { name: 'Icebox', color: '#6B7280' },
+      { name: 'Backlog', color: '#3B82F6' },
+      { name: 'To Do', color: '#F59E0B' },
+      { name: 'In Progress', color: '#10B981' },
+      { name: 'Review', color: '#8B5CF6' },
+      { name: 'Done', color: '#22C55E' }
+    ],
+    bucketlistTypes: [
+      { name: 'Location', color: '#3B82F6' },
+      { name: 'Experience', color: '#10B981' }
+    ],
+    bucketlistCategories: [
+      { name: 'Adventure', color: '#EF4444' },
+      { name: 'Travel', color: '#3B82F6' },
+      { name: 'Learning', color: '#8B5CF6' },
+      { name: 'Experience', color: '#10B981' },
+      { name: 'Achievement', color: '#F59E0B' },
+      { name: 'Personal', color: '#EC4899' }
+    ],
+    countries: [
+      'United States', 'Canada', 'Mexico', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain',
+      'Japan', 'China', 'India', 'Australia', 'Brazil', 'Argentina', 'Chile', 'Peru',
+      'South Africa', 'Egypt', 'Morocco', 'Nigeria', 'Kenya', 'Thailand', 'Vietnam',
+      'Indonesia', 'Philippines', 'South Korea', 'Singapore', 'Malaysia', 'New Zealand'
+    ],
+    usStates: [
+      'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+      'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+      'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+      'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+      'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+      'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+      'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+      'Wisconsin', 'Wyoming'
+    ],
+    experienceCategories: [
+      'Adventure', 'Cultural', 'Educational', 'Entertainment', 'Food & Drink', 'Nature',
+      'Sports', 'Wellness', 'Art & Music', 'History', 'Technology', 'Business',
+      'Volunteer', 'Spiritual', 'Social', 'Personal Growth'
+    ],
+    projectTypes: [
+      { name: 'Code', color: '#3B82F6' },
+      { name: 'Organization', color: '#8B5CF6' },
+      { name: 'Creative', color: '#10B981' },
+      { name: 'Work', color: '#EF4444' },
+      { name: 'Personal', color: '#F59E0B' },
+      { name: 'Learning', color: '#8B5CF6' },
+      { name: 'Health', color: '#22C55E' }
+    ],
+    projectSizes: [
+      { name: 'XS', color: '#10B981' }, // Green - Very small projects
+      { name: 'S', color: '#3B82F6' },  // Blue - Small projects
+      { name: 'M', color: '#F59E0B' },  // Yellow - Medium projects
+      { name: 'L', color: '#EF4444' },  // Red - Large projects
+      { name: 'XL', color: '#8B5CF6' }  // Purple - Extra large projects
+    ],
+    traditionTypes: [
+      { name: 'Spiritual', color: '#8B5CF6' },
+      { name: 'Physical', color: '#10B981' },
+      { name: 'Intellectual', color: '#F59E0B' },
+      { name: 'Social', color: '#3B82F6' }
+    ],
+    traditionalCategories: [
+      { name: 'Christmas', color: '#EF4444' },
+      { name: 'Birthday', color: '#F59E0B' },
+      { name: 'New Year', color: '#8B5CF6' },
+      { name: 'Easter', color: '#10B981' },
+      { name: 'Thanksgiving', color: '#F97316' },
+      { name: 'Halloween', color: '#7C3AED' },
+      { name: 'Valentine\'s Day', color: '#EC4899' },
+      { name: 'Anniversary', color: '#06B6D4' }
+    ],
+    importantDateTypes: [
+      { name: 'School', color: '#3B82F6' },  // Blue
+      { name: 'Work', color: '#EF4444' },    // Red
+      { name: 'Other', color: '#6B7280' }    // Gray
+    ],
+    priorityColors: {
+      'Q1': '#EF4444',
+      'Q2': '#10B981',
+      'Q3': '#F59E0B',
+      'Q4': '#6B7280',
+      'high': '#EF4444',
+      'medium': '#F59E0B',
+      'low': '#6B7280'
     },
-    navigation: {
-      show: true,
-      showGroupLabels: true,
-      showDescriptions: true,
-      compactMode: false,
-      position: 'top'
+    bucketlistPriorityColors: {
+      'high': '#EF4444',
+      'medium': '#F59E0B',
+      'low': '#6B7280'
     },
-    addDropdown: {
-      show: true,
-      showSingleAdd: true,
-      showBulkAdd: true,
-      showLabels: true,
-      compactMode: false
+    projectPriorityColors: {
+      'high': '#EF4444',
+      'medium': '#F59E0B',
+      'low': '#6B7280'
     },
-    buttons: {
-      style: 'default',
-      size: 'medium',
-      showIcons: true,
-      showLabels: true,
-      hoverEffects: true,
-      clickEffects: true
+    weightBaseColor: '#3B82F6',
+    assignmentWeightBaseColor: '#3B82F6', // Default to same as story weights, but can be customized
+    roleToTypeMap: {
+      'disciple': 'Spiritual',
+      'individual': 'Intellectual',
+      'family': 'Social',
+      'friend': 'Social',
+      'student': 'Intellectual',
+      'employer': 'Social',
+      'future-employer': 'Social'
     },
-    cards: {
-      style: 'default',
-      showBorders: true,
-      showShadows: true,
-      hoverEffects: true,
-      compactMode: false
+    statusColors: {
+      'icebox': '#6B7280',
+      'backlog': '#3B82F6',
+      'todo': '#F59E0B',
+      'progress': '#F97316',
+      'review': '#8B5CF6',
+      'done': '#10B981'
     },
-    modals: {
-      backdrop: 'blur',
-      animation: 'slide',
-      size: 'medium',
-      position: 'center'
+    roadmapScheduledColor: '#8B5CF6',
+    sizeColors: {
+      'XS': '#10B981',
+      'S': '#3B82F6',
+      'M': '#F59E0B',
+      'L': '#EF4444',
+      'XL': '#8B5CF6'
     },
-    forms: {
-      inputStyle: 'default',
-      showLabels: true,
-      showHelpText: true,
-      validationStyle: 'inline',
-      autoSave: false
-    }
-  },
-  layout: {
-    containerWidth: 'normal',
-    sidebarWidth: 'normal',
-    sidebarPosition: 'none',
-    headerHeight: 'medium',
-    headerSticky: true,
-    headerTransparent: false,
-    navigationStyle: 'horizontal',
-    navigationPosition: 'top',
-    showNavigationLabels: true,
-    showNavigationIcons: true,
-    contentPadding: 'medium',
-    contentMaxWidth: 'xl',
-    contentCentered: true,
-    storyGridColumns: 3,
-    projectGridColumns: 2,
-    goalGridColumns: 2,
-    mobileLayout: 'stack',
-    tabletLayout: 'side-by-side',
-    desktopLayout: 'full',
-    sections: {
-      header: true,
-      navigation: true,
-      content: true,
-      footer: false,
-      sidebar: false,
-      classes: true
+    chartColors: {
+      ideal: '#8884d8',
+      actual: '#82ca9d'
     },
-    componentOrder: {
-      header: ['title', 'navigation', 'actions'],
-      navigation: ['groups'],
-      content: ['main'],
-      sidebar: []
-    }
-  },
-  behavior: {
-    interactions: {
-      hoverDelay: 150,
-      clickDelay: 0,
-      doubleClickDelay: 300,
-      dragThreshold: 5,
-      scrollSensitivity: 1
+    ui: {
+      theme: 'system',
+      primaryColor: '#3B82F6',
+      accentColor: '#8B5CF6',
+      backgroundColor: '#ffffff',
+      surfaceColor: '#f8fafc',
+      textColor: '#1f2937',
+      mutedTextColor: '#6b7280',
+      borderColor: '#e5e7eb',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      fontWeight: 'normal',
+      lineHeight: 'normal',
+      spacing: 'normal',
+      borderRadius: 'medium',
+      shadowIntensity: 'medium',
+      header: {
+        show: true,
+        showTitle: true,
+        showNavigation: true,
+        showAddButton: true,
+        showPlannerButton: true,
+        showSettingsButton: true,
+        compactMode: false
+      },
+      navigation: {
+        show: true,
+        showGroupLabels: true,
+        showDescriptions: true,
+        compactMode: false,
+        position: 'top'
+      },
+      addDropdown: {
+        show: true,
+        showSingleAdd: true,
+        showBulkAdd: true,
+        showLabels: true,
+        compactMode: false
+      },
+      buttons: {
+        style: 'default',
+        size: 'medium',
+        showIcons: true,
+        showLabels: true,
+        hoverEffects: true,
+        clickEffects: true
+      },
+      cards: {
+        style: 'default',
+        showBorders: true,
+        showShadows: true,
+        hoverEffects: true,
+        compactMode: false
+      },
+      modals: {
+        backdrop: 'blur',
+        animation: 'slide',
+        size: 'medium',
+        position: 'center'
+      },
+      forms: {
+        inputStyle: 'default',
+        showLabels: true,
+        showHelpText: true,
+        validationStyle: 'inline',
+        autoSave: false
+      }
     },
-    animations: {
-      enabled: true,
-      duration: 'normal',
-      easing: 'ease',
-      reduceMotion: false
+    layout: {
+      containerWidth: 'normal',
+      sidebarWidth: 'normal',
+      sidebarPosition: 'none',
+      headerHeight: 'medium',
+      headerSticky: true,
+      headerTransparent: false,
+      navigationStyle: 'horizontal',
+      navigationPosition: 'top',
+      showNavigationLabels: true,
+      showNavigationIcons: true,
+      contentPadding: 'medium',
+      contentMaxWidth: 'xl',
+      contentCentered: true,
+      storyGridColumns: 3,
+      projectGridColumns: 2,
+      goalGridColumns: 2,
+      mobileLayout: 'stack',
+      tabletLayout: 'side-by-side',
+      desktopLayout: 'full',
+      sections: {
+        header: true,
+        navigation: true,
+        content: true,
+        footer: false,
+        sidebar: false,
+        classes: true
+      },
+      componentOrder: {
+        header: ['title', 'navigation', 'actions'],
+        navigation: ['groups'],
+        content: ['main'],
+        sidebar: []
+      }
     },
-    autoSave: {
-      enabled: false,
-      interval: 30,
-      showIndicator: true,
-      showNotifications: false
+    behavior: {
+      interactions: {
+        hoverDelay: 150,
+        clickDelay: 0,
+        doubleClickDelay: 300,
+        dragThreshold: 5,
+        scrollSensitivity: 1
+      },
+      animations: {
+        enabled: true,
+        duration: 'normal',
+        easing: 'ease',
+        reduceMotion: false
+      },
+      autoSave: {
+        enabled: false,
+        interval: 30,
+        showIndicator: true,
+        showNotifications: false
+      },
+      shortcuts: {
+        enabled: true,
+        showHints: true,
+        customShortcuts: {}
+      },
+      data: {
+        confirmDeletes: true,
+        confirmOverwrites: true,
+        autoBackup: false,
+        backupInterval: 24,
+        maxBackups: 5
+      },
+      navigation: {
+        rememberLastView: true,
+        showBreadcrumbs: false,
+        autoCloseDropdowns: true,
+        keyboardNavigation: true
+      },
+      forms: {
+        autoFocus: true,
+        validateOnBlur: true,
+        validateOnChange: false,
+        showValidationErrors: true,
+        autoComplete: true
+      },
+      modals: {
+        closeOnEscape: true,
+        closeOnBackdrop: true,
+        preventScroll: true,
+        restoreFocus: true
+      }
     },
-    shortcuts: {
-      enabled: true,
-      showHints: true,
-      customShortcuts: {}
+    accessibility: {
+      visual: {
+        highContrast: false,
+        reducedMotion: false,
+        largeText: false,
+        colorBlindFriendly: false,
+        focusIndicators: true
+      },
+      motor: {
+        largeTouchTargets: false,
+        reducedPrecisionRequired: false,
+        voiceControl: false,
+        switchControl: false
+      },
+      cognitive: {
+        simplifiedInterface: false,
+        clearLabels: true,
+        progressIndicators: true,
+        errorPrevention: true,
+        helpText: true
+      },
+      screenReader: {
+        announceChanges: true,
+        describeImages: true,
+        skipLinks: true,
+        landmarks: true
+      },
+      keyboard: {
+        tabOrder: 'logical',
+        focusTrapping: true,
+        escapeHandling: true,
+        arrowKeyNavigation: true
+      }
     },
-    data: {
-      confirmDeletes: true,
-      confirmOverwrites: true,
-      autoBackup: false,
-      backupInterval: 24,
-      maxBackups: 5
-    },
-    navigation: {
-      rememberLastView: true,
-      showBreadcrumbs: false,
-      autoCloseDropdowns: true,
-      keyboardNavigation: true
-    },
-    forms: {
-      autoFocus: true,
-      validateOnBlur: true,
-      validateOnChange: false,
-      showValidationErrors: true,
-      autoComplete: true
-    },
-    modals: {
-      closeOnEscape: true,
-      closeOnBackdrop: true,
-      preventScroll: true,
-      restoreFocus: true
-    }
-  },
-  accessibility: {
-    visual: {
-      highContrast: false,
-      reducedMotion: false,
-      largeText: false,
-      colorBlindFriendly: false,
-      focusIndicators: true
-    },
-    motor: {
-      largeTouchTargets: false,
-      reducedPrecisionRequired: false,
-      voiceControl: false,
-      switchControl: false
-    },
-    cognitive: {
-      simplifiedInterface: false,
-      clearLabels: true,
-      progressIndicators: true,
-      errorPrevention: true,
-      helpText: true
-    },
-    screenReader: {
-      announceChanges: true,
-      describeImages: true,
-      skipLinks: true,
-      landmarks: true
-    },
-    keyboard: {
-      tabOrder: 'logical',
-      focusTrapping: true,
-      escapeHandling: true,
-      arrowKeyNavigation: true
-    }
-  }
+    rules: []
   };
 };
 
@@ -544,7 +550,7 @@ export const updateRoleAtom = atom(
   null,
   (get, set, roleId: string, name: string, color: string) => {
     const settings = get(settingsAtom);
-    const updatedRoles = settings.roles.map(role => 
+    const updatedRoles = settings.roles.map(role =>
       role.id === roleId ? { ...role, name, color } : role
     );
     set(settingsAtom, { ...settings, roles: updatedRoles });
@@ -575,7 +581,7 @@ export const updateLabelAtom = atom(
   null,
   (get, set, labelId: string, name: string, color: string) => {
     const settings = get(settingsAtom);
-    const updatedLabels = settings.labels.map(label => 
+    const updatedLabels = settings.labels.map(label =>
       label.id === labelId ? { ...label, name, color } : label
     );
     set(settingsAtom, { ...settings, labels: updatedLabels });
@@ -606,7 +612,7 @@ export const updateVisionAtom = atom(
   null,
   (get, set, visionId: string, updates: Partial<Vision>) => {
     const visions = get(visionsAtom);
-    const updatedVisions = visions.map(vision => 
+    const updatedVisions = visions.map(vision =>
       vision.id === visionId ? { ...vision, ...updates } : vision
     );
     set(visionsAtom, updatedVisions);
@@ -630,7 +636,7 @@ export const reorderVisionsAtom = atom(
       const vision = visions.find(v => v.id === id);
       return vision ? { ...vision, order: index } : null;
     }).filter((vision): vision is Vision => vision !== null);
-    
+
     set(visionsAtom, reorderedVisions);
   }
 );
@@ -672,10 +678,10 @@ export const updateBucketlistItemAtom = atom(
   null,
   (get, set, itemId: string, updates: Partial<BucketlistItem>) => {
     const items = get(bucketlistAtom);
-    const updatedItems = items.map(item => 
-      item.id === itemId ? { 
-        ...item, 
-        ...updates, 
+    const updatedItems = items.map(item =>
+      item.id === itemId ? {
+        ...item,
+        ...updates,
         updatedAt: new Date().toISOString(),
         completedAt: updates.completed ? new Date().toISOString() : item.completedAt
       } : item
@@ -745,7 +751,7 @@ export const updateTraditionTypeAtom = atom(
   null,
   (get, set, id: string, name: string, color: string) => {
     const currentTypes = get(traditionTypesAtom);
-    set(traditionTypesAtom, currentTypes.map(type => 
+    set(traditionTypesAtom, currentTypes.map(type =>
       type.id === id ? { ...type, name, color } : type
     ));
   }
@@ -777,7 +783,7 @@ export const updateTraditionalCategoryAtom = atom(
   null,
   (get, set, id: string, name: string, color: string) => {
     const currentCategories = get(traditionalCategoriesAtom);
-    set(traditionalCategoriesAtom, currentCategories.map(category => 
+    set(traditionalCategoriesAtom, currentCategories.map(category =>
       category.id === id ? { ...category, name, color } : category
     ));
   }

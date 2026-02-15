@@ -8,16 +8,17 @@ import { FilterBar } from '@/components/forms/FilterBar';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  goalsAtom, 
-  storiesAtom, 
+import {
+  goalsAtom,
+  storiesAtom,
   updateStoryAtom,
   deleteStoryAtom,
   addStoryAtom
 } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
-import { Target, Undo, Plus, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
+import { Target, Undo, Plus, Search, Filter } from 'lucide-react';
 import type { Story } from '@/types';
 
 export function GoalsKanbanBoardsView() {
@@ -29,9 +30,9 @@ export function GoalsKanbanBoardsView() {
   const goalSettings = useGoalSettings();
 
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-  
+
   // Get the current selected goal from the goals atom
-  const selectedGoal = selectedGoalId 
+  const selectedGoal = selectedGoalId
     ? goals.find(g => g.id === selectedGoalId) || null
     : null;
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -66,10 +67,10 @@ export function GoalsKanbanBoardsView() {
   }, [goals, selectedGoalId]);
 
   // Get goal stories
-  const goalStories = selectedGoal 
-    ? stories.filter(story => 
-        story.goalId === selectedGoal.id && !story.deleted
-      )
+  const goalStories = selectedGoal
+    ? stories.filter(story =>
+      story.goalId === selectedGoal.id && !story.deleted
+    )
     : [];
 
   // Define status columns for Kanban using settings colors
@@ -98,7 +99,7 @@ export function GoalsKanbanBoardsView() {
   const handleUndo = () => {
     if (undoStack.length > 0) {
       const lastAction = undoStack[undoStack.length - 1];
-      
+
       if (lastAction.type === 'delete' && lastAction.story) {
         // Restore deleted story by adding it back
         const storyToRestore = { ...lastAction.story, deleted: false };
@@ -107,7 +108,7 @@ export function GoalsKanbanBoardsView() {
         // Restore previous status
         updateStory(lastAction.storyId, { status: lastAction.previousColumnId as any });
       }
-      
+
       // Remove from undo stack
       setUndoStack(prev => prev.slice(0, -1));
     }
@@ -183,7 +184,7 @@ export function GoalsKanbanBoardsView() {
     if (targetStatus) {
       // Determine which stories to move
       const storiesToMove = selectedStories.includes(storyId) ? selectedStories : [storyId];
-      
+
       // Update all selected stories to target status
       storiesToMove.forEach(id => {
         const story = stories.find(s => s.id === id);
@@ -211,8 +212,8 @@ export function GoalsKanbanBoardsView() {
       });
     } else if (event.ctrlKey || event.metaKey) {
       // Multi-select with Ctrl/Cmd
-      setSelectedStories(prev => 
-        prev.includes(storyId) 
+      setSelectedStories(prev =>
+        prev.includes(storyId)
           ? prev.filter(id => id !== storyId)
           : [...prev, storyId]
       );
@@ -261,14 +262,14 @@ export function GoalsKanbanBoardsView() {
               ) : (
                 goals.map((goal) => {
                   const statusColor = goalSettings.getStatusColor(goal.status);
-                  const goalStoriesCount = stories.filter(story => 
+                  const goalStoriesCount = stories.filter(story =>
                     story.goalId === goal.id && !story.deleted
                   ).length;
                   return (
                     <SelectItem key={goal.id} value={goal.id}>
                       <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2 h-2 rounded-full flex-shrink-0" 
+                        <div
+                          className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: statusColor }}
                         />
                         <span>{goal.title}</span>
@@ -370,128 +371,39 @@ export function GoalsKanbanBoardsView() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {/* Column Header Row - Desktop */}
-          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
-            {statusColumns.map((status) => {
-              const columnStories = storiesByStatus[status.id] || [];
-              return (
-                <div
-                  key={status.id}
-                  onClick={() => {
-                    const columnElement = document.querySelector(`[data-column-id="${status.id}"]`);
-                    if (columnElement) {
-                      columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }
-                  }}
-                  className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: `${status.color}20` }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: status.color }}
-                  />
-                  <span className="text-sm font-medium" style={{ color: status.color }}>
-                    {status.name} {columnStories.length}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Column Header Row with Navigation Arrows - Mobile */}
-          <div className="sm:hidden mb-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
-                disabled={currentMobileColumnIndex === 0}
-                className="flex-shrink-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex-1 grid grid-cols-3 gap-1.5">
-                {statusColumns.map((status, index) => {
-                  const columnStories = storiesByStatus[status.id] || [];
-                  const isActive = statusColumns[currentMobileColumnIndex]?.id === status.id;
-                  return (
-                    <div
-                      key={status.id}
-                      onClick={() => setCurrentMobileColumnIndex(index)}
-                      className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                        isActive ? 'ring-2 ring-offset-1' : ''
-                      }`}
-                      style={{ 
-                        backgroundColor: `${status.color}20`,
-                        ...(isActive && { '--tw-ring-color': status.color } as React.CSSProperties)
-                      }}
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: status.color }}
-                      />
-                      <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: status.color }}>
-                        {status.name} {columnStories.length}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentMobileColumnIndex(prev => Math.min(statusColumns.length - 1, prev + 1))}
-                disabled={currentMobileColumnIndex === statusColumns.length - 1}
-                className="flex-shrink-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
           {/* Kanban Board */}
           <div className="min-h-[400px] sm:min-h-[600px]">
-            <DndContext 
-              onDragStart={handleDragStart} 
+            <DndContext
+              onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               sensors={sensors}
             >
-              {/* Desktop Grid Layout */}
-              <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
-                {statusColumns.map((status) => (
-                  <div key={status.id} className="min-w-0" data-column-id={status.id}>
-                    <KanbanColumn
-                      column={{ id: status.id, name: status.name as "Icebox" | "Backlog" | "To Do" | "In Progress" | "Review" | "Done", storyIds: [] }}
-                      stories={storiesByStatus[status.id] || []}
-                      selectedStories={selectedStories}
-                      onStoryClick={handleStoryClick}
-                      onEditStory={handleEditStory}
-                      allColumnIds={allColumnIds}
-                      onMoveToColumn={handleMoveToColumn}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Mobile Single Column Layout */}
-              <div className="sm:hidden">
-                {statusColumns.map((status, index) => (
-                  <div
-                    key={status.id}
-                    className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
-                  >
-                    <KanbanColumn
-                      column={{ id: status.id, name: status.name as "Icebox" | "Backlog" | "To Do" | "In Progress" | "Review" | "Done", storyIds: [] }}
-                      stories={storiesByStatus[status.id] || []}
-                      selectedStories={selectedStories}
-                      onStoryClick={handleStoryClick}
-                      onEditStory={handleEditStory}
-                      allColumnIds={allColumnIds}
-                      onMoveToColumn={handleMoveToColumn}
-                    />
-                  </div>
-                ))}
-              </div>
+              <BoardGridLayout
+                columns={statusColumns.map((status) => ({
+                  id: status.id,
+                  label: status.name,
+                  items: storiesByStatus[status.id] || [],
+                  color: status.color
+                }))}
+                renderItem={() => null} // Not used when renderColumn is provided
+                renderColumn={(column) => (
+                  <KanbanColumn
+                    column={{
+                      id: column.id,
+                      name: column.label as "Icebox" | "Backlog" | "To Do" | "In Progress" | "Review" | "Done",
+                      storyIds: []
+                    }}
+                    stories={column.items}
+                    selectedStories={selectedStories}
+                    onStoryClick={handleStoryClick}
+                    onEditStory={handleEditStory}
+                    allColumnIds={allColumnIds}
+                    onMoveToColumn={handleMoveToColumn}
+                  />
+                )}
+                currentMobileColumnIndex={currentMobileColumnIndex}
+                onMobileColumnChange={setCurrentMobileColumnIndex}
+              />
 
               <DragOverlay>
                 {activeStory ? (
@@ -524,8 +436,8 @@ export function GoalsKanbanBoardsView() {
       )}
 
       {/* Add Story Modal */}
-      <AddStoryModal 
-        open={showAddStoryModal} 
+      <AddStoryModal
+        open={showAddStoryModal}
         onOpenChange={setShowAddStoryModal}
         initialData={{ goalId: selectedGoalId || undefined }}
       />

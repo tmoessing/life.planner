@@ -4,12 +4,14 @@ import { goalsAtom, updateGoalAtom, visionsAtom } from '@/stores/appStore';
 import { useGoalSettings } from '@/utils/settingsMirror';
 import { useSettingsMigration } from '@/hooks/useSettingsMigration';
 import { FilterBar } from '@/components/forms/FilterBar';
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GoalModal } from '@/components/modals/GoalModal';
-import { Target, Heart, Brain, Users, Filter, List, PieChart, Plus, Search, ChevronLeft, ChevronRight, Snowflake, Layers, Circle, PlayCircle, Eye, CheckCircle2, Dumbbell, DollarSign, Shield, Tag, Flag, Sparkles } from 'lucide-react';
+import { Target, Filter, List, PieChart, Plus, Search, Tag, Flag, Layers, Sparkles } from 'lucide-react';
+import { GoalCard } from '@/components/shared/GoalCard';
 import type { Goal } from '@/types';
 
 type BoardType = 'Goal Type' | 'Category' | 'Priority' | 'Status' | 'Vision';
@@ -22,11 +24,11 @@ export function GoalBoardsView() {
 
   // Use settings mirror system for goal settings
   const goalSettings = useGoalSettings();
-  
+
   // Ensure settings are properly migrated
   useSettingsMigration();
-  
-  
+
+
   const [selectedBoardType, setSelectedBoardType] = useState<BoardType>('Goal Type');
   const [viewType, setViewType] = useState<ViewType>('list');
   const [, setDraggedGoalId] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function GoalBoardsView() {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
-  
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -129,10 +131,10 @@ export function GoalBoardsView() {
   const handleDrop = (e: React.DragEvent, targetBoardId: string) => {
     e.preventDefault();
     const goalId = e.dataTransfer.getData('text/plain');
-    
+
     if (goalId) {
       let updates: Partial<Goal> = {};
-      
+
       switch (selectedBoardType) {
         case 'Goal Type':
           updates.goalType = targetBoardId;
@@ -150,71 +152,16 @@ export function GoalBoardsView() {
           updates.visionId = targetBoardId;
           break;
       }
-      
+
       updateGoal(goalId, updates);
     }
-    
+
     setDraggedGoalId(null);
     setDragOverBoardId(null);
   };
 
-  const getStatusColor = (status: string) => {
-    const statusColor = goalSettings.getStatusColor(status);
-    return {
-      backgroundColor: `${statusColor}20`,
-      borderColor: `${statusColor}40`,
-      color: statusColor
-    };
-  };
-
-  // Helper function to get status icon
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'icebox':
-        return <Snowflake className="h-3 w-3" />;
-      case 'backlog':
-        return <Layers className="h-3 w-3" />;
-      case 'todo':
-        return <Circle className="h-3 w-3" />;
-      case 'in-progress':
-        return <PlayCircle className="h-3 w-3" />;
-      case 'review':
-        return <Eye className="h-3 w-3" />;
-      case 'done':
-        return <CheckCircle2 className="h-3 w-3" />;
-      default:
-        return null;
-    }
-  };
-
-  // Helper function to get goal type color
-  const getGoalTypeColor = (goalType: string) => {
-    const goalTypeColor = goalSettings.getTypeColor(goalType);
-    return {
-      backgroundColor: `${goalTypeColor}20`,
-      borderColor: `${goalTypeColor}40`,
-      color: goalTypeColor
-    };
-  };
-
-  // Helper function to get goal type icon
-  const getGoalTypeIcon = (goalType: string) => {
-    switch (goalType) {
-      case 'Spiritual':
-        return <Heart className="h-3 w-3" />;
-      case 'Social':
-        return <Users className="h-3 w-3" />;
-      case 'Intellectual':
-        return <Brain className="h-3 w-3" />;
-      case 'Physical':
-        return <Dumbbell className="h-3 w-3" />;
-      case 'Financial':
-        return <DollarSign className="h-3 w-3" />;
-      case 'Protector':
-        return <Shield className="h-3 w-3" />;
-      default:
-        return null;
-    }
+  const handleStatusChange = (goalId: string, newStatus: Goal['status']) => {
+    updateGoal(goalId, { status: newStatus });
   };
 
   // Helper function to get board type icon
@@ -235,54 +182,10 @@ export function GoalBoardsView() {
     }
   };
 
-  // Get color for board based on type and value
-  const getBoardColor = (boardId: string) => {
-    switch (selectedBoardType) {
-      case 'Goal Type':
-        const goalTypeColor = goalSettings.getTypeColor(boardId);
-        return {
-          backgroundColor: `${goalTypeColor}20`,
-          borderColor: `${goalTypeColor}40`,
-          color: goalTypeColor
-        };
-      case 'Category':
-        const categoryColor = goalSettings.getCategoryColor(boardId);
-        return {
-          backgroundColor: `${categoryColor}20`,
-          borderColor: `${categoryColor}40`,
-          color: categoryColor
-        };
-      case 'Priority':
-        const priorityColor = goalSettings.getPriorityColor(boardId);
-        return {
-          backgroundColor: `${priorityColor}20`,
-          borderColor: `${priorityColor}40`,
-          color: priorityColor
-        };
-      case 'Status':
-        return getStatusColor(boardId);
-      case 'Vision':
-        const vision = visions.find(v => v.id === boardId);
-        if (vision) {
-          const visionColor = goalSettings.getTypeColor('Vision') || '#6B7280';
-          return {
-            backgroundColor: `${visionColor}20`,
-            borderColor: `${visionColor}40`,
-            color: visionColor
-          };
-        }
-        const defaultColor = goalSettings.getTypeColor('default') || '#6B7280';
-        return { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: defaultColor };
-      default:
-        const fallbackColor = goalSettings.getTypeColor('default') || '#6B7280';
-        return { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: fallbackColor };
-    }
-  };
-
   // Pie chart data preparation
   const getPieChartData = () => {
     const boardOptions = getBoardOptions();
-    
+
     return boardOptions.map(board => ({
       label: board.label,
       value: getGoalsForBoard(board.id).length,
@@ -293,7 +196,7 @@ export function GoalBoardsView() {
   const renderPieChart = () => {
     const data = getPieChartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
-    
+
     if (total === 0) {
       return (
         <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -319,12 +222,12 @@ export function GoalBoardsView() {
               const angle = percentage * 360;
               const startAngle = currentAngle;
               const endAngle = currentAngle + angle;
-              
+
               const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
               const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
               const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
               const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
-              
+
               const largeArcFlag = angle > 180 ? 1 : 0;
               const pathData = [
                 `M ${centerX} ${centerY}`,
@@ -332,9 +235,9 @@ export function GoalBoardsView() {
                 `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
                 'Z'
               ].join(' ');
-              
+
               currentAngle += angle;
-              
+
               return (
                 <path
                   key={index}
@@ -348,13 +251,13 @@ export function GoalBoardsView() {
               );
             })}
           </svg>
-          
+
           {/* Legend */}
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
             {data.map((item, index) => (
               <div key={index} className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
+                <div
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
                 <span className="truncate">{item.label}</span>
@@ -503,255 +406,65 @@ export function GoalBoardsView() {
 
       {/* Content */}
       {viewType === 'list' ? (
-        <>
-          {/* Column Header Row - Desktop */}
-          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
-            {boardOptions.map((board) => {
-              const goalsForBoard = getGoalsForBoard(board.id);
-              const boardColor = getBoardColor(board.id);
-              return (
-                <div
-                  key={board.id}
-                  onClick={() => {
-                    const columnElement = document.querySelector(`[data-column-id="${board.id}"]`);
-                    if (columnElement) {
-                      columnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }
-                  }}
-                  className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: `${boardColor.color}20` }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: boardColor.color }}
-                  />
-                  <span className="text-sm font-medium" style={{ color: boardColor.color }}>
-                    {board.label} {goalsForBoard.length}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Column Header Row with Navigation Arrows - Mobile */}
-          <div className="sm:hidden mb-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
-                disabled={currentMobileColumnIndex === 0}
-                className="flex-shrink-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex-1 grid grid-cols-3 gap-1.5">
-                {boardOptions.map((board, index) => {
-                  const goalsForBoard = getGoalsForBoard(board.id);
-                  const boardColor = getBoardColor(board.id);
-                  const isActive = boardOptions[currentMobileColumnIndex]?.id === board.id;
-                  return (
-                    <div
-                      key={board.id}
-                      onClick={() => setCurrentMobileColumnIndex(index)}
-                      className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                        isActive ? 'ring-2 ring-offset-1' : ''
-                      }`}
-                      style={{ 
-                        backgroundColor: `${boardColor.color}20`,
-                        ...(isActive && { '--tw-ring-color': boardColor.color } as React.CSSProperties)
-                      }}
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: boardColor.color }}
-                      />
-                      <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: boardColor.color }}>
-                        {board.label} {goalsForBoard.length}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentMobileColumnIndex(prev => Math.min(boardOptions.length - 1, prev + 1))}
-                disabled={currentMobileColumnIndex === boardOptions.length - 1}
-                className="flex-shrink-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile Single Column Layout */}
-          <div className="sm:hidden">
-            {boardOptions.map((board, index) => {
-              if (index !== currentMobileColumnIndex) return null;
-              const goalsForBoard = getGoalsForBoard(board.id);
-              
-              return (
-                <Card 
-                  key={board.id}
-                  className={`h-96 overflow-y-auto ${
-                    dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  style={getBoardColor(board.id)}
-                  onDragOver={handleDragOver}
-                  onDragEnter={() => handleDragOverBoard(board.id)}
-                  onDragLeave={handleDragLeaveBoard}
-                  onDrop={(e) => handleDrop(e, board.id)}
-                  data-column-id={board.id}
-                >
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center justify-between">
-                          <span className="text-base">{board.label}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {goalsForBoard.length}
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {goalsForBoard.length === 0 ? (
-                          <div className="text-center py-8">
-                            <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                            <p className="text-sm text-muted-foreground">No goals</p>
-                          </div>
-                        ) : (
-                          goalsForBoard.map((goal) => (
-                            <div
-                              key={goal.id}
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, goal.id)}
-                              onDragEnd={handleDragEnd}
-                              onClick={() => handleEditGoal(goal)}
-                              className="p-2 sm:p-3 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
-                            >
-                              <div className="flex items-start justify-between mb-1.5 sm:mb-2">
-                                <h3 className="font-medium text-xs sm:text-sm leading-tight line-clamp-1">{goal.title}</h3>
-                                <div className="flex items-center gap-1">
-                                  <Badge 
-                                    variant="secondary" 
-                                    className="text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5"
-                                    style={getGoalTypeColor(goal.goalType)}
-                                  >
-                                    {getGoalTypeIcon(goal.goalType) || goal.goalType}
-                                  </Badge>
-                                  <Badge 
-                                    variant="secondary" 
-                                    className={`text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5 ${getStatusColor(goal.status)}`}
-                                  >
-                                    {getStatusIcon(goal.status) || goal.status.replace('-', ' ')}
-                                  </Badge>
-                                </div>
-                              </div>
-                              
-                              {goal.description && (
-                                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-1 sm:line-clamp-2">
-                                  {goal.description}
-                                </p>
-                              )}
-                              
-                              <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
-                                <span className="capitalize">{goal.goalType}</span>
-                                <span>•</span>
-                                <span className="capitalize">{goal.category}</span>
-                                <span>•</span>
-                                <span>{goal.priority}</span>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </CardContent>
-                    </Card>
-              );
-            })}
-          </div>
-          
-          {/* Desktop Kanban Grid */}
-          <div className="hidden sm:grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {boardOptions.map((board) => {
-              const goalsForBoard = getGoalsForBoard(board.id);
-              
-              return (
-                <Card 
-                  key={board.id}
-                  className={`h-fit ${
-                    dragOverBoardId === board.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  style={getBoardColor(board.id)}
-                  onDragOver={handleDragOver}
-                  onDragEnter={() => handleDragOverBoard(board.id)}
-                  onDragLeave={handleDragLeaveBoard}
-                  onDrop={(e) => handleDrop(e, board.id)}
-                  data-column-id={board.id}
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center justify-between">
-                      <span className="text-base">{board.label}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {goalsForBoard.length}
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {goalsForBoard.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground">No goals</p>
-                      </div>
-                    ) : (
-                      goalsForBoard.map((goal) => (
-                        <div
-                          key={goal.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, goal.id)}
-                          onDragEnd={handleDragEnd}
-                          onClick={() => handleEditGoal(goal)}
-                          className="p-2 sm:p-3 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
-                        >
-                          <div className="flex items-start justify-between mb-1.5 sm:mb-2">
-                            <h3 className="font-medium text-xs sm:text-sm leading-tight line-clamp-1">{goal.title}</h3>
-                            <div className="flex items-center gap-1">
-                              <Badge 
-                                variant="secondary" 
-                                className="text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5"
-                                style={getGoalTypeColor(goal.goalType)}
-                              >
-                                {getGoalTypeIcon(goal.goalType) || goal.goalType}
-                              </Badge>
-                              <Badge 
-                                variant="secondary" 
-                                className={`text-[10px] sm:text-xs px-1.5 py-0.5 flex items-center gap-0.5 ${getStatusColor(goal.status)}`}
-                              >
-                                {getStatusIcon(goal.status) || goal.status.replace('-', ' ')}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          {goal.description && (
-                            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-1 sm:line-clamp-2">
-                              {goal.description}
-                            </p>
-                          )}
-                          
-                          <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
-                            <span className="capitalize">{goal.goalType}</span>
-                            <span>•</span>
-                            <span className="capitalize">{goal.category}</span>
-                            <span>•</span>
-                            <span>{goal.priority}</span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </>
+        <BoardGridLayout
+          columns={boardOptions.map((board) => ({
+            id: board.id,
+            label: board.label,
+            items: getGoalsForBoard(board.id),
+            color: board.color
+          }))}
+          renderItem={() => null}
+          renderColumn={(column) => (
+            <Card
+              key={column.id}
+              className={`h-full ${dragOverBoardId === column.id ? 'ring-2 ring-blue-500' : ''}`}
+              style={{
+                backgroundColor: `${column.color}20`,
+                borderColor: `${column.color}40`,
+                color: column.color
+              }}
+              onDragOver={(e) => {
+                handleDragOver(e);
+                handleDragOverBoard(column.id);
+              }}
+              onDragLeave={handleDragLeaveBoard}
+              onDrop={(e) => handleDrop(e, column.id)}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>{column.label}</span>
+                  <Badge variant="secondary" className="ml-2">
+                    {column.items.length}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                {column.items.length > 0 ? (
+                  column.items.map((goal) => (
+                    <GoalCard
+                      key={goal.id}
+                      goal={goal}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, goal.id)}
+                      onDragEnd={handleDragEnd}
+                      onClick={() => handleEditGoal(goal)}
+                      onEdit={handleEditGoal}
+                      onStatusChange={handleStatusChange}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Target className="h-8 w-8 opacity-50 mx-auto mb-2" />
+                    <p className="text-sm opacity-70">No goals</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          currentMobileColumnIndex={currentMobileColumnIndex}
+          onMobileColumnChange={setCurrentMobileColumnIndex}
+        />
       ) : (
         <Card>
           <CardHeader>

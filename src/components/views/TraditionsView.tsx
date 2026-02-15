@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Heart, Plus, Trash2, Edit2, Sparkles } from 'lucide-react';
+import { Heart, Plus, Trash2, Edit2 } from 'lucide-react';
 import { traditionsAtom, traditionTypesAtom, traditionalCategoriesAtom } from '@/stores/appStore';
 import { useTraditionSettings } from '@/utils/settingsMirror';
 import { EditTraditionModal } from '@/components/modals/EditTraditionModal';
@@ -17,7 +17,7 @@ export function TraditionsView() {
   const [traditions, setTraditions] = useAtom(traditionsAtom);
   const [traditionTypes] = useAtom(traditionTypesAtom);
   const [traditionalCategories] = useAtom(traditionalCategoriesAtom);
-  
+
   // Use settings mirror system for tradition settings
   const traditionSettings = useTraditionSettings();
   const [newTitle, setNewTitle] = useState('');
@@ -61,13 +61,13 @@ export function TraditionsView() {
   const handleSaveEdit = (updatedTradition: Omit<Tradition, 'id' | 'createdAt'>) => {
     if (!editingTradition) return;
 
-    setTraditions(prev => 
-      prev.map(tradition => 
-        tradition.id === editingTradition.id 
-          ? { 
-              ...tradition, 
-              ...updatedTradition
-            }
+    setTraditions(prev =>
+      prev.map(tradition =>
+        tradition.id === editingTradition.id
+          ? {
+            ...tradition,
+            ...updatedTradition
+          }
           : tradition
       )
     );
@@ -79,7 +79,7 @@ export function TraditionsView() {
   const getTypeInfo = (traditionType: string, traditionalCategory: string) => {
     const typeInfo = traditionTypes.find(t => t.name === traditionType);
     const categoryInfo = traditionalCategories.find(t => t.name === traditionalCategory);
-    
+
     return {
       traditionType: typeInfo ? {
         name: typeInfo.name,
@@ -155,7 +155,7 @@ export function TraditionsView() {
                     {traditionTypes.map((type) => (
                       <SelectItem key={type.name} value={type.name}>
                         <div className="flex items-center gap-2">
-                          <div 
+                          <div
                             className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: type.color }}
                           />
@@ -182,7 +182,7 @@ export function TraditionsView() {
                     {traditionalCategories.map((category) => (
                       <SelectItem key={category.name} value={category.name}>
                         <div className="flex items-center gap-2">
-                          <div 
+                          <div
                             className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: category.color }}
                           />
@@ -197,7 +197,7 @@ export function TraditionsView() {
                 <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleAddTradition}
                   disabled={!newTitle.trim()}
                   className="bg-blue-600 hover:bg-blue-700"
@@ -229,46 +229,46 @@ export function TraditionsView() {
         <div className="space-y-3 sm:space-y-4">
           {/* Traditions List */}
           <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {traditions.map((tradition) => {
-            const typeInfo = getTypeInfo(tradition.traditionType, tradition.traditionalCategory);
-            return (
-              <Card key={tradition.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3 sm:p-4">
-                  <div>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
-                          style={{ backgroundColor: typeInfo.traditionType.color }}
-                        />
-                        <div>
-                          <h3 className="font-semibold text-sm sm:text-lg">{tradition.title}</h3>
-                          <div className="flex gap-1.5 sm:gap-2 mt-1">
-                            <Badge 
-                              variant="secondary" 
-                              className="text-[10px] sm:text-xs"
-                              style={{ 
-                                backgroundColor: `${typeInfo.traditionType.color}20`,
-                                color: typeInfo.traditionType.color,
-                                borderColor: `${typeInfo.traditionType.color}40`
-                              }}
-                            >
-                              {typeInfo.traditionType.name}
-                            </Badge>
-                            <Badge 
-                              variant="outline" 
-                              className="text-[10px] sm:text-xs"
-                              style={{ 
-                                backgroundColor: `${typeInfo.traditionalCategory.color}20`,
-                                color: typeInfo.traditionalCategory.color,
-                                borderColor: `${typeInfo.traditionalCategory.color}40`
-                              }}
-                            >
-                              {typeInfo.traditionalCategory.name}
-                            </Badge>
+            {traditions.map((tradition) => {
+              const typeInfo = getTypeInfo(tradition.traditionType, tradition.traditionalCategory);
+              return (
+                <Card key={tradition.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-3 sm:p-4">
+                    <div>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
+                            style={{ backgroundColor: typeInfo.traditionType.color }}
+                          />
+                          <div>
+                            <h3 className="font-semibold text-sm sm:text-lg">{tradition.title}</h3>
+                            <div className="flex gap-1.5 sm:gap-2 mt-1">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] sm:text-xs"
+                                style={{
+                                  backgroundColor: `${typeInfo.traditionType.color}20`,
+                                  color: typeInfo.traditionType.color,
+                                  borderColor: `${typeInfo.traditionType.color}40`
+                                }}
+                              >
+                                {typeInfo.traditionType.name}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] sm:text-xs"
+                                style={{
+                                  backgroundColor: `${typeInfo.traditionalCategory.color}20`,
+                                  color: typeInfo.traditionalCategory.color,
+                                  borderColor: `${typeInfo.traditionalCategory.color}40`
+                                }}
+                              >
+                                {typeInfo.traditionalCategory.name}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                      </div>
                         <div className="flex gap-1">
                           <Button
                             size="sm"

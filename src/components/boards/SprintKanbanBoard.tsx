@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAtom } from 'jotai';
 import { sprintStoriesByStatusAtom, storiesAtom, moveStoryAtom, updateStoryAtom, deleteStoryAtom } from '@/stores/appStore';
 import { KanbanColumn } from '@/components/boards/KanbanColumn';
@@ -6,7 +6,8 @@ import { EditStoryModal } from '@/components/modals/EditStoryModal';
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay, useDroppable } from '@dnd-kit/core';
 import { StoryCard } from '@/components/shared/StoryCard';
 import { Button } from '@/components/ui/button';
-import { Undo, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
+import { Undo, Trash2 } from 'lucide-react';
 import { useStorySettings } from '@/utils/settingsMirror';
 import { useShakeToUndo } from '@/hooks/useShakeToUndo';
 import type { Story } from '@/types';
@@ -19,9 +20,9 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
   const [sprintStoriesByStatus] = useAtom(sprintStoriesByStatusAtom);
   const [allStories] = useAtom(storiesAtom);
   const storySettings = useStorySettings();
-  
+
   // Use all stories if showAllSprints is true, otherwise use sprint-specific stories
-  const storiesByStatus = showAllSprints ? 
+  const storiesByStatus = showAllSprints ?
     allStories.reduce((acc, story) => {
       if (!story.deleted) {
         const status = story.status;
@@ -29,10 +30,10 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
         acc[status].push(story);
       }
       return acc;
-    }, {} as Record<string, Story[]>) : 
+    }, {} as Record<string, Story[]>) :
     sprintStoriesByStatus;
-  
-  
+
+
   // Define the status columns
   // When viewing a specific sprint (not all sprints), hide icebox and backlog columns
   const allStatusColumns = useMemo(() => [
@@ -43,10 +44,10 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     { id: 'review', name: 'Review' as const, storyIds: [] },
     { id: 'done', name: 'Done' as const, storyIds: [] }
   ], []);
-  
-  const statusColumns = useMemo(() => 
-    showAllSprints 
-      ? allStatusColumns 
+
+  const statusColumns = useMemo(() =>
+    showAllSprints
+      ? allStatusColumns
       : allStatusColumns.filter(col => col.id !== 'icebox' && col.id !== 'backlog'),
     [showAllSprints, allStatusColumns]
   );
@@ -55,7 +56,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
   const [, deleteStory] = useAtom(deleteStoryAtom);
   // const [, addStory] = useAtom(addStoryAtom);
   // const [, updateStory] = useAtom(updateStoryAtom);
-  
+
   const [selectedStories, setSelectedStories] = useState<string[]>([]);
   const [, setLastSelectedIndex] = useState<number | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
@@ -74,32 +75,11 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
   const backlogIndex = statusColumns.findIndex(col => col.id === 'backlog');
   const todoIndex = statusColumns.findIndex(col => col.id === 'todo');
   const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(
-    showAllSprints 
+    showAllSprints
       ? (backlogIndex >= 0 ? backlogIndex : 0)
       : (todoIndex >= 0 ? todoIndex : 0)
   );
-  const scrollTargetRef = useRef<string | null>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update mobile column index when showAllSprints changes (but don't reset if user has manually selected a column)
-  const hasUserSelectedColumn = useRef(false);
-  
-  useEffect(() => {
-    // Only auto-reset if user hasn't manually selected a column
-    if (!hasUserSelectedColumn.current) {
-      if (showAllSprints) {
-        const backlogIdx = statusColumns.findIndex(col => col.id === 'backlog');
-        if (backlogIdx >= 0) {
-          setCurrentMobileColumnIndex(backlogIdx);
-        }
-      } else {
-        const todoIdx = statusColumns.findIndex(col => col.id === 'todo');
-        if (todoIdx >= 0) {
-          setCurrentMobileColumnIndex(todoIdx);
-        }
-      }
-    }
-  }, [showAllSprints, statusColumns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -135,7 +115,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
     const story = Object.values(storiesByStatus)
       .flat()
       .find(s => s.id === storyId);
-    
+
     if (story) {
       // Add to undo stack before deleting
       setUndoStack(prev => [...prev, {
@@ -143,7 +123,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
         storyId,
         story: { ...story }
       }]);
-      
+
       // Delete the story
       deleteStory(storyId);
     }
@@ -154,7 +134,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
   const handleDragStart = (event: DragStartEvent) => {
     const storyId = event.active.id as string;
     setActiveId(storyId);
-    
+
     // Find the active story
     const story = Object.values(storiesByStatus)
       .flat()
@@ -223,7 +203,7 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
               }
             }
           };
-          
+
           // Update the story with the new repeat configuration
           updateStory(originalStory.id, { repeat: updatedRepeat });
         }
@@ -236,13 +216,13 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     // Check if dropped on delete zone
     if (over && over.id === 'delete-zone') {
       const storyId = active.id as string;
       handleDeleteStory(storyId);
     }
-    
+
     setActiveId(null);
     setActiveStory(null);
     setDragOverColumn(null);
@@ -252,8 +232,8 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
   const handleStoryClick = (storyId: string, event: React.MouseEvent, _storyList?: Story[], _index?: number) => {
     if (event.ctrlKey || event.metaKey) {
       // Multi-select
-      setSelectedStories(prev => 
-        prev.includes(storyId) 
+      setSelectedStories(prev =>
+        prev.includes(storyId)
           ? prev.filter(id => id !== storyId)
           : [...prev, storyId]
       );
@@ -340,17 +320,17 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
             w-16 h-16 sm:w-20 sm:h-20 rounded-full
             transition-all duration-200
             ${isHovering
-              ? 'bg-red-500 shadow-lg shadow-red-500/50 ring-4 ring-red-300/50' 
+              ? 'bg-red-500 shadow-lg shadow-red-500/50 ring-4 ring-red-300/50'
               : 'bg-red-400 shadow-md'
             }
           `}
         >
-          <Trash2 
+          <Trash2
             className={`
               h-8 w-8 sm:h-10 sm:w-10 text-white
               transition-transform duration-200
               ${isHovering ? 'scale-110 rotate-12' : ''}
-            `} 
+            `}
           />
         </div>
       </div>
@@ -382,155 +362,24 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
           </div>
         )}
 
-        {/* Column Header Row - Desktop */}
-        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-2">
-          {statusColumns.map((column) => {
-            const columnStories = storiesByStatus[column.id] || [];
-            const statusColor = storySettings.getStatusColor(column.id);
-            return (
-              <button
-                key={column.id}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  // Mark that user has manually selected a column
-                  hasUserSelectedColumn.current = true;
-                  
-                  // Find the scrollable container (main element or window)
-                  const mainElement = document.querySelector('main');
-                  
-                  // Use double requestAnimationFrame to ensure DOM is ready
-                  requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                      const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
-                      if (columnElement) {
-                        // Store scroll target to prevent interference
-                        scrollTargetRef.current = column.id;
-                        
-                        // Get current scroll position to prevent reset
-                        const currentScrollY = window.scrollY;
-                        const currentScrollX = window.scrollX;
-                        
-                        // Scroll the element into view
-                        columnElement.scrollIntoView({ 
-                          behavior: 'smooth', 
-                          block: 'start',
-                          inline: 'nearest'
-                        });
-                        
-                        // Prevent any scroll reset by maintaining position if needed
-                        const preventScrollReset = () => {
-                          // Check if scroll was reset
-                          if (Math.abs(window.scrollY - currentScrollY) > 50 && scrollTargetRef.current === column.id) {
-                            // Scroll was reset, restore it
-                            const elementTop = columnElement.getBoundingClientRect().top + window.pageYOffset;
-                            window.scrollTo({
-                              top: elementTop - 120,
-                              behavior: 'smooth'
-                            });
-                          }
-                        };
-                        
-                        // Check for scroll reset after a short delay
-                        setTimeout(() => {
-                          preventScrollReset();
-                        }, 100);
-                        
-                        // Clear the target after scroll completes
-                        setTimeout(() => {
-                          scrollTargetRef.current = null;
-                        }, 1000);
-                      }
-                    });
-                  });
-                }}
-                className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity text-left w-full"
-                style={{ backgroundColor: `${statusColor}20` }}
-              >
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: statusColor }}
-                />
-                <span className="text-sm font-medium" style={{ color: statusColor }}>
-                  {column.name} {columnStories.length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Column Header Row with Navigation Arrows - Mobile */}
-        <div className="sm:hidden mb-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentMobileColumnIndex(prev => Math.max(0, prev - 1))}
-              disabled={currentMobileColumnIndex === 0}
-              className="flex-shrink-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 grid grid-cols-3 gap-1.5">
-              {statusColumns.map((column, index) => {
-                const columnStories = storiesByStatus[column.id] || [];
-                const statusColor = storySettings.getStatusColor(column.id);
-                const isActive = statusColumns[currentMobileColumnIndex]?.id === column.id;
-                return (
-                  <button
-                    key={column.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      hasUserSelectedColumn.current = true;
-                      setCurrentMobileColumnIndex(index);
-                    }}
-                    className={`flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity ${
-                      isActive ? 'ring-2 ring-offset-1' : ''
-                    }`}
-                    style={{ 
-                      backgroundColor: `${statusColor}20`,
-                      ...(isActive && { '--tw-ring-color': statusColor } as React.CSSProperties)
-                    }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: statusColor }}
-                    />
-                    <span className="text-xs font-medium truncate flex-1 min-w-0" style={{ color: statusColor }}>
-                      {column.name} {columnStories.length}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentMobileColumnIndex(prev => Math.min(statusColumns.length - 1, prev + 1))}
-              disabled={currentMobileColumnIndex === statusColumns.length - 1}
-              className="flex-shrink-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Kanban Board */}
-        {/* Desktop Grid Layout */}
-        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {statusColumns.map((column) => (
-            <div key={column.id} className="min-w-0" data-column-id={column.id}>
+        {/* Board Grid Layout */}
+        <BoardGridLayout
+          columns={statusColumns.map((column) => ({
+            id: column.id,
+            label: column.name,
+            items: storiesByStatus[column.id] || [],
+            color: storySettings.getStatusColor(column.id)
+          }))}
+          renderItem={() => null} // Handled by renderColumn
+          renderColumn={(column) => (
+            <div className="w-72 sm:w-auto h-full" data-column-id={column.id}>
               <KanbanColumn
-                column={column}
-                stories={storiesByStatus[column.id] || []}
+                column={{ id: column.id, name: column.label as any, storyIds: [] }}
+                stories={column.items}
+                selectedStories={selectedStories}
                 onStoryClick={handleStoryClick}
                 onEditStory={handleEditStory}
                 onDeleteStory={handleDeleteStory}
-                selectedStories={selectedStories}
                 isDragOver={dragOverColumn === column.id}
                 activeStoryId={activeId || undefined}
                 activeStory={activeStory}
@@ -538,32 +387,11 @@ export function SprintKanbanBoard({ showAllSprints = false }: SprintKanbanBoardP
                 onMoveToColumn={handleMoveToColumn}
               />
             </div>
-          ))}
-        </div>
-
-        {/* Mobile Single Column Layout */}
-        <div className="sm:hidden">
-          {statusColumns.map((column, index) => (
-            <div
-              key={column.id}
-              className={index === currentMobileColumnIndex ? 'block' : 'hidden'}
-            >
-              <KanbanColumn
-                column={column}
-                stories={storiesByStatus[column.id] || []}
-                onStoryClick={handleStoryClick}
-                onEditStory={handleEditStory}
-                onDeleteStory={handleDeleteStory}
-                selectedStories={selectedStories}
-                isDragOver={dragOverColumn === column.id}
-                activeStoryId={activeId || undefined}
-                activeStory={activeStory}
-                allColumnIds={allColumnIds}
-                onMoveToColumn={handleMoveToColumn}
-              />
-            </div>
-          ))}
-        </div>
+          )}
+          currentMobileColumnIndex={currentMobileColumnIndex}
+          onMobileColumnChange={setCurrentMobileColumnIndex}
+          gridClassName="gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+        />
       </div>
 
       {/* Edit Modal */}

@@ -9,14 +9,14 @@ import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 
 export function RolesSettings() {
   const [settings, setSettings] = useAtom(settingsAtom);
-  
-  
+
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newRole, setNewRole] = useState({ name: '', color: '#6B7280' });
   const [editRole, setEditRole] = useState({ name: '', color: '#6B7280' });
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const addInputRef = useRef<HTMLInputElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,7 +35,7 @@ export function RolesSettings() {
 
   const handleAdd = async () => {
     if (!newRole.name.trim()) return;
-    
+
     setIsLoading(true);
     try {
       const newRoleItem = {
@@ -58,10 +58,10 @@ export function RolesSettings() {
 
   const handleUpdate = async (roleName: string) => {
     if (!editRole.name.trim()) return;
-    
+
     setIsLoading(true);
     try {
-      const updatedRoles = settings.roles.map(r => 
+      const updatedRoles = settings.roles.map(r =>
         r.name === roleName ? { ...r, name: editRole.name.trim(), color: editRole.color } : r
       );
       setSettings({ ...settings, roles: updatedRoles });
@@ -123,16 +123,16 @@ export function RolesSettings() {
               </div>
             </div>
             <div className="flex items-center gap-2 justify-end">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={handleAdd}
                 disabled={isLoading || !newRole.name.trim()}
               >
                 <Check className="h-4 w-4" />
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setIsAdding(false)}
                 disabled={isLoading}
               >
@@ -141,8 +141,8 @@ export function RolesSettings() {
             </div>
           </div>
         ) : (
-          <Button 
-            onClick={() => setIsAdding(true)} 
+          <Button
+            onClick={() => setIsAdding(true)}
             className="gap-2"
             disabled={isLoading}
           >
@@ -175,16 +175,16 @@ export function RolesSettings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 justify-end">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => handleUpdate(role.name)}
                       disabled={isLoading || !editRole.name.trim()}
                     >
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={handleCancelEdit}
                       disabled={isLoading}
                     >
@@ -194,24 +194,24 @@ export function RolesSettings() {
                 </div>
               ) : (
                 <>
-                  <div 
+                  <div
                     className="w-4 h-4 rounded border"
                     style={{ backgroundColor: role.color }}
                   />
                   <span className="flex-1">{role.name}</span>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => handleEdit(role)}
                     disabled={isLoading}
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDelete(role.name)}
-                    disabled={isLoading}
+                    title="Delete Story Role"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Filter, X, RotateCcw } from 'lucide-react';
 import type { StoryFilters, Priority, StoryType } from '@/types';
 
@@ -41,7 +42,7 @@ export function StoryFilterBar({
   const statuses = ['icebox', 'backlog', 'todo', 'progress', 'review', 'done'];
 
   const getActiveFilterCount = () => {
-    return Object.entries(filters).filter(([key, value]) => 
+    return Object.entries(filters).filter(([key, value]) =>
       key !== 'sprintId' && value !== 'all'
     ).length;
   };
@@ -92,7 +93,7 @@ export function StoryFilterBar({
           </div>
         </div>
       </CardHeader>
-      
+
       {showFilters && (
         <CardContent className="pt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -145,7 +146,7 @@ export function StoryFilterBar({
             {/* Role Filter */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Role
+                Story Role
               </label>
               <Select
                 value={filters.roleId}
@@ -155,7 +156,7 @@ export function StoryFilterBar({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="all">All Story Roles</SelectItem>
                   {roles.map(role => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.name}
@@ -303,23 +304,15 @@ export function StoryFilterBar({
               </Select>
             </div>
 
-            {/* Location Filter */}
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                Location
+            {/* Show Done Filter */}
+            <div className="flex items-center justify-between space-x-2 p-2 rounded-md border border-input bg-background/50">
+              <label className="text-xs font-medium text-muted-foreground mr-auto">
+                Show Done Stories
               </label>
-              <Select
-                value={filters.location}
-                onValueChange={(value) => onFilterChange('location', value)}
-              >
-                <SelectTrigger className="h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  {/* This would need to be populated with actual locations from stories */}
-                </SelectContent>
-              </Select>
+              <Switch
+                checked={filters.showDone}
+                onCheckedChange={(checked) => onFilterChange('showDone', checked)}
+              />
             </div>
           </div>
         </CardContent>

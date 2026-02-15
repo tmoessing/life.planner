@@ -1,0 +1,39 @@
+
+> life.planner@1.0.0 build
+> tsc && vite build
+
+src/components/shared/StatusSelector.tsx(51,40): error TS2694: Namespace 'NodeJS' has no exported member 'Timeout'.
+src/components/shared/StatusSelector.tsx(73,29): error TS6133: 'e' is declared but its value is never read.
+src/components/shared/StatusSelector.tsx(82,27): error TS6133: 'e' is declared but its value is never read.
+src/components/shared/StatusSelector.tsx(113,26): error TS6133: 'e' is declared but its value is never read.
+src/components/shared/StoryCard.tsx(97,5): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
+src/components/shared/StoryCardDesktop.tsx(119,50): error TS2367: This comparison appears to be unintentional because the types '"icebox" | "backlog" | "todo" | "review" | "done"' and '"in-progress"' have no overlap.
+src/components/shared/StoryCardMobile.tsx(92,48): error TS2367: This comparison appears to be unintentional because the types '"icebox" | "backlog" | "todo" | "review" | "done"' and '"in-progress"' have no overlap.
+src/components/views/board/StoryPieChart.tsx(12,39): error TS6133: 'title' is declared but its value is never read.
+src/components/views/ClassView.tsx(13,1): error TS6133: 'Label' is declared but its value is never read.
+src/components/views/FocusView.tsx(54,12): error TS6133: 'updateStory' is declared but its value is never read.
+src/components/views/FocusView.tsx(145,9): error TS6133: 'getClassTypeColor' is declared but its value is never read.
+src/components/views/FocusView.tsx(178,9): error TS6133: 'getAssignmentTypeColor' is declared but its value is never read.
+src/components/views/FocusView.tsx(225,9): error TS6133: 'formatTime' is declared but its value is never read.
+src/components/views/SimpleBucketlistMap.tsx(3,26): error TS6133: 'getLocationKey' is declared but its value is never read.
+src/components/views/SimpleBucketlistMap.tsx(145,36): error TS6133: 'index' is declared but its value is never read.
+src/components/views/TraditionsView.tsx(7,29): error TS6133: 'CardHeader' is declared but its value is never read.
+src/components/views/TraditionsView.tsx(7,41): error TS6133: 'CardTitle' is declared but its value is never read.
+src/components/views/TraditionsView.tsx(10,38): error TS6133: 'Sparkles' is declared but its value is never read.
+src/hooks/useErrorHandler.ts(15,33): error TS6133: 'options' is declared but its value is never read.
+src/hooks/useFormValidation.ts(22,5): error TS6133: 'debounceMs' is declared but its value is never read.
+src/hooks/useFormValidation.ts(73,13): error TS6133: 'result' is declared but its value is never read.
+src/hooks/useProjectForm.ts(30,3): error TS6133: 'onClose' is declared but its value is never read.
+src/hooks/useStoryDragAndDrop.ts(2,1): error TS6133: 'Story' is declared but its value is never read.
+src/hooks/useStoryKeyboardShortcuts.ts(1,21): error TS6133: 'useRef' is declared but its value is never read.
+src/registry/viewRegistry.ts(7,86): error TS2339: Property 'TodayView' does not exist on type 'typeof import("C:/Users/tmoes/DEV/life.planner/src/components/views/FocusView")'.
+src/utils/accessibilityUtils.ts(173,56): error TS6133: 'description' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(178,50): error TS6133: 'error' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(185,46): error TS6133: 'title' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(193,46): error TS6133: 'title' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(198,52): error TS6133: 'description' is declared but its value is never read.
+src/utils/assignmentRecurrenceUtils.ts(146,3): error TS6133: 'classItem' is declared but its value is never read.
+src/utils/index.ts(65,52): error TS2741: Property 'rules' is missing in type '{ theme: "system"; roles: { id: string; name: string; color: string; }[]; labels: { id: string; name: string; color: string; }[]; storyTypes: { name: string; color: string; }[]; storySizes: { name: string; color: string; timeEstimate: string; }[]; ... 28 more ...; accessibility: { ...; }; }' but required in type 'Settings'.
+src/utils/performanceUtils.ts(200,22): error TS2554: Expected 1 arguments, but got 0.

@@ -4,7 +4,7 @@ import type { ViewType } from '@/types';
 
 // Lazy load all view components for better code splitting
 const viewComponents: Record<ViewType, ComponentType> = {
-  'today': lazy(() => import('@/components/views/FocusView').then(m => ({ default: m.TodayView }))),
+  'today': lazy(() => import('@/components/views/FocusView').then(m => ({ default: m.FocusView }))),
   'sprint': lazy(() => import('@/components/views/SprintView').then(m => ({ default: m.SprintView }))),
   'story-boards': lazy(() => import('@/components/views/StoryBoardsViewRefactored').then(m => ({ default: m.StoryBoardsViewRefactored }))),
   'importance': lazy(() => import('@/components/views/ImportanceView').then(m => ({ default: m.ImportanceView }))),

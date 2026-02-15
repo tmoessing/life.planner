@@ -26,8 +26,7 @@ interface ProjectFormData {
 export function useProjectForm({
   project,
   mode,
-  projectStatuses,
-  onClose
+  projectStatuses
 }: UseProjectFormProps) {
   const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
@@ -84,8 +83,8 @@ export function useProjectForm({
   };
 
   const handleStoryToggle = (storyId: string) => {
-    setSelectedStories(prev => 
-      prev.includes(storyId) 
+    setSelectedStories(prev =>
+      prev.includes(storyId)
         ? prev.filter(id => id !== storyId)
         : [...prev, storyId]
     );

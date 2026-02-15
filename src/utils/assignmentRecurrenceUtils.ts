@@ -112,7 +112,7 @@ export function getClassMeetingDates(
   classItem.schedule.forEach(scheduleItem => {
     const scheduleStart = scheduleItem.startDate ? new Date(scheduleItem.startDate) : startDate;
     const scheduleEnd = scheduleItem.endDate ? new Date(scheduleItem.endDate) : end;
-    
+
     // Convert day abbreviations to day numbers
     const dayNumbers = scheduleItem.days.map(day => dayMap[day]).filter(day => day !== undefined);
 
@@ -143,7 +143,7 @@ export function getClassMeetingDates(
  */
 export function formatRecurrencePattern(
   pattern: AssignmentRecurrencePattern,
-  classItem?: Class
+  _classItem?: Class
 ): string {
   if (pattern.type === 'before-class') {
     return 'Before each class';
@@ -158,7 +158,7 @@ export function formatRecurrencePattern(
 
     const frequency = pattern.type === 'biweekly' ? 'Biweekly' : 'Weekly';
     const timeStr = pattern.time ? ` at ${formatTime(pattern.time)}` : '';
-    
+
     return `${frequency} on ${days}${timeStr}`;
   }
 

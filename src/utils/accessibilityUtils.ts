@@ -111,9 +111,9 @@ export const announceToScreenReader = (message: string): void => {
   announcement.setAttribute('aria-atomic', 'true');
   announcement.className = 'sr-only';
   announcement.textContent = message;
-  
+
   document.body.appendChild(announcement);
-  
+
   setTimeout(() => {
     document.body.removeChild(announcement);
   }, 1000);
@@ -124,21 +124,21 @@ export const getContrastRatio = (color1: string, color2: string): number => {
   const getLuminance = (color: string): number => {
     const rgb = hexToRgb(color);
     if (!rgb) return 0;
-    
+
     const { r, g, b } = rgb;
     const [rs, gs, bs] = [r, g, b].map(c => {
       c = c / 255;
       return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
     });
-    
+
     return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
   };
-  
+
   const l1 = getLuminance(color1);
   const l2 = getLuminance(color2);
   const lighter = Math.max(l1, l2);
   const darker = Math.min(l1, l2);
-  
+
   return (lighter + 0.05) / (darker + 0.05);
 };
 
@@ -170,19 +170,19 @@ export const createFormFieldProps = (
   'aria-errormessage': error ? `${id}-error` : undefined
 });
 
-export const createFormFieldDescription = (id: string, description: string) => ({
+export const createFormFieldDescription = (id: string, _description: string) => ({
   id: getAriaDescribedBy(id),
   className: 'text-sm text-muted-foreground'
 });
 
-export const createFormFieldError = (id: string, error: string) => ({
+export const createFormFieldError = (id: string, _error: string) => ({
   id: `${id}-error`,
   role: 'alert',
   'aria-live': 'polite' as const
 });
 
 // Modal accessibility
-export const createModalProps = (id: string, title: string) => ({
+export const createModalProps = (id: string, _title: string) => ({
   id,
   role: 'dialog',
   'aria-modal': 'true',
@@ -190,12 +190,12 @@ export const createModalProps = (id: string, title: string) => ({
   'aria-describedby': `${id}-description`
 });
 
-export const createModalTitle = (id: string, title: string) => ({
+export const createModalTitle = (id: string, _title: string) => ({
   id: `${id}-title`,
   className: 'text-lg font-semibold'
 });
 
-export const createModalDescription = (id: string, description: string) => ({
+export const createModalDescription = (id: string, _description: string) => ({
   id: `${id}-description`,
   className: 'text-sm text-muted-foreground'
 });
@@ -217,11 +217,11 @@ export const createListItemProps = (id: string, index: number, total: number) =>
 // Button accessibility
 export const createButtonProps = (
   label: string,
-  description?: string,
+  _description?: string,
   pressed?: boolean,
   expanded?: boolean
 ) => ({
-  'aria-label': getAriaLabel(label, description),
+  'aria-label': getAriaLabel(label, _description),
   'aria-pressed': pressed !== undefined ? pressed : undefined,
   'aria-expanded': expanded !== undefined ? expanded : undefined
 });
@@ -283,7 +283,7 @@ export const isDarkMode = (): boolean => {
 // Accessibility testing helpers
 export const validateAccessibility = (element: HTMLElement): string[] => {
   const issues: string[] = [];
-  
+
   // Check for missing alt text on images
   const images = element.querySelectorAll('img');
   images.forEach((img, index) => {
@@ -291,7 +291,7 @@ export const validateAccessibility = (element: HTMLElement): string[] => {
       issues.push(`Image ${index + 1} is missing alt text`);
     }
   });
-  
+
   // Check for missing labels on form inputs
   const inputs = element.querySelectorAll('input, select, textarea');
   inputs.forEach((input, index) => {
@@ -303,19 +303,19 @@ export const validateAccessibility = (element: HTMLElement): string[] => {
       }
     }
   });
-  
+
   // Check for missing headings
   const headings = element.querySelectorAll('h1, h2, h3, h4, h5, h6');
   if (headings.length === 0) {
     issues.push('No headings found - consider adding heading structure');
   }
-  
+
   // Check for missing landmarks
   const landmarks = element.querySelectorAll('[role="main"], [role="navigation"], [role="banner"], [role="contentinfo"]');
   if (landmarks.length === 0) {
     issues.push('No landmark roles found - consider adding semantic landmarks');
   }
-  
+
   return issues;
 };
 

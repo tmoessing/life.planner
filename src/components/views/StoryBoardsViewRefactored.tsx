@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { MouseEvent } from 'react';
 import { useAtom } from 'jotai';
-import { 
-  storiesAtom, 
-  rolesAtom, 
-  visionsAtom, 
-  safeSprintsAtom, 
-  settingsAtom, 
+import {
+  storiesAtom,
+  rolesAtom,
+  visionsAtom,
+  safeSprintsAtom,
+  settingsAtom,
   deleteStoryAtom,
   goalsAtom,
   projectsAtom
@@ -17,20 +17,22 @@ import { useStorySelection } from '@/hooks/useStorySelection';
 import { useStoryDragAndDrop } from '@/hooks/useStoryDragAndDrop';
 import { StoryCard } from '@/components/shared/StoryCard';
 import { StoryFilterBar } from '@/components/shared/StoryFilterBar';
+import { BoardGridLayout } from '@/components/shared/BoardGridLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AddStoryModal } from '@/components/modals/AddStoryModal';
 import { EditStoryModal } from '@/components/modals/EditStoryModal';
-import { 
-  Plus, 
-  List, 
-  PieChart
+import { StoryPieChart } from '@/components/views/board/StoryPieChart';
+import {
+  Plus,
+  List,
+  PieChart,
+  Filter
 } from 'lucide-react';
-import { 
-  groupStoriesByPriority, 
-  groupStoriesByStatus, 
+import {
+  groupStoriesByPriority,
+  groupStoriesByStatus,
   groupStoriesByType,
   groupStoriesByRole,
   groupStoriesByVision,
@@ -58,7 +60,7 @@ export function StoryBoardsViewRefactored() {
 
   // Use settings mirror system
   const storySettings = useStorySettings();
-  
+
   // Custom hooks
   const {
     filters,
@@ -67,16 +69,15 @@ export function StoryBoardsViewRefactored() {
     applyFilters,
     hasActiveFilters
   } = useStoryFilters();
-  
+
   const {
     selectedStoryIds,
-    selectAll,
     clearSelection,
     isSelected,
     getSelectedStories,
     handleMultiSelect
   } = useStorySelection();
-  
+
   const {
     isDragging,
     getDragOverClasses
@@ -90,17 +91,26 @@ export function StoryBoardsViewRefactored() {
   const [selectedBoardType, setSelectedBoardType] = useState<BoardType>('Priority');
   const [viewType, setViewType] = useState<ViewType>('list');
   const [showFilters, setShowFilters] = useState(false);
+  const [currentMobileColumnIndex, setCurrentMobileColumnIndex] = useState(0);
 
   // Update sprint filter when selectedSprintId changes
   useEffect(() => {
     updateFilter('sprintId', selectedSprintId);
   }, [selectedSprintId, updateFilter]);
 
+  // Handle auto-showing done stories when on Status board
+  useEffect(() => {
+    if (selectedBoardType === 'Status') {
+      // updateFilter is now stabilized to prevent redundant updates
+      updateFilter('showDone', true);
+    }
+  }, [selectedBoardType, updateFilter]);
+
   // Get filtered stories
-  const filteredStories = applyFilters(stories);
+  const filteredStories = useMemo(() => applyFilters(stories), [stories, applyFilters]);
 
   // Group stories based on selected board type
-  const getGroupedStories = () => {
+  const groupedStories = useMemo(() => {
     switch (selectedBoardType) {
       case 'Priority':
         return groupStoriesByPriority(filteredStories);
@@ -127,101 +137,74 @@ export function StoryBoardsViewRefactored() {
       default:
         return groupStoriesByPriority(filteredStories);
     }
-  };
-
-  const groupedStories = getGroupedStories();
+  }, [selectedBoardType, filteredStories, roles, visions, goals, projects]);
 
   // Get color for board based on type and value
-  const getBoardColor = (boardId: string) => {
+  const getBoardColor = useCallback((boardId: string) => {
+    let color = '#6B7280';
+
     switch (selectedBoardType) {
       case 'Priority':
-        const priorityColor = storySettings.getPriorityColor(boardId as Priority);
-        return {
-          backgroundColor: `${priorityColor}20`,
-          borderColor: `${priorityColor}40`,
-          color: priorityColor
-        };
+        color = storySettings.getPriorityColor(boardId as Priority);
+        break;
       case 'Status':
-        const statusColor = storySettings.getStatusColor(boardId);
-        return {
-          backgroundColor: `${statusColor}20`,
-          borderColor: `${statusColor}40`,
-          color: statusColor
-        };
+        color = storySettings.getStatusColor(boardId);
+        break;
       case 'Type':
-        const typeColor = storySettings.getTypeColor(boardId);
-        return {
-          backgroundColor: `${typeColor}20`,
-          borderColor: `${typeColor}40`,
-          color: typeColor
-        };
+        color = storySettings.getTypeColor(boardId);
+        break;
       case 'Role':
         const role = roles.find(r => r.id === boardId);
-        const roleColor = role?.color || '#6B7280';
-        return {
-          backgroundColor: `${roleColor}20`,
-          borderColor: `${roleColor}40`,
-          color: roleColor
-        };
+        color = role?.color || '#6B7280';
+        break;
       case 'Vision':
         const vision = visions.find(v => v.id === boardId);
-        const visionColor = vision ? storySettings.getVisionTypeColor(vision.type) : '#6B7280';
-        return {
-          backgroundColor: `${visionColor}20`,
-          borderColor: `${visionColor}40`,
-          color: visionColor
-        };
+        color = vision ? storySettings.getVisionTypeColor(vision.type) : '#6B7280';
+        break;
       case 'Goal':
         const goal = goals.find(g => g.id === boardId);
-        const goalColor = goal ? storySettings.getTypeColor(goal.goalType) : '#6B7280';
-        return {
-          backgroundColor: `${goalColor}20`,
-          borderColor: `${goalColor}40`,
-          color: goalColor
-        };
+        color = goal ? storySettings.getTypeColor(goal.goalType) : '#6B7280';
+        break;
       case 'Project':
         // Projects don't have a type property, use a default color
-        const projectColor = '#6B7280';
-        return {
-          backgroundColor: `${projectColor}20`,
-          borderColor: `${projectColor}40`,
-          color: projectColor
-        };
+        color = '#6B7280';
+        break;
       case 'Weight':
-        const weightColor = storySettings.getPriorityColor(boardId as Priority);
-        return {
-          backgroundColor: `${weightColor}20`,
-          borderColor: `${weightColor}40`,
-          color: weightColor
-        };
+        color = storySettings.getPriorityColor(boardId as Priority);
+        break;
       case 'Size':
-        const sizeColor = storySettings.getSizeColor(boardId);
-        return {
-          backgroundColor: `${sizeColor}20`,
-          borderColor: `${sizeColor}40`,
-          color: sizeColor
-        };
+        color = storySettings.getSizeColor(boardId);
+        break;
       case 'Location':
+        color = '#6B7280'; // Default for location
         return {
           backgroundColor: '#F9FAFB',
           borderColor: '#E5E7EB',
           color: '#6B7280'
         };
       case 'Task Categories':
-        const taskCategoryColor = storySettings.getTaskCategoryColor(boardId);
-        return {
-          backgroundColor: `${taskCategoryColor}20`,
-          borderColor: `${taskCategoryColor}40`,
-          color: taskCategoryColor
-        };
+        color = storySettings.getTaskCategoryColor(boardId);
+        break;
       default:
-        return {
-          backgroundColor: '#F9FAFB',
-          borderColor: '#E5E7EB',
-          color: '#6B7280'
-        };
+        color = '#6B7280';
     }
-  };
+
+    return {
+      backgroundColor: `${color}20`,
+      borderColor: `${color}40`,
+      color: color
+    };
+  }, [selectedBoardType, storySettings, roles, visions, goals]);
+
+  // Pie chart data preparation
+  const pieChartData = useMemo(() => {
+    return Object.entries(groupedStories).map(([groupName, stories]) => ({
+      label: groupName,
+      value: stories.length,
+      color: getBoardColor(groupName).color
+    })).filter(item => item.value > 0);
+  }, [groupedStories, getBoardColor]);
+
 
   // Handle story actions
   const handleEditStory = (story: Story) => {
@@ -244,171 +227,170 @@ export function StoryBoardsViewRefactored() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Story Boards</h1>
-          <p className="text-muted-foreground">
-            Organize and visualize your stories by different criteria
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+        {/* Left side: Sprint selector, Group by selector, and View Toggle */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sprint Selection */}
+          <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
+            <SelectTrigger className="w-[105px] sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sprints</SelectItem>
+              {sprints.map(sprint => (
+                <SelectItem key={sprint.id} value={sprint.id}>
+                  Week {sprint.isoWeek}, {sprint.year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Board Type Selection */}
+          <Select value={selectedBoardType} onValueChange={(value) => {
+            setSelectedBoardType(value as BoardType);
+            setCurrentMobileColumnIndex(0);
+          }}>
+            <SelectTrigger className="w-[105px] sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Priority">Priority</SelectItem>
+              <SelectItem value="Status">Status</SelectItem>
+              <SelectItem value="Type">Type</SelectItem>
+              <SelectItem value="Role">Story Role</SelectItem>
+              <SelectItem value="Vision">Vision</SelectItem>
+              <SelectItem value="Goal">Goal</SelectItem>
+              <SelectItem value="Project">Project</SelectItem>
+              <SelectItem value="Weight">Weight</SelectItem>
+              <SelectItem value="Size">Size</SelectItem>
+              <SelectItem value="Location">Location</SelectItem>
+              <SelectItem value="Task Categories">Task Categories</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* View Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setViewType(viewType === 'list' ? 'pie' : 'list')}
+            className="gap-2 flex-shrink-0"
+          >
+            {viewType === 'list' ? (
+              <>
+                <List className="h-4 w-4" />
+                <span className="hidden sm:inline">List</span>
+              </>
+            ) : (
+              <>
+                <PieChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Chart</span>
+              </>
+            )}
+          </Button>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button onClick={() => setShowAddStoryModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Story
+
+        {/* Right side: Filter and Add Story buttons */}
+        <div className="flex flex-nowrap items-center gap-2">
+          {/* Bulk Actions */}
+          {selectedStoryIds.size > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">
+                {selectedStoryIds.size} selected
+              </span>
+              <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
+                Delete
+              </Button>
+              <Button size="sm" variant="outline" onClick={clearSelection}>
+                Clear
+              </Button>
+            </div>
+          )}
+
+          <Button
+            variant={showFilters ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`gap-2 ${showFilters ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:border-gray-600'}`}
+          >
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filter</span>
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowAddStoryModal(true)}
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Story</span>
           </Button>
         </div>
       </div>
 
-      {/* Controls */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4">
-              {/* Sprint Selection */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium">Sprint:</label>
-                <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sprints</SelectItem>
-                    {sprints.map(sprint => (
-                      <SelectItem key={sprint.id} value={sprint.id}>
-                        Week {sprint.isoWeek}, {sprint.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Board Type Selection */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium">Group by:</label>
-                <Select value={selectedBoardType} onValueChange={(value) => setSelectedBoardType(value as BoardType)}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Priority">Priority</SelectItem>
-                    <SelectItem value="Status">Status</SelectItem>
-                    <SelectItem value="Type">Type</SelectItem>
-                    <SelectItem value="Role">Role</SelectItem>
-                    <SelectItem value="Vision">Vision</SelectItem>
-                    <SelectItem value="Goal">Goal</SelectItem>
-                    <SelectItem value="Project">Project</SelectItem>
-                    <SelectItem value="Weight">Weight</SelectItem>
-                    <SelectItem value="Size">Size</SelectItem>
-                    <SelectItem value="Location">Location</SelectItem>
-                    <SelectItem value="Task Categories">Task Categories</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* View Type Selection */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium">View:</label>
-                <div className="flex items-center space-x-1">
-                  <Button
-                    size="sm"
-                    variant={viewType === 'list' ? 'default' : 'outline'}
-                    onClick={() => setViewType('list')}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={viewType === 'pie' ? 'default' : 'outline'}
-                    onClick={() => setViewType('pie')}
-                  >
-                    <PieChart className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Bulk Actions */}
-            {selectedStoryIds.size > 0 && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                  {selectedStoryIds.size} selected
-                </span>
-                <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
-                  Delete
-                </Button>
-                <Button size="sm" variant="outline" onClick={clearSelection}>
-                  Clear
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-      </Card>
-
       {/* Filters */}
-      <StoryFilterBar
-        filters={filters}
-        onFilterChange={updateFilter}
-        onResetFilters={resetFilters}
-        hasActiveFilters={hasActiveFilters}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        roles={roles}
-        visions={visions}
-        goals={goals}
-        projects={projects}
-        labels={storySettings.labels}
-        settings={settings}
-      />
+      {showFilters && (
+        <StoryFilterBar
+          filters={filters}
+          onFilterChange={updateFilter}
+          onResetFilters={resetFilters}
+          hasActiveFilters={hasActiveFilters}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          roles={roles}
+          visions={visions}
+          goals={goals}
+          projects={projects}
+          labels={storySettings.labels}
+          settings={settings}
+        />
+      )}
 
-      {/* Story Groups */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-        {Object.entries(groupedStories).map(([groupName, groupStories]) => (
-          <Card 
-            key={groupName} 
-            className={getDragOverClasses(groupName, 'board')}
-            style={getBoardColor(groupName)}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">
-                  {groupName}
-                  <Badge variant="secondary" className="ml-2">
-                    {groupStories.length}
-                  </Badge>
-                </CardTitle>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => selectAll(groupStories)}
-                >
-                  Select All
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {groupStories.map((story, index) => (
-                  <StoryCard
-                    key={story.id}
-                    story={story}
-                    index={index}
-                    onEdit={handleEditStory}
-                    onDelete={handleDeleteStory}
-                    onSelect={(storyId, idx, event) => handleStorySelect(storyId, idx, event)}
-                    isSelected={isSelected(story.id)}
-                    isDragging={isDragging(story.id)}
-                    showActions={true}
-                    className="transition-all duration-200"
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+
+      {/* Content */}
+      {viewType === 'list' ? (
+        <BoardGridLayout
+          columns={Object.entries(groupedStories).map(([groupName, groupStories]) => ({
+            id: groupName,
+            label: groupName,
+            items: groupStories,
+            color: getBoardColor(groupName).color
+          }))}
+          renderItem={(story, index) => (
+            <StoryCard
+              key={story.id}
+              story={story}
+              index={index}
+              onEdit={handleEditStory}
+              onDelete={handleDeleteStory}
+              onSelect={(storyId, idx, event) => handleStorySelect(storyId, idx, event)}
+              isSelected={isSelected(story.id)}
+              isDragging={isDragging(story.id)}
+              showActions={true}
+              className="transition-all duration-200"
+            />
+          )}
+          currentMobileColumnIndex={currentMobileColumnIndex}
+          onMobileColumnChange={setCurrentMobileColumnIndex}
+          dragOverClasses={(columnId) => getDragOverClasses(columnId, 'board')}
+          gridClassName="gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+        />
+      ) : (
+        /* Pie Chart View */
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5" />
+              {selectedBoardType} Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StoryPieChart data={pieChartData} />
+          </CardContent>
+        </Card>
+      )}
+
 
       {/* Modals */}
       {showAddStoryModal && (

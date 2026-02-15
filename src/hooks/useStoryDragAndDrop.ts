@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Story } from '@/types';
+// import type { Story } from '@/types';
 
 export interface DragState {
   draggedStoryId: string | null;
@@ -22,7 +22,7 @@ export function useStoryDragAndDrop() {
   }, []);
 
   const handleDragOver = useCallback((
-    targetId: string, 
+    targetId: string,
     targetType: 'sprint' | 'board' | 'column'
   ) => {
     setDragState(prev => ({
@@ -53,8 +53,8 @@ export function useStoryDragAndDrop() {
   }, [dragState.draggedStoryId]);
 
   const isDragOver = useCallback((targetId: string, targetType: 'sprint' | 'board' | 'column') => {
-    return dragState.dragOverTargetId === targetId && 
-           dragState.dragOverTargetType === targetType;
+    return dragState.dragOverTargetId === targetId &&
+      dragState.dragOverTargetType === targetType;
   }, [dragState.dragOverTargetId, dragState.dragOverTargetType]);
 
   const getDragOverClasses = useCallback((targetId: string, targetType: 'sprint' | 'board' | 'column') => {

@@ -14,6 +14,7 @@ export interface StoryFilters {
   dueDate: string | 'all';
   scheduledDate: string | 'all';
   sprintId: string | 'all';
+  showDone: boolean;
 }
 
 export interface StoryStats {

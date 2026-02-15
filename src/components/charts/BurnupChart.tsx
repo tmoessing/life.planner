@@ -33,12 +33,12 @@ export function BurnupChart() {
 
     return days.map((day) => {
       const dayStr = format(day, 'MMM dd');
-      
+
       // For burnup, we show cumulative completed work
       // For now, we'll show current completion as a flat line
       // In a real implementation, you'd track daily completion with timestamps
       const completed = Math.min(totalScope, completedWeight);
-      
+
       return {
         day: dayStr,
         completed: Math.round(completed),
@@ -60,17 +60,6 @@ export function BurnupChart() {
     );
   }
 
-  if (data.length === 0) {
-    return (
-      <div className="h-64 flex items-center justify-center text-gray-500">
-        <div className="text-center">
-          <p>No data available</p>
-          <p className="text-sm">Add stories to the sprint to see burnup</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
@@ -80,17 +69,17 @@ export function BurnupChart() {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="completed" 
-            stroke="#82ca9d" 
+          <Line
+            type="monotone"
+            dataKey="completed"
+            stroke="#82ca9d"
             strokeWidth={2}
             name="Completed"
           />
-          <Line 
-            type="monotone" 
-            dataKey="total" 
-            stroke="#8884d8" 
+          <Line
+            type="monotone"
+            dataKey="total"
+            stroke="#8884d8"
             strokeWidth={2}
             name="Total Scope"
             strokeDasharray="5 5"

@@ -1,0 +1,51 @@
+src/components/shared/StatusSelector.tsx(51,40): error TS2694: Namespace 'NodeJS' has no exported member 'Timeout'.
+src/components/shared/StatusSelector.tsx(73,29): error TS6133: 'e' is declared but its value is never read.
+src/components/shared/StatusSelector.tsx(82,27): error TS6133: 'e' is declared but its value is never read.
+src/components/shared/StatusSelector.tsx(113,26): error TS6133: 'e' is declared but its value is never read.
+src/components/shared/StoryCard.tsx(97,5): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
+src/components/shared/StoryCardDesktop.tsx(119,50): error TS2367: This comparison appears to be unintentional because the types '"icebox" | "backlog" | "todo" | "review" | "done"' and '"in-progress"' have no overlap.
+src/components/shared/StoryCardMobile.tsx(92,48): error TS2367: This comparison appears to be unintentional because the types '"icebox" | "backlog" | "todo" | "review" | "done"' and '"in-progress"' have no overlap.
+src/components/views/AddStoriesViewRefactored.tsx(385,23): error TS2322: Type '(el: HTMLInputElement | null) => HTMLInputElement | null' is not assignable to type 'Ref<HTMLInputElement> | undefined'.
+  Type '(el: HTMLInputElement | null) => HTMLInputElement | null' is not assignable to type '(instance: HTMLInputElement | null) => void | (() => VoidOrUndefinedOnly)'.
+    Type 'HTMLInputElement | null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+      Type 'null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+src/components/views/AddStoriesViewRefactored.tsx(416,21): error TS2322: Type '(el: HTMLTextAreaElement | null) => HTMLTextAreaElement | null' is not assignable to type 'Ref<HTMLTextAreaElement> | undefined'.
+  Type '(el: HTMLTextAreaElement | null) => HTMLTextAreaElement | null' is not assignable to type '(instance: HTMLTextAreaElement | null) => void | (() => VoidOrUndefinedOnly)'.
+    Type 'HTMLTextAreaElement | null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+      Type 'null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+src/components/views/board/StoryPieChart.tsx(12,39): error TS6133: 'title' is declared but its value is never read.
+src/components/views/ClassView.tsx(13,1): error TS6133: 'Label' is declared but its value is never read.
+src/components/views/GoalBoardsView.tsx(117,9): error TS6133: 'handleDragOver' is declared but its value is never read.
+src/components/views/GoalBoardsView.tsx(122,9): error TS6133: 'handleDragOverBoard' is declared but its value is never read.
+src/components/views/GoalBoardsView.tsx(126,9): error TS6133: 'handleDragLeaveBoard' is declared but its value is never read.
+src/components/views/GoalBoardsView.tsx(130,9): error TS6133: 'handleDrop' is declared but its value is never read.
+src/components/views/GoalBoardsView.tsx(240,9): error TS6133: 'getBoardColor' is declared but its value is never read.
+src/components/views/SimpleBucketlistMap.tsx(3,26): error TS6133: 'getLocationKey' is declared but its value is never read.
+src/components/views/SimpleBucketlistMap.tsx(145,36): error TS6133: 'index' is declared but its value is never read.
+src/components/views/TodayView.tsx(31,3): error TS6133: 'BookOpen' is declared but its value is never read.
+src/components/views/TodayView.tsx(57,21): error TS6196: 'Story' is declared but never used.
+src/components/views/TodayView.tsx(94,10): error TS6133: 'isProgressExpanded' is declared but its value is never read.
+src/components/views/TodayView.tsx(94,30): error TS6133: 'setIsProgressExpanded' is declared but its value is never read.
+src/components/views/TodayView.tsx(177,9): error TS6133: 'getClassName' is declared but its value is never read.
+src/components/views/TodayView.tsx(365,29): error TS6133: 'goalId' is declared but its value is never read.
+src/components/views/TraditionsView.tsx(7,29): error TS6133: 'CardHeader' is declared but its value is never read.
+src/components/views/TraditionsView.tsx(7,41): error TS6133: 'CardTitle' is declared but its value is never read.
+src/components/views/TraditionsView.tsx(10,38): error TS6133: 'Sparkles' is declared but its value is never read.
+src/hooks/useErrorHandler.ts(15,33): error TS6133: 'options' is declared but its value is never read.
+src/hooks/useFormValidation.ts(22,5): error TS6133: 'debounceMs' is declared but its value is never read.
+src/hooks/useFormValidation.ts(73,13): error TS6133: 'result' is declared but its value is never read.
+src/hooks/useProjectForm.ts(30,3): error TS6133: 'onClose' is declared but its value is never read.
+src/hooks/useStoryDragAndDrop.ts(2,1): error TS6133: 'Story' is declared but its value is never read.
+src/hooks/useStoryKeyboardShortcuts.ts(1,21): error TS6133: 'useRef' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(173,56): error TS6133: 'description' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(178,50): error TS6133: 'error' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(185,46): error TS6133: 'title' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(193,46): error TS6133: 'title' is declared but its value is never read.
+src/utils/accessibilityUtils.ts(198,52): error TS6133: 'description' is declared but its value is never read.
+src/utils/assignmentRecurrenceUtils.ts(146,3): error TS6133: 'classItem' is declared but its value is never read.
+src/utils/performanceUtils.ts(200,22): error TS2554: Expected 1 arguments, but got 0.
+src/utils/settingsMirror.ts(160,30): error TS6133: 'weight' is declared but its value is never read.
+src/utils/settingsMirror.ts(160,46): error TS6133: 'maxValue' is declared but its value is never read.
+src/utils/settingsMirror.ts(299,20): error TS6133: 'city' is declared but its value is never read.

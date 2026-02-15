@@ -39,12 +39,12 @@ export function BurndownChart() {
     return days.map((day, index) => {
       const dayStr = format(day, 'MMM dd');
       const idealRemaining = Math.max(0, totalWeight - (idealBurndown * index));
-      
+
       // Calculate actual remaining based on current completion
       // For now, we'll show current completion as a flat line
       // In a real implementation, you'd track daily progress with timestamps
       const actualRemaining = Math.max(0, totalWeight - completedWeight);
-      
+
       return {
         day: dayStr,
         ideal: Math.round(idealRemaining),
@@ -66,17 +66,6 @@ export function BurndownChart() {
     );
   }
 
-  if (data.length === 0) {
-    return (
-      <div className="h-64 flex items-center justify-center text-gray-500">
-        <div className="text-center">
-          <p>No data available</p>
-          <p className="text-sm">Add stories to the sprint to see burndown</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
@@ -86,17 +75,17 @@ export function BurndownChart() {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="ideal" 
+          <Line
+            type="monotone"
+            dataKey="ideal"
             stroke={storySettings.chartColors?.ideal || "#8884d8"}
             strokeWidth={2}
             name="Ideal"
             strokeDasharray="5 5"
           />
-          <Line 
-            type="monotone" 
-            dataKey="actual" 
+          <Line
+            type="monotone"
+            dataKey="actual"
             stroke={storySettings.chartColors?.actual || "#82ca9d"}
             strokeWidth={2}
             name="Actual"
